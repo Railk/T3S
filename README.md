@@ -15,8 +15,8 @@ Typescript plugin for sublime text 2 and 3 using Typescript tools (Tss)
 
 ### Usage:
 	
-	##### You have a sublime text project :
-		You can indicate your typescript root files in your project_name.sublime-project like so :
+##### You have a sublime text project :
+You can indicate your typescript root files in your project_name.sublime-project like so :
 			
 		```
 		"settings":
@@ -30,16 +30,16 @@ Typescript plugin for sublime text 2 and 3 using Typescript tools (Tss)
 		}
 		```
 
-	##### You don't have a sublime text project :
+##### You don't have a sublime text project :
+You can create a .sublimets file in the folder containing the typescript root file
 
-		You can create a .sublimets file in the folder containing the typescript root file
 		```
 		{
 			"root":"root_file_name.ts"
 		}
 		```
 
-	If you don't chose either of this solutions the plugin wil launch a process for each file
+If you don't chose either of this solutions the plugin wil launch a process for each file
 
 
 ### OS
@@ -52,10 +52,10 @@ Tested on windows only for the moment
 Click the Preferences > Browse Packages… menu
 
 
-#### Without Git: 
+#### Without Git : 
 	Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named Typescript.
 
-#### With Git: 
+#### With Git : 
 	Clone the repository in your Sublime Text "Packages" directory.
 
 

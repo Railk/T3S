@@ -1,13 +1,21 @@
-TypeScript Tools Sublime (T3S)
+TSS Sublime (T3S)
 ----------------------------------------------------------------------------
-Author: Microsoft Open Technologies, Inc.
 
-TypeScript bundle for Sublime, this bundle provides syntax highlighting.
+Typescript plugin for sublime text 2 and 3 using Typescript tools (Tss)
 
-This is provided as a sample to help you get started coding with TypeScript in Sublime
 
 ## Feature
-1. TypeScript language syntax highlighting 
+1. TypeScript language autocompletions
+1. TypeScript language error highlighting
 
-## Installation
-Installation instructions can be found here: http://docs.sublimetext.info
+
+## Installation Sublime Text 3
+
+#Sublime text Package directory:
+Click the Preferences > Browse Packages… menu
+Browse up a folder and then into the Installed Packages/ folder
+
+#Without Git: Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named Typescript.
+
+#With Git: Clone the repository in your Sublime Text "Packages" directory.
+

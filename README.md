@@ -62,8 +62,8 @@ You can indicate your typescript root files in your project_name.sublime-project
 		{
 			"typescript":
 			[
-				"path/to/your/root/file_1",
-				"path/to/your/root/file_2",
+				"absolute/path/to/your/root/file_1",
+				"absolute/path/to/your/root/file_2",
 				...
 			]
 		}
@@ -83,4 +83,4 @@ If you don't chose either of these solutions the plugin wil launch a process for
 ##### Initialisation :
 When you load a .ts file the plugin will initialize the root file or the current file and it can take some time for huge project.
 
-The Sublime Text Status bar will indicate Typescript intializing during this phase and disapear when it's finished
+The Sublime Text Status bar will indicate Typescript initializing during this phase and disapear when it's finished

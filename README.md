@@ -37,7 +37,7 @@ Clone the repository in your Sublime Text "Packages" directory.
 ##### You have a sublime text project :
 You can indicate your typescript root files in your project_name.sublime-project like so :
 			
-		```
+		
 		"settings":
 		{
 			"typescript":
@@ -47,15 +47,15 @@ You can indicate your typescript root files in your project_name.sublime-project
 				...
 			]
 		}
-		```
+		
 
 ##### You don't have a sublime text project :
 You can create a .sublimets file in the folder containing the typescript root file
 
-		```
+
 		{
 			"root":"root_file_name.ts"
 		}
-		```
+
 
 If you don't chose either of this solutions the plugin wil launch a process for each file

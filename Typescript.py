@@ -236,11 +236,11 @@ class Tss(object):
 
 	# ERRORS
 	def show_errors(self,view,errors):
-		#try:
+		try:
 			errors = json.loads(errors)
 			self.highlight_errors(view,errors)
-		# except:
-		# 	pass
+		except:
+			pass
 
 
 	def highlight_errors(self,view,errors) :

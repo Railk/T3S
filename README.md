@@ -62,8 +62,8 @@ You can indicate your typescript root files in your project_name.sublime-project
 		{
 			"typescript":
 			[
-				"absolute/path/to/your/root/file_1",
-				"absolute/path/to/your/root/file_2",
+				"absolute/path/to/your/root/file_1.ts",
+				"absolute/path/to/your/root/file_2.ts",
 				...
 			]
 		}

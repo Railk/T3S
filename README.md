@@ -1,7 +1,9 @@
 TSS Sublime (T3S)
 ----------------------------------------------------------------------------
 
-Typescript plugin for sublime text 2 and 3 using Typescript tools (Tss)
+Typescript plugin for sublime text 2 and 3 using Typescript tools (Tss).
+I'm using the same error icons has SublimeLinter.
+I took inspiration from : https://github.com/raph-amiard/sublime-typescript
 
 
 ### Feature :

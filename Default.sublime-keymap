@@ -1,0 +1,14 @@
+[
+    {
+        "command": "typescript_complete",
+        "args": {"characters": "."},
+        "keys": ["."],
+        "context": [ {"key": "typescript"} ]
+    },
+    {
+        "command": "typescript_complete",
+        "args": {"characters": ""},
+        "keys": ["ctrl+space"],
+        "context": [ {"key": "typescript"} ]
+    }
+]

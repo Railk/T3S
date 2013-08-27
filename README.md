@@ -9,6 +9,11 @@ Typescript plugin for sublime text 2 and 3 using Typescript tools (Tss)
 2. TypeScript language error highlighting
 
 
+## Dependencies
+
+1. nodejs
+2 tss https://github.com/clausreinke/typescript-tools
+
 ## OS
 Tested on windows only for the moment
 

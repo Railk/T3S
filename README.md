@@ -58,4 +58,4 @@ You can create a .sublimets file in the folder containing the typescript root fi
 		}
 
 
-If you don't chose either of this solutions the plugin wil launch a process for each file
+If you don't chose either of these solutions the plugin wil launch a process for each file

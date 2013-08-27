@@ -19,8 +19,7 @@ Tested on windows only for the moment
 ### Installation Sublime Text 3 :
 
 #### Sublime text Package directory :
-1. Click the Preferences > Browse Packages… menu
-2. Browse up a folder and then into the Installed Packages/ folder
+Click the Preferences > Browse Packages… menu
 
 
 #### Without Git: 

@@ -6,8 +6,11 @@ Typescript plugin for sublime text 2 and 3 using Typescript tools (Tss)
 
 ## Feature
 1. TypeScript language autocompletions
-1. TypeScript language error highlighting
+2. TypeScript language error highlighting
 
+
+## OS
+Tested on windows only for the moment
 
 ## Installation Sublime Text 3
 
@@ -15,7 +18,8 @@ Typescript plugin for sublime text 2 and 3 using Typescript tools (Tss)
 Click the Preferences > Browse Packages… menu
 Browse up a folder and then into the Installed Packages/ folder
 
-#Without Git: Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named Typescript.
 
-#With Git: Clone the repository in your Sublime Text "Packages" directory.
+Without Git: Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named Typescript.
+
+With Git: Clone the repository in your Sublime Text "Packages" directory.
 

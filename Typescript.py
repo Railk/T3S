@@ -2,7 +2,7 @@
 
 import sublime
 import sublime_plugin
-from queue import Queue
+from Queue import Queue
 from threading import Thread
 from subprocess import Popen, PIPE
 import subprocess
@@ -16,11 +16,13 @@ import re
 ICONS_PATH = os.path.join('..', 'Typescript', 'icons')
 TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')
 GLOBALS = {}
-COMPLETION_LIST = []
 ERRORS = {}
+COMPLETION_LIST = []
+ERRORS_LIST = []
 
 
 # -------------------------------------- UTILITIES -------------------------------------- #
+
 def get_lines(view):
 	(line,col) = view.rowcol(view.size())
 	return line
@@ -38,14 +40,14 @@ def is_member_completion(line):
 	return line.endswith(".") or partial_completion()
 
 
-# ----------------------------------------- TSS ---------------------------------------- #
+# ----------------------------------------- TSS ----------------------------------------- #
 
 class Tss(object):
 
-	threads = []
-	errors = []
 	queues = {}
 	processes = {}
+	threads = []
+	errors_list = []
 	prefixes = {
 		'method': u'◉',
 		'property': u'●',
@@ -72,7 +74,7 @@ class Tss(object):
 
 	# GET PROCESS
 	def get_process(self,view):
-		filename = view.file_name();
+		filename = view.file_name()
 		if filename in self.processes:
 			return self.processes[filename]
 
@@ -101,7 +103,7 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('reload\n','UTF-8'))
+		process.stdin.write(bytes('reload\n'))
 		process.stdout.readline().decode('UTF-8')
 
 
@@ -120,41 +122,38 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('completions {0} {1} {2} {3}\n'.format(member,str(line+1),str(col+1),view.file_name().replace('\\','/')),'UTF-8'))
+		process.stdin.write(bytes('completions {0} {1} {2} {3}\n'.format(member,str(line+1),str(col+1),view.file_name().replace('\\','/'))))
 		data = process.stdout.readline().decode('UTF-8')
 
 		try:
 			entries = json.loads(data)['entries']
 		except:
-			entries = []
-		
-		self.prepare_completions_list(entries)
+			entries =[]
 
+		self.prepare_completions_list(entries)
+	
 
 	# UPDATE FILE
-	def update(self,view):
+	def update(self,view,content,lines):
 		process = self.get_process(view)
 		if process == None:
 			return
 
-		(lineCount, col) = view.rowcol(view.size())
-		content = view.substr(sublime.Region(0, view.size()))
-		process.stdin.write(bytes('update {0} {1}\n'.format(str(lineCount+1),view.file_name().replace('\\','/')),'UTF-8'))
-		process.stdin.write(bytes(content+'\n','UTF-8'))
+		process.stdin.write(bytes('update {0} {1}\n'.format(str(lines+1),view.file_name().replace('\\','/'))))
+		process.stdin.write(bytes(content+'\n'))
 		process.stdout.readline().decode('UTF-8')
 
 
 	# GET ERRORS
-	def errors(self,view):
+	def errors(self,view,content,lines):
 		if self.get_process(view) == None:
-			return
-
+		 	return
+		
+		del ERRORS_LIST[:]
 		filename = view.file_name()
-		(lineCount, col) = view.rowcol(view.size())
-		content = view.substr(sublime.Region(0, view.size()))
-		self.queues[filename]['stdin'].put(bytes('update {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/')),'UTF-8'))
-		self.queues[filename]['stdin'].put(bytes(content+'\n','UTF-8'))
-		self.queues[filename]['stdin'].put(bytes('showErrors\n'.format(filename.replace('\\','/')),'UTF-8'))
+		self.queues[filename]['stdin'].put(bytes('update {0} {1}\n'.format(str(lines+1),filename.replace('\\','/'))))
+		self.queues[filename]['stdin'].put(bytes(content+'\n'))
+		self.queues[filename]['stdin'].put(bytes('showErrors\n'.format(filename.replace('\\','/'))))
 
 
 	# ADD THREADS
@@ -193,7 +192,9 @@ class Tss(object):
 			return
 
 		sublime.status_message('')
-		self.errors(sublime.active_window().active_view())
+		
+		view = sublime.active_window().active_view()
+		self.errors(view,get_content(view),get_lines(view))
 
 
 	# COMPLETIONS LIST
@@ -235,20 +236,19 @@ class Tss(object):
 			return entry['name']
 
 	# ERRORS
-	def show_errors(self,view,errors):
-		#try:
-			errors = json.loads(errors)
-			self.highlight_errors(view,errors)
-		# except:
-		# 	pass
-
-
 	def highlight_errors(self,view,errors) :
-		char_regions = []
+		try:
+			errors = json.loads(errors)
+			for e in errors :
+				ERRORS_LIST.append(e)
+		except:
+			pass
+
 		filename = view.file_name()
+		char_regions = []
 
 		ERRORS[filename] = {}
-		for e in errors :
+		for e in ERRORS_LIST :
 			if os.path.realpath(e['file']) == filename:
 				start_line = e['start']['line']
 				end_line = e['end']['line']
@@ -273,12 +273,11 @@ class Tss(object):
 
 	def get_error_at(self,pos,filename):
 		if filename in ERRORS:
-			for (l, h), error in ERRORS[filename].items():
+			for (l, h), error in ERRORS[filename].iteritems():
 				if pos >= l and pos <= h:
 					return error
 
 		return None
-
 
 
 
@@ -307,9 +306,6 @@ class TssInit(Thread):
 
 		p = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 		p.stdout.readline().decode('UTF-8')
-
-		# p.stdin.write(bytes('files\n','UTF-8'));
-		# print(p.stdout.readline().decode('UTF-8'))
 		
 		tssWriter = TssWriter(p.stdin,self.stdin_queue)
 		tssWriter.daemon = True
@@ -342,14 +338,12 @@ class TssReader(Thread):
 
 	def run(self):
 		for line in iter(self.stdout.readline, b''):
-			line = line.decode('UTF-8')
 			if line.startswith('"updated'):
 				continue
 			else:
-				GLOBALS['tss'].show_errors(sublime.active_window().active_view(),line)
+				sublime.set_timeout(lambda: GLOBALS['tss'].highlight_errors(sublime.active_window().active_view(),line), 1)
 
 		self.stdout.close()
-
 
 
 # --------------------------------------- EVENT LISTENERS -------------------------------------- #
@@ -360,13 +354,15 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 		for region in self.view.sel():
 			self.view.insert(edit, region.end(), characters)
 
-		GLOBALS['tss'].update(self.view)
+		tss = GLOBALS['tss']
+		tss.update(self.view,get_content(self.view),get_lines(self.view))
 
 		self.view.run_command('auto_complete',{
 			'disable_auto_insert': True,
 			'api_completions_only': True,
 			'next_competion_if_showing': True
 		})
+		
 
 
 class TypescriptEventListener(sublime_plugin.EventListener):
@@ -374,8 +370,8 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	pending = 0
 
 	def __init__(self):
-		self.ts_settings = sublime.load_settings('Typescript.sublime-settings')
 		GLOBALS['tss'] = self.tss = Tss()
+		self.settings = sublime.load_settings('Typescript.sublime-settings')
 
 
 	def on_activated(self,view):
@@ -404,6 +400,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 		self.tss.start(filename,added)
 
+
 	# def on_close(self,view):
 	# 	if not self.is_ts(view):
 	# 		return
@@ -415,23 +412,27 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not self.is_ts(view):
 			return
 
-		self.tss.update(view)
-		self.tss.errors(view)
+		content = get_content(view)
+		lines = get_lines(view)
+		self.tss.update(view,content,lines)
+		self.tss.errors(view,content,lines)
 
-	
+
 	def on_selection_modified(self, view):
 		if not self.is_ts(view):
 			return
 
 		self.tss.set_error_status(view)
-
+		
 
 	def on_modified(self,view):
 		if view.is_loading(): return
 		if not self.is_ts(view):
 			return
 
-		self.tss.update(view)
+		content = get_content(view)
+		lines = get_lines(view)
+		self.tss.update(view,content,lines)
 		self.pending = self.pending + 1
 		sublime.set_timeout(lambda:self.handle_timeout(view),180)
 
@@ -439,7 +440,9 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	def handle_timeout(self,view):
 		self.pending = self.pending -1
 		if self.pending == 0:
-			self.tss.errors(view)
+			content = get_content(view)
+			lines = get_lines(view)
+			self.tss.errors(view,content,lines)
 
 
 	def on_query_completions(self, view, prefix, locations):
@@ -456,6 +459,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if key == "typescript":
 			view = sublime.active_window().active_view()
 			return self.is_ts(view)
+
 
 	def is_ts(self,view):
 		return view.file_name() and view.file_name().endswith('.ts')

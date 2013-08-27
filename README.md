@@ -28,3 +28,18 @@ Click the Preferences > Browse Packages… menu
 #### With Git: 
 	Clone the repository in your Sublime Text "Packages" directory.
 
+
+### Installation Sublime Text 2 :
+
+#### Without Git: 
+	1. Select ST2 Branch
+	2. Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named Typescript.
+
+#### With Git: 
+	1. Clone the repository in your Sublime Text "Packages" directory.
+	2. Git checkout ST2 branch
+
+
+### TODO
+check on Linux and OSX version of Sublime Text
+

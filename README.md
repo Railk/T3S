@@ -19,10 +19,10 @@ I took inspiration from : https://github.com/raph-amiard/sublime-typescript
 2. tss https://github.com/clausreinke/typescript-tools and tss must be in your environnement path
 
 ### OS
-Tested on Windows & Ubuntu
+Tested on Windows & Ubuntu & OSX
 
 ### Problem
-Montain Lion is a Pain in the xxx to put something in the environnement path for a GUI app, i tried and abandonned after some hours of trying. I'll give another try later but not soon. But It should work on OSX.
+OSX as currently the path for node and tss hardcoded (default installation directory) du to some environnment PATH for GUI app problem.
 
 
 ### Installation Sublime Text 3 :

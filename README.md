@@ -22,7 +22,7 @@ I took inspiration from : https://github.com/raph-amiard/sublime-typescript
 Tested on Windows & Ubuntu & OSX
 
 ### Problem
-OSX as currently the path for node and tss hardcoded (default installation directory) du to some environnment PATH for GUI app problem.
+OSX has currently the path for node and tss hardcoded (default installation directory) du to some environnment PATH for GUI app problem.
 
 ### Installation Sublime Text 3 :
 

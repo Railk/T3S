@@ -9,6 +9,7 @@ import subprocess
 import os
 import json
 import re
+import sys
 
 
 # --------------------------------------- CONSTANT -------------------------------------- #
@@ -307,10 +308,14 @@ class TssInit(Thread):
 			kwargs = {'stderr':errorlog, 'startupinfo':startupinfo}
 			cmd = 'tss.cmd'
 
-		self.result = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+		if sys.platform == "darwin":
+			self.result = Popen(['/usr/local/bin/node', '/usr/local/lib/node_modules/tss/bin/tss.js' ,self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			p = Popen(['/usr/local/bin/node', '/usr/local/lib/node_modules/tss/bin/tss.js', self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+		else:
+			self.result = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			p = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+		
 		self.result.stdout.readline().decode('UTF-8')
-
-		p = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 		p.stdout.readline().decode('UTF-8')
 
 		# p.stdin.write(bytes('files\n','UTF-8'));

@@ -12,6 +12,11 @@ import re
 
 
 # --------------------------------------- CONSTANT -------------------------------------- #
+if os.name == 'nt':
+	ICONS_PATH = ".."+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal')
+else:
+	ICONS_PATH = "Packages"+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal.png')
+
 
 ICONS_PATH = os.path.join('..', 'Typescript', 'icons')
 TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')

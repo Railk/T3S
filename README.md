@@ -11,6 +11,7 @@ I took inspiration from : https://github.com/raph-amiard/sublime-typescript
 ### Feature :
 1. TypeScript language auto completion
 2. TypeScript language error highlighting
+3. TypeScript language syntax highlighting
 
 
 ### Dependencies :

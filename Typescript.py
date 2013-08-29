@@ -293,6 +293,7 @@ class TssInit(Thread):
 		Thread.__init__(self)
 
 	def run(self):
+		kwargs = {}
 		cmd = 'tss'
 		if os.name == 'nt':
 			errorlog = open(os.devnull, 'w')

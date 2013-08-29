@@ -13,7 +13,11 @@ import re
 
 # --------------------------------------- CONSTANT -------------------------------------- #
 
-ICONS_PATH = os.path.join('..', 'Typescript', 'icons')
+if os.name == 'nt':
+	ICONS_PATH = ".."+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal')
+else:
+	ICONS_PATH = "Packages"+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal.png')
+
 TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')
 GLOBALS = {}
 COMPLETION_LIST = []
@@ -260,7 +264,7 @@ class Tss(object):
 				char_regions.append( sublime.Region(a,b))
 				ERRORS[filename][(a,b)] = e['text']
 
-		view.add_regions('typescript-error' , char_regions , 'invalid' , os.path.join(ICONS_PATH, 'bright-illegal'))
+		view.add_regions('typescript-error' , char_regions , 'invalid' , ICONS_PATH)
 
 
 	def set_error_status(self,view):

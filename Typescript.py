@@ -265,7 +265,7 @@ class Tss(object):
 				char_regions.append( sublime.Region(a,b))
 				ERRORS[filename][(a,b)] = e['text']
 
-		view.add_regions('typescript-error' , char_regions , 'invalid' , os.path.join(ICONS_PATH, 'bright-illegal'))
+		view.add_regions('typescript-error' , char_regions , 'invalid' , ICONS_PATH)
 
 
 	def set_error_status(self,view):

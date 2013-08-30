@@ -88,11 +88,12 @@ class Tss(object):
 
 
 	# START PROCESS
-	def start(self,filename,added):
+	def start(self,view,filename,added):
 		if filename in self.processes:
 			if added != None: 
 				self.processes[added] = self.processes[filename]
 				self.queues[added] = self.queues[filename]
+				self.update(view,get_content(view),get_lines(view))
 			return
 
 		self.queues[filename] = {'stdin':Queue(),'stdout':Queue()}
@@ -409,7 +410,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 			added = filename
 			filename = root
 
-		self.tss.start(filename,added)
+		self.tss.start(view,filename,added)
 
 
 	# def on_close(self,view):
@@ -441,9 +442,9 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not self.is_ts(view):
 			return
 
-		content = get_content(view)
-		lines = get_lines(view)
-		self.tss.update(view,content,lines)
+		# content = get_content(view)
+		# lines = get_lines(view)
+		# self.tss.update(view,content,lines)
 		self.pending = self.pending + 1
 		sublime.set_timeout(lambda:self.handle_timeout(view),180)
 

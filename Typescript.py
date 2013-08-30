@@ -251,11 +251,11 @@ class Tss(object):
 
 	def highlight_errors(self,view,errors) :
 		char_regions = []
-		filename = view.file_name()
+		filename = view.file_name().lower()
 
 		ERRORS[filename] = {}
 		for e in errors :
-			if os.path.realpath(e['file']) == filename:
+			if os.path.realpath(e['file']).lower() == filename:
 				start_line = e['start']['line']
 				end_line = e['end']['line']
 				left = e['start']['character']

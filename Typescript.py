@@ -256,7 +256,7 @@ class Tss(object):
 
 		ERRORS[filename] = {}
 		for e in ERRORS_LIST :
-			if os.path.realpath(e['file']) == filename:
+			if os.path.realpath(e['file']).lower() == filename.lower():
 				start_line = e['start']['line']
 				end_line = e['end']['line']
 				left = e['start']['character']

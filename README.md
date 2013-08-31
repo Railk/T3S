@@ -1,7 +1,7 @@
 TSS Sublime (T3S)
 ----------------------------------------------------------------------------
 
-Typescript plugin for sublime text 2 and 3 using Typescript tools (Tss).
+Typescript plugin for sublime text 2 and 3 using Typescript tools ( https://github.com/clausreinke/typescript-tools )
 
 I'm using the same error icons has SublimeLinter.
 
@@ -15,14 +15,13 @@ I took inspiration from : https://github.com/raph-amiard/sublime-typescript
 
 
 ### Dependencies :
-1. nodejs
-2. tss https://github.com/clausreinke/typescript-tools and tss must be in your environnement path
+nodejs
 
 ### OS
 Tested on Windows & Ubuntu & OSX
 
 ### Problem
-OSX has currently the path for node and tss hardcoded (default installation directory) du to some environnment PATH for GUI app problem.
+OSX has currently the path for node hardcoded (default installation directory) du to some environnment PATH for GUI app problem.
 
 ### Installation Sublime Text 3 :
 

@@ -52,7 +52,7 @@ class Tss(object):
 	queues = {}
 	processes = {}
 	prefixes = {
-		'method': u'◉',
+		'method': u'○',
 		'property': u'●',
 		'class':u'◆',
 		'interface':u'◇',
@@ -301,20 +301,18 @@ class TssInit(Thread):
 
 	def run(self):
 		kwargs = {}
-		cmd = 'tss'
 		if os.name == 'nt':
 			errorlog = open(os.devnull, 'w')
 			startupinfo = subprocess.STARTUPINFO()
 			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 			kwargs = {'stderr':errorlog, 'startupinfo':startupinfo}
-			cmd = 'tss.cmd'
 
 		if sys.platform == "darwin":
-			self.result = Popen(['/usr/local/bin/node', '/usr/local/lib/node_modules/tss/bin/tss.js' ,self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
-			p = Popen(['/usr/local/bin/node', '/usr/local/lib/node_modules/tss/bin/tss.js', self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			self.result = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			p = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 		else:
-			self.result = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
-			p = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			self.result = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			p = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 		
 		self.result.stdout.readline().decode('UTF-8')
 		p.stdout.readline().decode('UTF-8')
@@ -442,7 +440,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not self.is_ts(view):
 			return
 
-		#self.tss.update(view)
+		self.tss.update(view)
 		self.pending = self.pending + 1
 		sublime.set_timeout(lambda:self.handle_timeout(view),180)
 

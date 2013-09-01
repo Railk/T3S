@@ -67987,6 +67987,12 @@ var Services;
     })();
     Services.TypeScriptServicesFactory = TypeScriptServicesFactory;
 })(Services || (Services = {}));
+// Copyright (c) Microsoft, Claus Reinke. All rights reserved.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE.txt in the project root for complete license information.
+///<reference path='../typescript/src/compiler/io.ts'/>
+///<reference path='../typescript/src/compiler/typescript.ts'/>
+///<reference path='../typescript/src/services/typescriptServices.ts' />
 // from src/harness/harness.ts, without the test (TODO: remove shim stuff again)
 function switchToForwardSlashes(path) {
     return path.replace(/\\/g, "/");
@@ -68418,17 +68424,16 @@ for getting info on .ts projects */
 var TSS = (function () {
     function TSS(ioHost) {
         this.ioHost = ioHost;
+        this.fileNameToContent = new TypeScript.StringHashTable();
     }
     // IReferenceResolverHost methods (from HarnessCompiler, modulo test-specific code)
     TSS.prototype.getScriptSnapshot = function (filename) {
-        var scriptInfo = this.typescriptLS.getScriptInfo(filename);
-        if (!scriptInfo) {
-            this.typescriptLS.addFile(filename);
-            scriptInfo = this.typescriptLS.getScriptInfo(filename);
+        var content = this.fileNameToContent.lookup(filename);
+        if (!content) {
+            content = readFile(filename).contents;
+            this.fileNameToContent.add(filename, content);
         }
-
-        // TODO: check this (StringScriptSnapshot, !snapshot)
-        var snapshot = TypeScript.ScriptSnapshot.fromString(scriptInfo.content);
+        var snapshot = TypeScript.ScriptSnapshot.fromString(content);
 
         if (!snapshot) {
             this.addDiagnostic(new TypeScript.Diagnostic(null, 0, 0, TypeScript.DiagnosticCode.Cannot_read_file_0_1, [filename, '']));
@@ -68523,7 +68528,7 @@ var TSS = (function () {
         // initialize languageService code units
         resolvedFiles.forEach(function (code, i) {
             // this.ioHost.printLine(i+': '+code.path);
-            _this.typescriptLS.addFile(code.path);
+            _this.typescriptLS.addScript(code.path, _this.fileNameToContent.lookup(code.path));
         });
 
         // Get the language service
@@ -68539,7 +68544,7 @@ var TSS = (function () {
 
         var rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
-        var cmd, script, pos, file, added, def, locs, info, source, brief, member;
+        var cmd, pos, file, script, added, range, check, def, refs, locs, info, source, brief, member;
 
         var collecting = 0, on_collected_callback, lines = [];
 
@@ -68593,17 +68598,32 @@ var TSS = (function () {
                     pos = _this.typescriptLS.lineColToPosition(file, line, col);
                     switch (m[1]) {
                         case "references":
-                            locs = _this.ls.getReferencesAtPosition(file, pos);
+                            refs = _this.ls.getReferencesAtPosition(file, pos);
                             break;
                         case "occurrences":
-                            locs = _this.ls.getOccurrencesAtPosition(file, pos);
+                            refs = _this.ls.getOccurrencesAtPosition(file, pos);
                             break;
                         case "implementors":
-                            locs = _this.ls.getImplementorsAtPosition(file, pos);
+                            refs = _this.ls.getImplementorsAtPosition(file, pos);
                             break;
                         default:
                             throw "cannot happen";
                     }
+
+                    info = refs.map(function (ref) {
+                        return ({
+                            ref: ref,
+                            file: ref && ref.fileName,
+                            min: ref && _this.typescriptLS.positionToLineCol(ref.fileName, ref.minChar),
+                            lim: ref && _this.typescriptLS.positionToLineCol(ref.fileName, ref.limChar)
+                        });
+                    });
+
+                    _this.ioHost.printLine(JSON.stringify(info).trim());
+                } else if (m = cmd.match(/^structure (.*)$/)) {
+                    file = _this.resolveRelativePath(m[1]);
+
+                    locs = _this.ls.getScriptLexicalStructure(file);
 
                     info = locs.map(function (loc) {
                         return ({
@@ -68685,20 +68705,40 @@ var TSS = (function () {
                     };
 
                     _this.ioHost.printLine(JSON.stringify(info).trim());
-                } else if (m = cmd.match(/^update (\d+) (.*)$/)) {
-                    file = _this.resolveRelativePath(m[2]);
-                    added = _this.typescriptLS.getScriptInfo(file) == null;
-                    collecting = parseInt(m[1]);
-                    on_collected_callback = function () {
-                        _this.typescriptLS.updateScript(file, lines.join(EOL));
-                        //var syn = _this.ls.getSyntacticDiagnostics(file).length;
-                        //var sem = _this.ls.getSemanticDiagnostics(file).length;
-                        on_collected_callback = undefined;
-                        lines = [];
+                } else if (m = cmd.match(/^update( nocheck)? (\d+)( (\d+)-(\d+))? (.*)$/)) {
+                    file = _this.resolveRelativePath(m[6]);
+                    script = _this.typescriptLS.getScriptInfo(file);
+                    added = script == null;
+                    range = !!m[3];
+                    check = !m[1];
 
-                        //_this.ioHost.printLine((added ? '"added ' : '"updated ') + file + ', (' + syn + '/' + sem + ') errors"');
-                        _this.ioHost.printLine((added ? '"added ' : '"updated ') + file + '"');
-                    };
+                    if (!added || !range) {
+                        collecting = parseInt(m[2]);
+                        on_collected_callback = function () {
+                            if (!range) {
+                                _this.typescriptLS.updateScript(file, lines.join(EOL));
+                            } else {
+                                var startLine = parseInt(m[4]);
+                                var endLine = parseInt(m[5]);
+                                var maxLines = script.lineMap.lineCount();
+                                var startPos = startLine <= maxLines ? (startLine < 1 ? 0 : _this.typescriptLS.lineColToPosition(file, startLine, 1)) : script.content.length;
+                                var endPos = endLine < maxLines ? (endLine < 1 ? 0 : _this.typescriptLS.lineColToPosition(file, endLine + 1, 1) - 1) : script.content.length;
+
+                                _this.typescriptLS.editScript(file, startPos, endPos, lines.join(EOL));
+                            }
+                            var syn, sem;
+                            if (check) {
+                                syn = _this.ls.getSyntacticDiagnostics(file).length;
+                                sem = _this.ls.getSemanticDiagnostics(file).length;
+                            }
+                            on_collected_callback = undefined;
+                            lines = [];
+
+                            _this.ioHost.printLine((added ? '"added ' : '"updated ') + (range ? 'lines' + m[3] + ' in ' : '') + file + (check ? ', (' + syn + '/' + sem + ') errors' : '') + '"');
+                        };
+                    } else {
+                        _this.ioHost.printLine('"cannot update line range in new file"');
+                    }
                 } else if (m = cmd.match(/^showErrors$/)) {
                     info = [].concat(_this.resolutionResult.diagnostics.map(function (d) {
                         d["phase"] = "Resolution";
@@ -68726,7 +68766,7 @@ var TSS = (function () {
                     info = _this.typescriptLS.getScriptFileNames();
 
                     _this.ioHost.printLine(info.trim());
-                } else if (m = cmd.match(/^lastError(Dump)$/)) {
+                } else if (m = cmd.match(/^lastError(Dump)?$/)) {
                     if (_this.lastError)
                         if (m[1])
                             _this.ioHost.printLine(JSON.parse(_this.lastError).stack);

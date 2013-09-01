@@ -396,7 +396,6 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	pending = 0
 
 	def __init__(self):
-		self.ts_settings = sublime.load_settings('Typescript.sublime-settings')
 		GLOBALS['tss'] = self.tss = Tss()
 
 

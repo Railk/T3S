@@ -146,7 +146,7 @@ class Tss(object):
 
 		(lineCount, col) = view.rowcol(view.size())
 		content = view.substr(sublime.Region(0, view.size()))
-		process.stdin.write(bytes('update {0} {1}\n'.format(str(lineCount+1),view.file_name().replace('\\','/')),'UTF-8'))
+		process.stdin.write(bytes('update nocheck {0} {1}\n'.format(str(lineCount+1),view.file_name().replace('\\','/')),'UTF-8'))
 		process.stdin.write(bytes(content+'\n','UTF-8'))
 		process.stdout.readline().decode('UTF-8')
 
@@ -159,7 +159,7 @@ class Tss(object):
 		filename = view.file_name()
 		(lineCount, col) = view.rowcol(view.size())
 		content = view.substr(sublime.Region(0, view.size()))
-		self.queues[filename]['stdin'].put(bytes('update {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/')),'UTF-8'))
+		self.queues[filename]['stdin'].put(bytes('update nocheck {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/')),'UTF-8'))
 		self.queues[filename]['stdin'].put(bytes(content+'\n','UTF-8'))
 		self.queues[filename]['stdin'].put(bytes('showErrors\n'.format(filename.replace('\\','/')),'UTF-8'))
 

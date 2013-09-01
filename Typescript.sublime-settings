@@ -1,4 +1,3 @@
 {
-	"extensions": ["ts"],
-    "auto_complete": false
+    "local_tss":true
 }

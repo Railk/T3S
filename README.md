@@ -15,14 +15,14 @@ I took inspiration from : https://github.com/raph-amiard/sublime-typescript
 
 
 ### Dependencies :
-nodejs
+1. nodejs
+2. tss (https://github.com/clausreinke/typescript-tools) if you set local_tss to false in settings
 
 ### OS
 Tested on Windows & Ubuntu & OSX
 
 ### Problem
 OSX has currently the path for node hardcoded (default installation directory) du to some environnment PATH for GUI app problem.
-
 
 ### Installation Sublime Text 3 :
 
@@ -51,6 +51,19 @@ Click the Preferences > Browse Packages… menu
 1. Clone the repository in your Sublime Text "Packages" directory.
 2. Git checkout ST2 branch
 
+
+### Settings:
+the plugin use a local version of tss situated in the bin folder as seen in Typescript.sublime-settings file:
+
+		{
+			"local_tss":true
+		}
+
+if you prefer using tss command line tool (check installation method on the tss page) you can set local_tss to false:
+
+		{
+			"local_tss":false
+		}	
 
 
 ### Usage:

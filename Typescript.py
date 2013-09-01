@@ -13,13 +13,13 @@ import sys
 
 
 # --------------------------------------- CONSTANT -------------------------------------- #
+# 
 if os.name == 'nt':
 	ICONS_PATH = ".."+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal')
 else:
 	ICONS_PATH = "Packages"+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal.png')
 
-
-ICONS_PATH = os.path.join('..', 'Typescript', 'icons')
+SETTINGS = sublime.load_settings('Typescript.sublime-settings')
 TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')
 GLOBALS = {}
 ERRORS = {}
@@ -146,7 +146,7 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('update {0} {1}\n'.format(str(lines+1),view.file_name().replace('\\','/'))))
+		process.stdin.write(bytes('update nocheck {0} {1}\n'.format(str(lines+1),view.file_name().replace('\\','/'))))
 		process.stdin.write(bytes(content+'\n'))
 		process.stdout.readline().decode('UTF-8')
 
@@ -158,7 +158,7 @@ class Tss(object):
 		
 		del ERRORS_LIST[:]
 		filename = view.file_name()
-		self.queues[filename]['stdin'].put(bytes('update {0} {1}\n'.format(str(lines+1),filename.replace('\\','/'))))
+		self.queues[filename]['stdin'].put(bytes('update nocheck {0} {1}\n'.format(str(lines+1),filename.replace('\\','/'))))
 		self.queues[filename]['stdin'].put(bytes(content+'\n'))
 		self.queues[filename]['stdin'].put(bytes('showErrors\n'.format(filename.replace('\\','/'))))
 
@@ -301,18 +301,30 @@ class TssInit(Thread):
 
 	def run(self):
 		kwargs = {}
+		cmd='tss'
 		if os.name == 'nt':
 			errorlog = open(os.devnull, 'w')
 			startupinfo = subprocess.STARTUPINFO()
 			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 			kwargs = {'stderr':errorlog, 'startupinfo':startupinfo}
+			cmd = 'tss.cmd'
 
-		if sys.platform == "darwin":
-			self.result = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
-			p = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+
+		if SETTINGS.get('local_tss'):
+			if sys.platform == "darwin":
+				self.result = Popen(['/usr/local/bin/node', TSS_PATH ,self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+				p = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			else:
+				self.result = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+				p = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 		else:
-			self.result = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
-			p = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			if sys.platform == "darwin":
+				self.result = Popen(['/usr/local/bin/node', '/usr/local/lib/node_modules/tss/bin/tss.js' ,self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+				p = Popen(['/usr/local/bin/node', '/usr/local/lib/node_modules/tss/bin/tss.js', self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			else:
+				self.result = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+				p = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+
 		
 		self.result.stdout.readline().decode('UTF-8')
 		p.stdout.readline().decode('UTF-8')
@@ -381,7 +393,6 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 	def __init__(self):
 		GLOBALS['tss'] = self.tss = Tss()
-		self.settings = sublime.load_settings('Typescript.sublime-settings')
 
 
 	def on_activated(self,view):
@@ -440,9 +451,9 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not self.is_ts(view):
 			return
 
-		# content = get_content(view)
-		# lines = get_lines(view)
-		# self.tss.update(view,content,lines)
+		content = get_content(view)
+		lines = get_lines(view)
+		self.tss.update(view,content,lines)
 		self.pending = self.pending + 1
 		sublime.set_timeout(lambda:self.handle_timeout(view),180)
 

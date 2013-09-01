@@ -19,6 +19,7 @@ if os.name == 'nt':
 else:
 	ICONS_PATH = "Packages"+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal.png')
 
+SETTINGS = sublime.load_settings('Typescript.sublime-settings')
 TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')
 GLOBALS = {}
 COMPLETION_LIST = []
@@ -301,18 +302,30 @@ class TssInit(Thread):
 
 	def run(self):
 		kwargs = {}
+		cmd = 'tss'
 		if os.name == 'nt':
 			errorlog = open(os.devnull, 'w')
 			startupinfo = subprocess.STARTUPINFO()
 			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 			kwargs = {'stderr':errorlog, 'startupinfo':startupinfo}
+			cmd = 'tss.cmd'
 
-		if sys.platform == "darwin":
-			self.result = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
-			p = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+
+		if SETTINGS.get('local_tss'):
+			if sys.platform == "darwin":
+				self.result = Popen(['/usr/local/bin/node', TSS_PATH ,self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+				p = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			else:
+				self.result = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+				p = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 		else:
-			self.result = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
-			p = Popen(['node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			if sys.platform == "darwin":
+				self.result = Popen(['/usr/local/bin/node', '/usr/local/lib/node_modules/tss/bin/tss.js' ,self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+				p = Popen(['/usr/local/bin/node', '/usr/local/lib/node_modules/tss/bin/tss.js', self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+			else:
+				self.result = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+				p = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
+
 		
 		self.result.stdout.readline().decode('UTF-8')
 		p.stdout.readline().decode('UTF-8')
@@ -387,7 +400,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		GLOBALS['tss'] = self.tss = Tss()
 
 
-	def on_activated(self,view):
+	def on_activated_async(self,view):
 		if not self.is_ts(view):
 			return
 
@@ -420,7 +433,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	# 	self.tss.kill(view)
 
 
-	def on_post_save(self,view):
+	def on_post_save_async(self,view):
 		if not self.is_ts(view):
 			return
 
@@ -428,21 +441,21 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		self.tss.errors(view)
 
 	
-	def on_selection_modified(self, view):
+	def on_selection_modified_async(self, view):
 		if not self.is_ts(view):
 			return
 
 		self.tss.set_error_status(view)
 
 
-	def on_modified(self,view):
+	def on_modified_async(self,view):
 		if view.is_loading(): return
 		if not self.is_ts(view):
 			return
 
 		self.tss.update(view)
 		self.pending = self.pending + 1
-		sublime.set_timeout(lambda:self.handle_timeout(view),180)
+		sublime.set_timeout_async(lambda:self.handle_timeout(view),180)
 
 
 	def handle_timeout(self,view):

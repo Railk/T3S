@@ -394,6 +394,7 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 class TypescriptEventListener(sublime_plugin.EventListener):
 
 	pending = 0
+	views = {}
 
 	def __init__(self):
 		GLOBALS['tss'] = self.tss = Tss()

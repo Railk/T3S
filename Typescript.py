@@ -390,6 +390,7 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 class TypescriptEventListener(sublime_plugin.EventListener):
 
 	pending = 0
+	views = {}
 
 	def __init__(self):
 		GLOBALS['tss'] = self.tss = Tss()
@@ -410,9 +411,13 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 
 	def start(self,view):
+		filename = view.file_name()
+		if filename in self.views: return
+
+		self.views[filename] = True
 		view.settings().set('auto_complete',False)
 		view.settings().set('extensions',['ts'])
-		filename = view.file_name()
+		
 		root = self.get_root()
 		added = None
 		if root != None:
@@ -443,6 +448,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not self.is_ts(view):
 			return
 
+		self.start(view)
 		self.tss.set_error_status(view)
 		
 

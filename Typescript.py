@@ -19,14 +19,17 @@ if os.name == 'nt':
 else:
 	ICONS_PATH = "Packages"+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal.png')
 
-SETTINGS = sublime.load_settings('Typescript.sublime-settings')
+
 TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')
-GLOBALS = {}
 COMPLETION_LIST = []
 ERRORS = {}
 
 
 # -------------------------------------- UTILITIES -------------------------------------- #
+
+def is_ts(view):
+	return view.file_name() and view.file_name().endswith('.ts') 
+
 def get_lines(view):
 	(line,col) = view.rowcol(view.size())
 	return line
@@ -88,12 +91,13 @@ class Tss(object):
 	# START PROCESS
 	def start(self,view,filename,added):
 		if filename in self.processes:
-			if added != None: 
+			if added != None and added not in self.processes: 
 				self.processes[added] = self.processes[filename]
 				self.queues[added] = self.queues[filename]
 				self.update(view)
 			return
 
+		self.processes[filename] = None
 		self.queues[filename] = {'stdin':Queue(),'stdout':Queue()}
 		if added != None: self.queues[added] = self.queues[filename]
 
@@ -119,6 +123,15 @@ class Tss(object):
 			return
 
 		del self.processes[view.file_name()]
+
+	# DUMP FILE
+	def dump(self,view,output):
+		process = self.get_process(view)
+		if process == None:
+			return
+
+		process.stdin.write(bytes('dump {0} {1}\n'.format(output,view.file_name().replace('\\','/')),'UTF-8'))
+		print(process.stdout.readline().decode('UTF-8'))
 
 
 	# ASK FOR COMPLETIONS
@@ -287,8 +300,6 @@ class Tss(object):
 		return None
 
 
-
-
 # ----------------------------------------- TSS THREADs ---------------------------------------- #
 
 class TssInit(Thread):
@@ -298,6 +309,7 @@ class TssInit(Thread):
 		self.stdin_queue = stdin_queue
 		self.stdout_queue = stdout_queue
 		self.result = ""
+		self.settings = sublime.load_settings('Typescript.sublime-settings')
 		Thread.__init__(self)
 
 	def run(self):
@@ -310,8 +322,10 @@ class TssInit(Thread):
 			kwargs = {'stderr':errorlog, 'startupinfo':startupinfo}
 			cmd = 'tss.cmd'
 
+		print('typescript initializing')
+		
 
-		if SETTINGS.get('local_tss'):
+		if self.settings.get('local_tss'):
 			if sys.platform == "darwin":
 				self.result = Popen(['/usr/local/bin/node', TSS_PATH ,self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 				p = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
@@ -368,7 +382,7 @@ class TssReader(Thread):
 			if line.startswith('"updated'):
 				continue
 			else:
-				GLOBALS['tss'].show_errors(sublime.active_window().active_view(),line)
+				TSS.show_errors(sublime.active_window().active_view(),line)
 
 		self.stdout.close()
 
@@ -382,7 +396,7 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 		for region in self.view.sel():
 			self.view.insert(edit, region.end(), characters)
 
-		GLOBALS['tss'].update(self.view)
+		TSS.update(self.view)
 
 		self.view.run_command('auto_complete',{
 			'disable_auto_insert': True,
@@ -394,71 +408,43 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 class TypescriptEventListener(sublime_plugin.EventListener):
 
 	pending = 0
-	views = {}
-
-	def __init__(self):
-		GLOBALS['tss'] = self.tss = Tss()
-
 
 	def on_activated_async(self,view):
-		if not self.is_ts(view):
-			return
-
-		self.start(view)
+		init(view)
 
 
 	def on_clone_async(self,view):
-		if not self.is_ts(view):
-			return
-
-		self.start(view)
+		init(view)
 
 
-	def start(self,view):
-		filename = view.file_name()
-		if filename in self.views: return
-
-		self.views[filename] = True
-		view.settings().set('auto_complete',False)
-		view.settings().set('extensions',['ts'])
-		
-		root = self.get_root()
-		added = None
-		if root != None:
-			added = filename
-			filename = root
-
-		self.tss.start(view,filename,added)
-
-	# def on_close(self,view):
-	# 	if not self.is_ts(view):
+	# def on_close_async(self,view):
+	# 	if not is_ts(view):
 	# 		return
 
-	# 	self.tss.kill(view)
+	# 	TSS.kill(view)
 
 
 	def on_post_save_async(self,view):
-		if not self.is_ts(view):
+		if not is_ts(view):
 			return
 
-		self.tss.update(view)
-		self.tss.errors(view)
+		TSS.update(view)
+		TSS.errors(view)
 
 	
 	def on_selection_modified_async(self, view):
-		if not self.is_ts(view):
+		if not is_ts(view):
 			return
 
-		self.start(view)
-		self.tss.set_error_status(view)
+		TSS.set_error_status(view)
 
 
 	def on_modified_async(self,view):
 		if view.is_loading(): return
-		if not self.is_ts(view):
+		if not is_ts(view):
 			return
 
-		self.tss.update(view)
+		TSS.update(view)
 		self.pending = self.pending + 1
 		sublime.set_timeout_async(lambda:self.handle_timeout(view),180)
 
@@ -466,15 +452,15 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	def handle_timeout(self,view):
 		self.pending = self.pending -1
 		if self.pending == 0:
-			self.tss.errors(view)
+			TSS.errors(view)
 
 
 	def on_query_completions(self, view, prefix, locations):
-		if self.is_ts(view):
+		if is_ts(view):
 			pos = view.sel()[0].begin()
 			(line, col) = view.rowcol(pos)
 			is_member = str(is_member_completion(view.substr(sublime.Region(view.line(pos-1).a, pos)))).lower()
-			self.tss.complete(view,line,col,is_member)
+			TSS.complete(view,line,col,is_member)
 
 			return COMPLETION_LIST
 
@@ -482,63 +468,88 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	def on_query_context(self, view, key, operator, operand, match_all):
 		if key == "typescript":
 			view = sublime.active_window().active_view()
-			return self.is_ts(view)
-
-	def is_ts(self,view):
-		return view.file_name() and view.file_name().endswith('.ts')
+			return is_ts(view)
 
 
-	def get_root(self):
-		project_settings = sublime.active_window().active_view().settings().get('typescript')
-		current_folder = os.path.dirname(os.path.realpath(sublime.active_window().active_view().file_name()))
 
-		if(project_settings != None):
-			for root in project_settings:
-				root_folder = os.path.dirname(os.path.realpath(root))
-				if root_folder == current_folder:
-					return root
+# ---------------------------------------- INITIALISATION --------------------------------------- #
 
-			return None
-		else:
-			top_folder = None
-			open_folders = sublime.active_window().folders()
-			for folder in open_folders:
-				folder = os.path.realpath(folder)
-				if current_folder.startswith(folder):
-					top_folder = folder
-					break
+TSS = Tss()
 
-			segments = current_folder.replace('\\','/').split('/')
-			length = len(segments)
-			segment_range =reversed(range(0,length+1))
+def init(view):
+	if not is_ts(view): return
 
-			for index in segment_range:
-				folder = self.join_segments(segments,index)
-				config_file = os.path.join(folder,'.sublimets')
-				config_data = self.get_data(config_file)
-				if config_data != None:
-					return os.path.join(folder,config_data['root'])
+	filename = view.file_name()
+	view.settings().set('auto_complete',False)
+	view.settings().set('extensions',['ts'])
+	
+	root = get_root()
+	added = None
+	if root != None:
+		if root != filename: added = filename
+		filename = root
 
-				if folder == top_folder:
-					break
-
-			return None
+	TSS.start(view,filename,added)
 
 
-	def get_data(self,file):
-		if os.path.isfile(file): 
-			try: 
-				f = open(file,'r').read()
-				return json.loads(f)
-			except IOError: 
-				pass
+def get_root():
+	project_settings = sublime.active_window().active_view().settings().get('typescript')
+	current_folder = os.path.dirname(os.path.realpath(sublime.active_window().active_view().file_name()))
+
+	if(project_settings != None):
+		for root in project_settings:
+			root_folder = os.path.dirname(os.path.realpath(root))
+			if root_folder == current_folder:
+				return root
+
+		return None
+	else:
+		top_folder = None
+		open_folders = sublime.active_window().folders()
+		for folder in open_folders:
+			folder = os.path.realpath(folder)
+			if current_folder.startswith(folder):
+				top_folder = folder
+				break
+
+		segments = current_folder.replace('\\','/').split('/')
+		length = len(segments)
+		segment_range =reversed(range(0,length+1))
+
+		for index in segment_range:
+			folder = join_segments(segments,index)
+			config_file = os.path.join(folder,'.sublimets')
+			config_data = get_data(config_file)
+			if config_data != None:
+				return os.path.join(folder,config_data['root'])
+
+			if folder == top_folder:
+				break
 
 		return None
 
 
-	def join_segments(self,liste,length):
-		join = ""
-		for index in reversed(range(0,length)):
-			join = liste[index] +'/'+ join 
+def get_data(file):
+	if os.path.isfile(file): 
+		try: 
+			f = open(file,'r').read()
+			return json.loads(f)
+		except IOError: 
+			pass
 
-		return os.path.realpath(join)
+	return None
+
+
+def join_segments(liste,length):
+	join = ""
+	for index in reversed(range(0,length)):
+		join = liste[index] +'/'+ join 
+
+	return os.path.realpath(join)
+
+
+
+# ---------------------------------------- PLUGIN LOADED --------------------------------------- #
+
+def plugin_loaded():
+	sublime.set_timeout(lambda:init(sublime.active_window().active_view()), 300)

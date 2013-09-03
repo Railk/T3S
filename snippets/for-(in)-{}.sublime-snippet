@@ -1,0 +1,9 @@
+<snippet>
+    <content><![CDATA[for (var ${1:i} in ${2:UPPER_BORDER})
+{ 
+	${0:// code...}
+}]]></content>
+	<tabTrigger>forobj</tabTrigger>
+	<scope>source.ts</scope>
+    <description>for … in … loop</description>
+</snippet>

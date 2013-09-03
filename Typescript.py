@@ -101,7 +101,8 @@ class Tss(object):
 		self.queues[filename] = {'stdin':Queue(),'stdout':Queue()}
 		if added != None: self.queues[added] = self.queues[filename]
 
-		thread = TssInit(filename,self.queues[filename]['stdin'],self.queues[filename]['stdout'])
+		settings = sublime.load_settings('Typescript.sublime-settings')
+		thread = TssInit(filename,self.queues[filename]['stdin'],self.queues[filename]['stdout'],settings.get('local_tss'))
 		self.add_thread(thread)
 		self.handle_threads(filename,added)
 
@@ -304,12 +305,12 @@ class Tss(object):
 
 class TssInit(Thread):
 
-	def __init__(self, filename, stdin_queue, stdout_queue):
+	def __init__(self, filename, stdin_queue, stdout_queue, local):
 		self.filename = filename
 		self.stdin_queue = stdin_queue
 		self.stdout_queue = stdout_queue
 		self.result = ""
-		self.settings = sublime.load_settings('Typescript.sublime-settings')
+		self.local = local
 		Thread.__init__(self)
 
 	def run(self):
@@ -325,7 +326,7 @@ class TssInit(Thread):
 		print('typescript initializing')
 
 
-		if self.settings.get('local_tss'):
+		if self.local:
 			if sys.platform == "darwin":
 				self.result = Popen(['/usr/local/bin/node', TSS_PATH ,self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 				p = Popen(['/usr/local/bin/node', TSS_PATH, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
@@ -554,4 +555,4 @@ def join_segments(liste,length):
 
 # ---------------------------------------- PLUGIN LOADED --------------------------------------- #
 
-init(sublime.active_window().active_view())
+sublime.set_timeout(lambda:init(sublime.active_window().active_view()),300)

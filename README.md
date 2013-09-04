@@ -59,7 +59,7 @@ the plugin use a local version of tss situated in the bin folder as seen in Type
 			"local_tss":true
 		}
 
-You can use the tss command line tool (check installation method on the tss page) by setting set local_tss to false, but with so the plugin will be perhaps behind TSS in terms of update and it could make the plugin not working is there's some api change.
+You can use the tss command line tool (check installation method on the tss page) by setting local_tss to false, but with so the plugin will be perhaps behind TSS in terms of update and it could make the plugin not working is there's some api change.
 
 		{
 			"local_tss":false

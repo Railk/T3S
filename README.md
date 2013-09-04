@@ -120,8 +120,7 @@ I've added a build system that take most of the command line parameters of TSC, 
 
 And you also have two extra parameters that are <code>pre_processing_commans</code> and <code>post_processing_commans</code> that gave you the opportunities to do command line things before and after <code>tsc</code> compiling
 
-To configure the build-system, open the Typescript.build_conf.json file from the plugin repository.
-This is what you will see (these are the default values)
+These are the default values :
 		
 		{
 			"local_tss":true,

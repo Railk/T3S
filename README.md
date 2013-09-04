@@ -31,7 +31,7 @@ Click the Preferences > Browse Packages… menu
 
 
 ##### Without Git : 
-Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named Typescript.
+Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named <code>T3S</code>.
 
 ##### With Git : 
 Clone the repository in your Sublime Text "Packages" directory.
@@ -45,7 +45,7 @@ Click the Preferences > Browse Packages… menu
 
 ##### Without Git : 
 1. Choose ST2 Branch
-2. Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named Typescript.
+2. Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named <code>T3S</code>.
 
 ##### With Git : 
 1. Clone the repository in your Sublime Text "Packages" directory.

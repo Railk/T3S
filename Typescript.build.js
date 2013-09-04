@@ -11,7 +11,7 @@ var EOL = '\n';
 var config_file = process.argv[2];
 var filename = process.argv[3];
 
-var commands = {
+var commands_map = {
 	"output_dir_path":"--outDir ",
 	"concatenate_and_emit_output_file_path":"--out ",
 	"source_files_root_path":"--sourceRoot ",
@@ -46,25 +46,46 @@ var default_values = {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-var config =  JSON.parse(fs.readFileSync(config_file, FILE_ENCODING));
+var config =  JSON.parse(fs.readFileSync(config_file, FILE_ENCODING))['build_parameters'];
 
-function build_command(){
-	var command = "";
+function build_commands(){
+	var tsc = "";
+	var commands = [];
+
 	for (var option in config){
-		if(default_values[option] != config[option]) {
-			command += ' '+commands[option]+(default_values[option]!==false?config[option]:'');
+		if(default_values[option] != config[option] && option!=='pre_processing_commands' && option!=='post_processing_commands') {
+			tsc += ' '+commands_map[option]+(default_values[option]!==false?config[option]:'');
 		}
 	}
-	return command;
+
+
+	var i,
+		pre_processing_commands = config['pre_processing_commands'],
+		post_processing_commands = config['post_processing_commands'];
+
+	for (i = 0; i < pre_processing_commands.length; i++) {
+		commands[commands.length] = pre_processing_commands[i];
+	}
+
+	commands[commands.length] = 'tsc '+filename+tsc;
+
+	for (i = 0; i < post_processing_commands.length; i++) {
+		commands[commands.length] =post_processing_commands[i];
+	}
+
+	return commands;
 }
 
 
-var command = build_command();
-console.log('TSC compiling ... tsc '+filename+command);
-cmd('tsc '+filename+build_command(),function(err,stdout,stderr){
-	if(stdout!==null) console.log(stdout);
-	if(stderr!==null) console.log(stderr);
-});
+var commands = build_commands();
+console.log('TSC compiling ... '+commands);
+
+for (var i = 0; i < commands.length; i++) {
+	cmd(commands[i],function(err,stdout,stderr){
+		if(stdout!==null) console.log(stdout);
+		if(stderr!==null) console.log(stderr);
+	});
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////

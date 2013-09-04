@@ -59,10 +59,10 @@ You have two settings available :
 2. error_on_save_only : to highlight errors only while saving or while typing, the default is showing error highlighting while typing
 
 
-	{
-    	"local_tss":true,
-    	"error_on_save_only":false
-	}	
+		{
+			"local_tss":true,
+			"error_on_save_only":false
+		}	
 
 ##### local_tss :
 the plugin use a local version of tss situated in the bin folder as seen in Typescript.sublime-settings file:

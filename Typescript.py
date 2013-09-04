@@ -410,16 +410,17 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	settings = None
 
 	def on_activated_async(self,view):
-		self.settings = sublime.load_settings('Typescript.sublime-settings')
-		init(view)
-		TSS.errors(view)
-
+		self.init_view(view)
+		
 
 	def on_clone_async(self,view):
+		self.init_view(view)
+
+
+	def init_view(self,view):
 		self.settings = sublime.load_settings('Typescript.sublime-settings')
 		init(view)
 		TSS.errors(view)
-
 
 	# def on_close_async(self,view):
 	# 	if not is_ts(view):
@@ -450,6 +451,9 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 		TSS.update(view)
 		self.pending = self.pending + 1
+
+		if self.settings == None:
+			self.settings = sublime.load_settings('Typescript.sublime-settings')
 
 		if not self.settings.get('error_on_save_only'):
 			sublime.set_timeout_async(lambda:self.handle_timeout(view),180)

@@ -19,7 +19,6 @@ if os.name == 'nt':
 else:
 	ICONS_PATH = "Packages"+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal.png')
 
-
 TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')
 COMPLETION_LIST = []
 ERRORS = {}
@@ -91,7 +90,7 @@ class Tss(object):
 	# START PROCESS
 	def start(self,view,filename,added):
 		if filename in self.processes:
-			if added != None and added not in self.processes: 
+			if added != None and added not in self.processes:
 				self.processes[added] = self.processes[filename]
 				self.queues[added] = self.queues[filename]
 				self.update(view)
@@ -408,13 +407,18 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 class TypescriptEventListener(sublime_plugin.EventListener):
 
 	pending = 0
+	settings = None
 
 	def on_activated_async(self,view):
+		self.settings = sublime.load_settings('Typescript.sublime-settings')
 		init(view)
+		TSS.errors(view)
 
 
 	def on_clone_async(self,view):
+		self.settings = sublime.load_settings('Typescript.sublime-settings')
 		init(view)
+		TSS.errors(view)
 
 
 	# def on_close_async(self,view):
@@ -446,7 +450,9 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 		TSS.update(view)
 		self.pending = self.pending + 1
-		sublime.set_timeout_async(lambda:self.handle_timeout(view),180)
+
+		if not self.settings.get('error_on_save_only'):
+			sublime.set_timeout_async(lambda:self.handle_timeout(view),180)
 
 
 	def handle_timeout(self,view):

@@ -175,6 +175,21 @@ class Tss(object):
 		self.queues[filename]['stdin'].put(bytes(content+'\n'))
 		self.queues[filename]['stdin'].put(bytes('showErrors\n'.format(filename.replace('\\','/'))))
 
+	
+	def get_panel_errors(self,view):
+		process = self.get_process(view)
+		if process == None:
+			return
+
+		filename = view.file_name()
+		(lineCount, col) = view.rowcol(view.size())
+		content = view.substr(sublime.Region(0, view.size()))
+		process.stdin.write(bytes('update nocheck {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/')),'UTF-8'))
+		process.stdin.write(bytes(content+'\n','UTF-8'))
+		process.stdout.readline().decode('UTF-8')
+		process.stdin.write(bytes('showErrors\n'.format(filename.replace('\\','/')),'UTF-8'))
+		return json.loads(process.stdout.readline().decode('UTF-8'))
+
 
 	# ADD THREADS
 	def add_thread(self,thread):
@@ -385,6 +400,34 @@ class TssReader(Thread):
 
 
 # --------------------------------------- EVENT LISTENERS -------------------------------------- #
+
+class TypescriptErrorPanel(sublime_plugin.TextCommand):
+
+	files = []
+	regions = []
+
+	def run(self, edit, characters):
+		liste = []
+		errors = TSS.get_panel_errors(self.view)
+		
+		for e in errors:
+			liste.append(e['text'])
+			self.files.append(e['file'])
+			
+			start_line = e['start']['line']
+			end_line = e['end']['line']
+			left = e['start']['character']
+			right = e['end']['character']
+
+			a = self.view.text_point(start_line-1,left-1)
+			b = self.view.text_point(end_line-1,right-1)
+			self.regions.append( sublime.Region(a,b))
+
+		sublime.active_window().show_quick_panel(liste,self.on_done)
+
+	def on_done(self,index):
+		sublime.active_window().open_file(self.files[index]).show(self.regions[index])
+
 
 class TypescriptComplete(sublime_plugin.TextCommand):
 

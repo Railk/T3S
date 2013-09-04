@@ -1,5 +1,5 @@
 <snippet>
-    <content><![CDATA[///<reference path="$1" />
+    <content><![CDATA[/// <reference path="$1" />
 $0]]></content>
     <tabTrigger>ref</tabTrigger>
     <scope>source.ts</scope>

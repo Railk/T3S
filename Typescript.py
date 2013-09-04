@@ -452,9 +452,9 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not is_ts(view):
 			return
 
-		content = get_content(view)
-		lines = get_lines(view)
-		TSS.update(view,content,lines)
+		# content = get_content(view)
+		# lines = get_lines(view)
+		# TSS.update(view,content,lines)
 		self.pending = self.pending + 1
 
 		if self.settings == None:

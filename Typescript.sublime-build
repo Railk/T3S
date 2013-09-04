@@ -1,0 +1,9 @@
+{
+	"selector": "source.ts",
+  	"cmd": [
+  		"node", "$packages/T3S/Typescript.build.js", "$packages/T3S/Typescript.build_conf.json", "$file"
+  	],
+  	"file_regex": "^(.+?)\\(([0-9]+,[0-9]+)\\)\\: (.+)$",
+  	"encoding":"cp850",
+	"shell":true
+}

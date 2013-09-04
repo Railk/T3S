@@ -118,7 +118,7 @@ Error highlighting only shown when saving :
 ##### build_parameters :
 I've added a build system that take most of the command line parameters of TSC, i'll not explain them here, you can install TSC and look at the parameters via <code>tsc -h</code>
 
-And you also have two extra parameters that are <code>pre_processing_commans</code> and <code>post_processing_commans</code> that gave you the opportunities to do command line things before and after <code>tsc</code> compiling
+And you also have two extra parameters that are <code>pre_processing_commands</code> and <code>post_processing_commands</code> that gave you the opportunities to do command line things before and after <code>tsc</code> compiling
 
 These are the default values :
 		

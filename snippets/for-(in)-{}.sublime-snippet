@@ -3,7 +3,7 @@
 { 
 	${0:// code...}
 }]]></content>
-	<tabTrigger>for</tabTrigger>
+	<tabTrigger>forobj</tabTrigger>
 	<scope>source.ts</scope>
     <description>for … in … loop</description>
 </snippet>

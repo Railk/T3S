@@ -566,4 +566,4 @@ def join_segments(liste,length):
 
 # ---------------------------------------- PLUGIN LOADED --------------------------------------- #
 
-sublime.set_timeout(lambda:init(sublime.active_window().active_view()),300)
+sublime.set_timeout(lambda:init(sublime.active_window().active_view()),500)

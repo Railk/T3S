@@ -122,27 +122,23 @@ And you also have two extra parameters that are <code>pre_processing_commans</co
 
 These are the default values :
 		
-		{
-			"local_tss":true,
-			"error_on_save_only":false,
 
-			"build_parameters":{
-				"pre_processing_commands":[],
-				"post_processing_commands":[],
-				"output_dir_path":"none",
-				"concatenate_and_emit_output_file_path":"none",
-				"source_files_root_path":"none",
-				"map_files_root_path":"none",
-				"module_kind":"none",
-				"allow_bool_synonym":false,
-				"allow_import_module_synonym":false,
-				"generate_declaration":false,
-				"no_implicit_any_warning":false,
-				"skip_resolution_and preprocessing":false,
-				"remove_comments_from_output":false,
-				"generate_source_map":false,
-				"ecmascript_target":"ES3"
-			}
+		"build_parameters":{
+			"pre_processing_commands":[],
+			"post_processing_commands":[],
+			"output_dir_path":"none",
+			"concatenate_and_emit_output_file_path":"none",
+			"source_files_root_path":"none",
+			"map_files_root_path":"none",
+			"module_kind":"none",
+			"allow_bool_synonym":false,
+			"allow_import_module_synonym":false,
+			"generate_declaration":false,
+			"no_implicit_any_warning":false,
+			"skip_resolution_and preprocessing":false,
+			"remove_comments_from_output":false,
+			"generate_source_map":false,
+			"ecmascript_target":"ES3"
 		}
 
 

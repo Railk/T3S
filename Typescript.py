@@ -184,10 +184,10 @@ class Tss(object):
 		filename = view.file_name()
 		(lineCount, col) = view.rowcol(view.size())
 		content = view.substr(sublime.Region(0, view.size()))
-		process.stdin.write(bytes('update nocheck {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/')),'UTF-8'))
-		process.stdin.write(bytes(content+'\n','UTF-8'))
+		process.stdin.write(bytes('update nocheck {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/'))))
+		process.stdin.write(bytes(content+'\n'))
 		process.stdout.readline().decode('UTF-8')
-		process.stdin.write(bytes('showErrors\n'.format(filename.replace('\\','/')),'UTF-8'))
+		process.stdin.write(bytes('showErrors\n'.format(filename.replace('\\','/'))))
 		return json.loads(process.stdout.readline().decode('UTF-8'))
 
 

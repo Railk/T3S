@@ -1,3 +1,4 @@
 {
-    "local_tss":true
+    "local_tss":true,
+    "error_on_save_only":false
 }

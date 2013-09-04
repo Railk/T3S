@@ -405,13 +405,22 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 class TypescriptEventListener(sublime_plugin.EventListener):
 
 	pending = 0
+	settings = None
 
 	def on_activated(self,view):
+		self.settings = sublime.load_settings('Typescript.sublime-settings')
 		init(view)
+		content = get_content(view)
+		lines = get_lines(view)
+		TSS.errors(view,content,lines)
 
 
 	def on_clone(self,view):
+		self.settings = sublime.load_settings('Typescript.sublime-settings')
 		init(view)
+		content = get_content(view)
+		lines = get_lines(view)
+		TSS.errors(view,content,lines)
 
 
 	# def on_close(self,view):
@@ -447,7 +456,9 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		lines = get_lines(view)
 		TSS.update(view,content,lines)
 		self.pending = self.pending + 1
-		sublime.set_timeout(lambda:self.handle_timeout(view),180)
+
+		if not self.settings.get('error_on_save_only'):
+			sublime.set_timeout(lambda:self.handle_timeout(view),180)
 
 
 	def handle_timeout(self,view):

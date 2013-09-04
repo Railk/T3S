@@ -53,18 +53,44 @@ Click the Preferences > Browse Packages… menu
 
 
 ### Settings:
-the plugin use a local version of tss situated in the bin folder as seen in Typescript.sublime-settings file:
+You have two settings available :
+
+1. local_tss : to use the local tss or the command line TSS, the default is using the local_tss
+2. error_on_save_only : to highlight errors only while saving or while typing, the default is showing error highlighting while typing
+
 
 		{
-			"local_tss":true
-		}
+			"local_tss":true,
+			"error_on_save_only":false
+		}	
+
+##### local_tss :
+the plugin use a local version of tss situated in the bin folder as seen in Typescript.sublime-settings file:
+
+		
+		"local_tss":true
+		
+		
 
 You can use the tss command line tool (check installation method on the tss page) by setting local_tss to false, but with so the plugin will be perhaps behind TSS in terms of update and it could make the plugin not working is there's some api change.
 
-		{
-			"local_tss":false
-		}	
+		
+		"local_tss":false
+		
+		
 
+##### error_on_save_only :
+Error highlighting while typing (will lag a bit du to calculation and this cannot be changed) :
+
+		
+		"error_on_save_only":false
+		
+
+Error highlighting only shown when saving :
+
+		
+		"error_on_save_only":true
+		
 
 ### Usage:
 	
@@ -93,6 +119,7 @@ You can create a .sublimets file in the folder containing the typescript root fi
 
 
 If you don't chose either of these solutions the plugin wil launch a process for each file
+
 
 ##### Initialisation :
 When you load a .ts file the plugin will initialize the root file or the current file and it can take some time for huge project.

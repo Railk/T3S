@@ -94,7 +94,12 @@ You can create a .sublimets file in the folder containing the typescript root fi
 
 If you don't chose either of these solutions the plugin wil launch a process for each file
 
+
 ##### Initialisation :
 When you load a .ts file the plugin will initialize the root file or the current file and it can take some time for huge project.
 
 The Sublime Text Status bar will indicate Typescript initializing during this phase and disapear when it's finished
+
+
+##### Error highlighting : 
+You can click on highlighted part to see the error description in the status bar

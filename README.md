@@ -12,11 +12,14 @@ I took inspiration from : https://github.com/raph-amiard/sublime-typescript
 1. TypeScript language auto completion
 2. TypeScript language error highlighting
 3. TypeScript language syntax highlighting
+4. A build System
 
 
 ### Dependencies :
 1. nodejs
 2. tss (https://github.com/clausreinke/typescript-tools) if you set local_tss to false in settings
+3. tsc for the build system that you install via <code>npm install -g typescript</code> (http://www.typescriptlang.org/)
+
 
 ### OS
 Tested on Windows & Ubuntu & OSX
@@ -129,3 +132,26 @@ The Sublime Text Status bar will indicate Typescript initializing during this ph
 
 ##### Error highlighting : 
 You can click on highlighted part to see the error description in the status bar
+
+
+##### Build System : 
+I've added a build system that take most of the command line parameters of TSC, i'll not explain them here, you can install TSC and look at the parameters via <code>tsc -h</code>
+
+To configure the build-system, open the Typescript.build_conf.json file from the plugin repository.
+This is what you will see (these are the default values)
+		
+		{
+			"output_dir_path":"none",
+			"concatenate_and_emit_output_file_path":"none",
+			"source_files_root_path":"none",
+			"map_files_root_path":"none",
+			"module_kind":"none",
+			"allow_bool_synonym":false,
+			"allow_import_module_synonym":false,
+			"generate_declaration":false,
+			"no_implicit_any_warning":false,
+			"skip_resolution_and preprocessing":false,
+			"remove_comments_from_output":false,
+			"generate_source_map":false,
+			"ecmascript_target":"ES3"
+		}

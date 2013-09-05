@@ -1,7 +1,6 @@
 // IMPORT
 var fs = require('fs'),
-	cmd = require('child_process').exec,
-	_path = require("path");
+	cmd = require('child_process').exec;
 
 
 // VARS
@@ -9,7 +8,8 @@ var FILE_ENCODING = 'utf-8';
 var EOL = '\n';
 
 var config_file = process.argv[2];
-var filename = process.argv[3];
+var user_config_file = process.argv[3];
+var filename = process.argv[4];
 
 var commands_map = {
 	"output_dir_path":"--outDir ",
@@ -45,6 +45,8 @@ var default_values = {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
+
+if(fs.existsSync(user_config_file)) config_file = user_config_file;
 
 var config =  JSON.parse(fs.readFileSync(config_file, FILE_ENCODING))['build_parameters'];
 

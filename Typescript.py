@@ -257,12 +257,15 @@ class Tss(object):
 
 		if match:
 			variables = match.group(1).split(',')
+			count = 1
 			for variable in variables:
 				splits = variable.split(':')
 				if len(splits) > 1:
 					split = splits[1].replace(' ','')
-					data = self.data[split] if split in self.data else "" 
+					data = self.data[split] if split in self.data else ""
+					data = '${'+str(count)+':'+data+'}'
 					result.append(data)
+					count = count+1
 				else:
 					result.append('')
 
@@ -414,7 +417,6 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 				segments = e['file'].split('/')
 				last = len(segments)-1
 				filename = segments[last]
-				spaces = ""
 
 				start_line = e['start']['line']
 				end_line = e['end']['line']
@@ -424,11 +426,9 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 				a = self.view.text_point(start_line-1,left-1)
 				b = self.view.text_point(end_line-1,right-1)
 				
-				for x in range(1,len(e['file'])):
-					spaces += " "
 
 				self.regions.append( sublime.Region(a,b))
-				liste.append(['On '+filename+'\t At Line : '+str(start_line)+' Col : '+str(left)+spaces,e['text']+'\t'])
+				liste.append(['On '+filename+'\t At Line : '+str(start_line)+' Col : '+str(left),e['text']])
 				self.files.append(e['file'])
 
 			if len(liste) == 0: liste.append('no errors')

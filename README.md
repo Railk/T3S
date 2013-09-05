@@ -210,3 +210,8 @@ The Sublime Text Status bar will indicate Typescript initializing during this ph
 
 ##### Error highlighting : 
 You can click on highlighted part to see the error description in the status bar
+
+
+##### Error Panel : 
+You have the possibility to open an <code>error panel</code> that will list all the errors accross all your project file with the command <code>ctrl+shift+e</code>
+You can then click on each row, it'll open or focus the already open file concerned by the error.

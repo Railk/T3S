@@ -81,7 +81,7 @@ You have 3 settings available :
 				"allow_import_module_synonym":false,
 				"generate_declaration":false,
 				"no_implicit_any_warning":false,
-				"skip_resolution_and preprocessing":false,
+				"skip_resolution_and_preprocessing":false,
 				"remove_comments_from_output":false,
 				"generate_source_map":false,
 				"ecmascript_target":"ES3"
@@ -137,7 +137,7 @@ These are the default values :
 			"allow_import_module_synonym":false,
 			"generate_declaration":false,
 			"no_implicit_any_warning":false,
-			"skip_resolution_and preprocessing":false,
+			"skip_resolution_and_preprocessing":false,
 			"remove_comments_from_output":false,
 			"generate_source_map":false,
 			"ecmascript_target":"ES3"
@@ -166,7 +166,7 @@ Here's an exemple that do :
 			"allow_import_module_synonym":false,
 			"generate_declaration":false,
 			"no_implicit_any_warning":false,
-			"skip_resolution_and preprocessing":false,
+			"skip_resolution_and_preprocessing":false,
 			"remove_comments_from_output":false,
 			"generate_source_map":false,
 			"ecmascript_target":"ES3"

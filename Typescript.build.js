@@ -21,7 +21,7 @@ var commands_map = {
 	"allow_import_module_synonym":"--allowimportmodule",
 	"generate_declaration":"--declaration",
 	"no_implicit_any_warning":"--noImplicitAny",
-	"skip_resolution_and preprocessing":"--noResolve",
+	"skip_resolution_and_preprocessing":"--noResolve",
 	"remove_comments_from_output":"--removeComments",
 	"generate_source_map":"--sourcemap",
 	"ecmascript_target":"--target "
@@ -37,7 +37,7 @@ var default_values = {
 	"allow_import_module_synonym":false,
 	"generate_declaration":false,
 	"no_implicit_any_warning":false,
-	"skip_resolution_and preprocessing":false,
+	"skip_resolution_and_preprocessing":false,
 	"remove_comments_from_output":false,
 	"generate_source_map":false,
 	"ecmascript_target":"ES3"

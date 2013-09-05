@@ -413,23 +413,39 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 		liste = []
 		errors = TSS.get_panel_errors(self.view)
 		
-		for e in errors:
-			liste.append(e['text'])
-			self.files.append(e['file'])
-			
-			start_line = e['start']['line']
-			end_line = e['end']['line']
-			left = e['start']['character']
-			right = e['end']['character']
+		try:
+			for e in errors:
+				segments = e['file'].split('/')
+				last = len(segments)-1
+				filename = segments[last]
+				spaces = ""
 
-			a = self.view.text_point(start_line-1,left-1)
-			b = self.view.text_point(end_line-1,right-1)
-			self.regions.append( sublime.Region(a,b))
+				start_line = e['start']['line']
+				end_line = e['end']['line']
+				left = e['start']['character']
+				right = e['end']['character']
 
-		sublime.active_window().show_quick_panel(liste,self.on_done)
+				a = self.view.text_point(start_line-1,left-1)
+				b = self.view.text_point(end_line-1,right-1)
+				
+				for x in range(1,len(e['file'])):
+					spaces += " "
 
+				self.regions.append( sublime.Region(a,b))
+				liste.append(['On '+filename+'\t At Line : '+str(start_line)+' Col : '+str(left)+spaces,e['text']+'\t'])
+				self.files.append(e['file'])
+
+			sublime.active_window().show_quick_panel(liste,self.on_done)
+		except:
+			sublime.message_dialog("error panel : plugin not yet intialize please retry after initialisation")
+
+		
 	def on_done(self,index):
-		sublime.active_window().open_file(self.files[index]).show(self.regions[index])
+		if index == -1: return
+		view = sublime.active_window().open_file(self.files[index])
+		view.show(self.regions[index])
+		sublime.active_window().focus_view(view)
+
 
 
 class TypescriptComplete(sublime_plugin.TextCommand):

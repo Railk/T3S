@@ -113,7 +113,7 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('reload\n'))
+		process.stdin.write(encode('reload\n'))
 		process.stdout.readline().decode('UTF-8')
 
 
@@ -132,7 +132,7 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('dump {0} {1}\n'.format(output,view.file_name().replace('\\','/')),'UTF-8'))
+		process.stdin.write(self.encode('dump {0} {1}\n'.format(output,view.file_name().replace('\\','/')),'UTF-8'))
 		print(process.stdout.readline().decode('UTF-8'))
 
 
@@ -142,7 +142,7 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('completions {0} {1} {2} {3}\n'.format(member,str(line+1),str(col+1),view.file_name().replace('\\','/'))))
+		process.stdin.write(self.encode('completions {0} {1} {2} {3}\n'.format(member,str(line+1),str(col+1),view.file_name().replace('\\','/'))))
 		data = process.stdout.readline().decode('UTF-8')
 
 		try:
@@ -159,8 +159,8 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('update nocheck {0} {1}\n'.format(str(lines+1),view.file_name().replace('\\','/'))))
-		process.stdin.write(bytes(content+'\n'))
+		process.stdin.write(self.encode('update nocheck {0} {1}\n'.format(str(lines+1),view.file_name().replace('\\','/'))))
+		process.stdin.write(self.encode(content+'\n'))
 		process.stdout.readline().decode('UTF-8')
 
 
@@ -171,9 +171,9 @@ class Tss(object):
 		
 		del ERRORS_LIST[:]
 		filename = view.file_name()
-		self.queues[filename]['stdin'].put(bytes('update nocheck {0} {1}\n'.format(str(lines+1),filename.replace('\\','/'))))
-		self.queues[filename]['stdin'].put(bytes(content+'\n'))
-		self.queues[filename]['stdin'].put(bytes('showErrors\n'.format(filename.replace('\\','/'))))
+		self.queues[filename]['stdin'].put(self.encode('update nocheck {0} {1}\n'.format(str(lines+1),filename.replace('\\','/'))))
+		self.queues[filename]['stdin'].put(self.encode(content+'\n'))
+		self.queues[filename]['stdin'].put(self.encode('showErrors\n'.format(filename.replace('\\','/'))))
 
 	
 	def get_panel_errors(self,view):
@@ -184,11 +184,16 @@ class Tss(object):
 		filename = view.file_name()
 		(lineCount, col) = view.rowcol(view.size())
 		content = view.substr(sublime.Region(0, view.size()))
-		process.stdin.write(bytes('update nocheck {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/'))))
-		process.stdin.write(bytes(content+'\n'))
+		process.stdin.write(self.encode('update nocheck {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/'))))
+		process.stdin.write(self.encode(content+'\n'))
 		process.stdout.readline().decode('UTF-8')
-		process.stdin.write(bytes('showErrors\n'.format(filename.replace('\\','/'))))
+		process.stdin.write(self.encode('showErrors\n'.format(filename.replace('\\','/'))))
 		return json.loads(process.stdout.readline().decode('UTF-8'))
+
+
+	# ENCODE STRING
+	def encode(self,content):
+		return content.encode('UTF-8')
 
 
 	# ADD THREADS

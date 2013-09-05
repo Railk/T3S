@@ -1,7 +1,6 @@
 <snippet>
 	<content><![CDATA[
-public get ${1:value}() : ${2:string}
-{
+public get ${1:value}() : ${2:string} {
 	${3:return }
 }
 ]]></content>

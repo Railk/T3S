@@ -420,42 +420,35 @@ class TssReader(Thread):
 
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
-	files = []
-	regions = []
-
 	def run(self, edit, characters):
 		liste = []
 		errors = TSS.get_panel_errors(self.view)
+		self.errors = errors
+		self.regions = []
 		
-		# TODO: right now we only use open files so it isn't slow, but it would be nice to show the active line from each one instead
-		open_views = sublime.active_window().views()
-
 		try:
 			for e in errors:
 				segments = e['file'].split('/')
 				last = len(segments)-1
 				filename = segments[last]
-				view = next((view for view in open_views if view.file_name() == e['file']), None)
+				view = sublime.active_window().open_file(e['file'], sublime.TRANSIENT)
 
 				start_line = e['start']['line']
 				end_line = e['end']['line']
 				left = e['start']['character']
 				right = e['end']['character']
-
-				# use the appropriate view
+				
 				a = view.text_point(start_line-1,left-1)
 				b = view.text_point(end_line-1,right-1)
+				region = sublime.Region(a,b)
 
-				self.regions.append(sublime.Region(a,b))
-				self.files.append(e['file'])
-
+				start_line = e['start']['line']
 				file_info = filename + " " + str(start_line) + " - "
 				title = error_text(e)
-				description = file_info
-				if (view):
-					description += view.substr(view.full_line(a)).strip()
+				description = file_info + view.substr(view.full_line(a)).strip()
 
 				liste.append([title, description])				
+				self.regions.append(region)
 				
 
 			if len(liste) == 0: liste.append('no errors')
@@ -467,10 +460,11 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 		
 	def on_done(self,index):
 		if index == -1: return
-		view = sublime.active_window().open_file(self.files[index])
-		region = self.regions[index]
-		print(region)
-		view.show(region)
+
+		e = self.errors[index]
+		r = self.regions[index]
+		view = sublime.active_window().open_file(e['file'])
+		view.show(r)
 		sublime.active_window().focus_view(view)
 
 

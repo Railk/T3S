@@ -80,14 +80,18 @@ function build_commands(){
 
 
 var commands = build_commands();
-console.log('TSC compiling ... '+commands);
+var num_commands = commands.length;
+var index = 0;
 
-for (var i = 0; i < commands.length; i++) {
-	cmd(commands[i],function(err,stdout,stderr){
+function exec(index){
+	cmd(commands[index],function(err,stdout,stderr){
 		if(stdout!==null) console.log(stdout);
 		if(stderr!==null) console.log(stderr);
+		if(index+1<num_commands) exec(index+1);
 	});
 }
 
+console.log('TSC compiling ... '+commands);
+exec(0);
 
 ////////////////////////////////////////////////////////////////////////////////////////

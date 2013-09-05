@@ -143,6 +143,34 @@ These are the default values :
 			"ecmascript_target":"ES3"
 		}
 
+Here's an exemple that do :
+
+	1. One pre processing command : <code>node .settings/.components</code>
+	2. The actual compilation with an output dir and amd module : <code>tsc /absolute/path/to/filename.ts --outDir ./.build --module amd</code>
+	3. Two post processing command : <code>node .settings/.silns.js</code> and <code>r.js.cmd -o .settings/.build.js</code>
+	
+		"build_parameters":{
+			"pre_processing_commands":[
+				"node .settings/.components"
+			],
+			"post_processing_commands":[
+				"node .settings/.silns.js",
+				"r.js.cmd -o .settings/.build.js"
+			],
+			"output_dir_path":"./.build",
+			"concatenate_and_emit_output_file_path":"none",
+			"source_files_root_path":"none",
+			"map_files_root_path":"none",
+			"module_kind":"amd",
+			"allow_bool_synonym":false,
+			"allow_import_module_synonym":false,
+			"generate_declaration":false,
+			"no_implicit_any_warning":false,
+			"skip_resolution_and preprocessing":false,
+			"remove_comments_from_output":false,
+			"generate_source_map":false,
+			"ecmascript_target":"ES3"
+		}
 
 
 ### Usage:

@@ -145,9 +145,9 @@ These are the default values :
 
 Here's an exemple that do :
 
-	1. One pre processing command : <code>node .settings/.components</code>
-	2. The actual compilation with an output dir and amd module : <code>tsc /absolute/path/to/filename.ts --outDir ./.build --module amd</code>
-	3. Two post processing command : <code>node .settings/.silns.js</code> and <code>r.js.cmd -o .settings/.build.js</code>
+1. One pre processing command : <code>node .settings/.components</code>
+2. The actual compilation with an output dir and amd module : <code>tsc /absolute/path/to/filename.ts --outDir ./.build --module amd</code>
+3. Two post processing commands : <code>node .settings/.silns.js</code> and <code>r.js.cmd -o .settings/.build.js</code>
 	
 		"build_parameters":{
 			"pre_processing_commands":[

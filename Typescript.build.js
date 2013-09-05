@@ -84,14 +84,15 @@ var num_commands = commands.length;
 var index = 0;
 
 function exec(index){
+	console.log('executing command : '+commands[index]);
 	cmd(commands[index],function(err,stdout,stderr){
-		if(stdout!==null) console.log(stdout);
-		if(stderr!==null) console.log(stderr);
+		if(stdout!==null && stdout!=='') console.log(stdout);
+		if(stderr!==null && stderr!=='') console.log(stderr);
 		if(index+1<num_commands) exec(index+1);
 	});
 }
 
-console.log('TSC compiling ... '+commands);
+console.log('T3S building ... '+commands+'\n');
 exec(0);
 
 ////////////////////////////////////////////////////////////////////////////////////////

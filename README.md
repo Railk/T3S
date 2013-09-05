@@ -208,7 +208,7 @@ When you load a .ts file the plugin will initialize the root file or the current
 The Sublime Text Status bar will indicate Typescript initializing during this phase and disapear when it's finished
 
 ##### Auto-completion :
-You can circle through the function variables (if there's some) like with the snippets width that <code>tab</code> key
+You can circle through the function variables (if there's some) like with the snippets with the <code>tab</code> key
 
 ##### Error highlighting : 
 You can click on highlighted part to see the error description in the status bar

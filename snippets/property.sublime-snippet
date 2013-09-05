@@ -1,12 +1,10 @@
 <snippet>
 	<content><![CDATA[
 private _${1:value} : ${2:string};
-public get ${1:value}() : ${2:string}
-{
+public get ${1:value}() : ${2:string} {
 	return this._${1:value};
 }
-public set ${1:value}(v : ${2:string})
-{
+public set ${1:value}(v : ${2:string}) {
 	this._${1:value} = v;
 }
 ]]></content>

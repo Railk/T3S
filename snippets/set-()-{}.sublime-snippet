@@ -1,7 +1,6 @@
 <snippet>
 	<content><![CDATA[
-public set ${1:value}(v : ${2:string})
-{
+public set ${1:value}(v : ${2:string}) {
 	this.${3:_value} = v;
 }
 ]]></content>

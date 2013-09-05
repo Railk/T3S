@@ -1,10 +1,8 @@
 <snippet>
 	<content><![CDATA[
-class ${2:ClassName}${3: extends ${4:AnotherClass}}
-{
+class ${2:ClassName}${3: extends ${4:AnotherClass}} {
 	$5
-	${6:constructor}(${7:argument})
-	{
+	${6:constructor}(${7:argument}) {
 		${0:// code...}
 	}
 }

@@ -1,6 +1,5 @@
 <snippet>
-	<content><![CDATA[constructor(${1})
-{
+	<content><![CDATA[constructor(${1}) {
 	${2:// code...}
 }
 ]]></content>

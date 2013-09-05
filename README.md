@@ -56,7 +56,9 @@ Click the Preferences > Browse Packages… menu
 
 
 ### Settings:
-You have two settings available :
+You can acces the plugin settings from <code>Preferences > Packages Settings > T3S</code>, to modify the settings please copy the default settings inside the user settings one, and make your modification there otherwise your settings will be override by an update of the plugin.
+
+You have 3 settings available :
 
 1. local_tss : to use the local tss or the command line TSS, the default is using the local_tss
 2. error_on_save_only : to highlight errors only while saving or while typing, the default is showing error highlighting while typing
@@ -88,7 +90,7 @@ You have two settings available :
 
 
 ##### local_tss :
-the plugin use a local version of tss situated in the bin folder as seen in Typescript.sublime-settings file:
+the plugin use a local version of tss situated in the bin folder :
 
 		
 		"local_tss":true

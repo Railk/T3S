@@ -431,6 +431,8 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 				liste.append(['On '+filename+'\t At Line : '+str(start_line)+' Col : '+str(left)+spaces,e['text']+'\t'])
 				self.files.append(e['file'])
 
+			if len(liste) == 0: liste.append('no errors')
+
 			sublime.active_window().show_quick_panel(liste,self.on_done)
 		except:
 			sublime.message_dialog("error panel : plugin not yet intialize please retry after initialisation")

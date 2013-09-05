@@ -442,8 +442,9 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 				left = e['start']['character']
 				right = e['end']['character']
 
-				a = self.view.text_point(start_line-1,left-1)
-				b = self.view.text_point(end_line-1,right-1)
+				# use the appropriate view
+				a = view.text_point(start_line-1,left-1)
+				b = view.text_point(end_line-1,right-1)
 
 				self.regions.append(sublime.Region(a,b))
 				self.files.append(e['file'])
@@ -467,7 +468,9 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 	def on_done(self,index):
 		if index == -1: return
 		view = sublime.active_window().open_file(self.files[index])
-		view.show(self.regions[index])
+		region = self.regions[index]
+		print(region)
+		view.show(region)
 		sublime.active_window().focus_view(view)
 
 

@@ -549,10 +549,11 @@ def get_root():
 	project_settings = sublime.active_window().active_view().settings().get('typescript')
 	current_folder = os.path.dirname(os.path.realpath(sublime.active_window().active_view().file_name()))
 
+
 	if(project_settings != None):
 		for root in project_settings:
 			root_folder = os.path.dirname(os.path.realpath(root))
-			if root_folder == current_folder:
+			if root_folder.lower() == current_folder.lower():
 				return root
 
 		return None
@@ -561,11 +562,12 @@ def get_root():
 		open_folders = sublime.active_window().folders()
 		for folder in open_folders:
 			folder = os.path.realpath(folder)
-			if current_folder.startswith(folder):
+			if current_folder.lower().startswith(folder.lower()):
 				top_folder = folder
 				break
 
 		segments = current_folder.replace('\\','/').split('/')
+		segments[0] = top_folder.replace('\\','/').split('/')[0]
 		length = len(segments)
 		segment_range =reversed(range(0,length+1))
 
@@ -576,7 +578,7 @@ def get_root():
 			if config_data != None:
 				return os.path.join(folder,config_data['root'])
 
-			if folder == top_folder:
+			if folder.lower() == top_folder.lower():
 				break
 
 		return None

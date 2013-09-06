@@ -152,6 +152,7 @@ class Tss(object):
 		try:
 			entries = json.loads(data)['entries']
 		except:
+			print('completion json error : ',data)
 			entries =[]
 
 		self.prepare_completions_list(entries)
@@ -290,7 +291,7 @@ class Tss(object):
 			for e in errors :
 				ERRORS_LIST.append(e)
 		except:
-			pass
+			print('error json error')
 
 		filename = view.file_name()
 		char_regions = []
@@ -532,9 +533,9 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not is_ts(view):
 			return
 
-		# content = get_content(view)
-		# lines = get_lines(view)
-		# TSS.update(view,content,lines)
+		content = get_content(view)
+		lines = get_lines(view)
+		TSS.update(view,content,lines)
 		self.pending = self.pending + 1
 
 		if self.settings == None:

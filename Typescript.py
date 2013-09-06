@@ -118,7 +118,7 @@ class Tss(object):
 			return
 
 		process.stdin.write(self.encode('reload\n'))
-		process.stdout.readline().decode('UTF-8')
+		print(process.stdout.readline().decode('UTF-8'))
 
 
 	# KILL PROCESS
@@ -414,6 +414,12 @@ class TssReader(Thread):
 
 
 # --------------------------------------- EVENT LISTENERS -------------------------------------- #
+
+class TypescriptReloadProject(sublime_plugin.TextCommand):
+
+	def run(self, edit, characters):
+		TSS.reload(self.view)
+
 
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 

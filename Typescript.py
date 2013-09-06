@@ -25,12 +25,16 @@ else:
 TSS_PATH =  os.path.join(os.path.dirname(__file__),'bin','tss.js')
 COMPLETION_LIST = []
 ERRORS = {}
+ROOT_FILES = []
 
 
 # -------------------------------------- UTILITIES -------------------------------------- #
 
 def is_ts(view):
-	return view.file_name() and view.file_name().endswith('.ts') 
+	return view.file_name() and view.file_name().endswith('.ts')
+
+def is_dts(view):
+	return view.file_name() and view.file_name().endswith('.d.ts')
 
 def get_lines(view):
 	(line,col) = view.rowcol(view.size())
@@ -105,7 +109,7 @@ class Tss(object):
 
 		thread = TssInit(filename,self.queues[filename]['stdin'],self.queues[filename]['stdout'])
 		self.add_thread(thread)
-		self.handle_threads(filename,added)
+		self.handle_threads(view,filename,added)
 
 
 	# RELOAD PROCESS
@@ -116,6 +120,16 @@ class Tss(object):
 
 		process.stdin.write(bytes('reload\n','UTF-8'))
 		process.stdout.readline().decode('UTF-8')
+
+
+	# GET INDEXED FILES
+	def files(self,view):
+		process = self.get_process(view)
+		if process == None:
+			return
+		
+		process.stdin.write(bytes('files\n','UTF-8'));
+		print(process.stdout.readline().decode('UTF-8'))
 
 
 	# KILL PROCESS
@@ -148,6 +162,7 @@ class Tss(object):
 		try:
 			entries = json.loads(data)['entries']
 		except:
+			print('completion json error')
 			entries = []
 		
 		self.prepare_completions_list(entries)
@@ -176,7 +191,7 @@ class Tss(object):
 		content = view.substr(sublime.Region(0, view.size()))
 		self.queues[filename]['stdin'].put(bytes('update nocheck {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/')),'UTF-8'))
 		self.queues[filename]['stdin'].put(bytes(content+'\n','UTF-8'))
-		self.queues[filename]['stdin'].put(bytes('showErrors\n'.format(filename.replace('\\','/')),'UTF-8'))
+		self.queues[filename]['stdin'].put(bytes('showErrors\n','UTF-8'))
 
 
 	def get_panel_errors(self,view):
@@ -190,7 +205,7 @@ class Tss(object):
 		process.stdin.write(bytes('update nocheck {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/')),'UTF-8'))
 		process.stdin.write(bytes(content+'\n','UTF-8'))
 		process.stdout.readline().decode('UTF-8')
-		process.stdin.write(bytes('showErrors\n'.format(filename.replace('\\','/')),'UTF-8'))
+		process.stdin.write(bytes('showErrors\n','UTF-8'))
 		return json.loads(process.stdout.readline().decode('UTF-8'))
 
 
@@ -202,7 +217,7 @@ class Tss(object):
 
 	
 	#HANDLE THREADS
-	def handle_threads(self,filename,added, i=0, dir=1):
+	def handle_threads(self,view,filename,added, i=0, dir=1):
 		next_threads = []
 
 		for thread in self.threads:
@@ -210,6 +225,7 @@ class Tss(object):
 				next_threads.append(thread)
 				continue
 
+			ROOT_FILES.append(view)
 			self.processes[filename] = thread.result
 			if added != None: self.processes[added] = self.processes[filename]
 		
@@ -226,7 +242,7 @@ class Tss(object):
 			sublime.status_message(' Typescript is initializing [%s=%s]' % \
 				(' ' * before, ' ' * after))
 
-			sublime.set_timeout(lambda: self.handle_threads(filename,added,i,dir), 100)
+			sublime.set_timeout(lambda: self.handle_threads(view,filename,added,i,dir), 100)
 			return
 
 		sublime.status_message('')
@@ -280,7 +296,7 @@ class Tss(object):
 			errors = json.loads(errors)
 			self.highlight_errors(view,errors)
 		except:
-			pass
+			print('error json error')
 
 
 	def highlight_errors(self,view,errors) :
@@ -364,9 +380,6 @@ class TssInit(Thread):
 		self.result.stdout.readline().decode('UTF-8')
 		p.stdout.readline().decode('UTF-8')
 
-		# p.stdin.write(bytes('files\n','UTF-8'));
-		# print(p.stdout.readline().decode('UTF-8'))
-		
 		tssWriter = TssWriter(p.stdin,self.stdin_queue)
 		tssWriter.daemon = True
 		tssWriter.start()
@@ -454,6 +467,12 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 		view = sublime.active_window().open_file(self.files[index])
 		view.show(self.regions[index])
 		sublime.active_window().focus_view(view)
+
+	def open_view(self,view):
+		if view.is_loading:
+			sublime.set_timeout(lambda: self.open_view(view), 100)
+		else:
+			pass
 
 	def error_text(self,error):
 		text = error['text']
@@ -565,6 +584,10 @@ def init(view):
 	filename = view.file_name()
 	view.settings().set('auto_complete',False)
 	view.settings().set('extensions',['ts'])
+
+	if is_dts(view):
+		update_dts(filename)
+		return
 	
 	root = get_root()
 	added = None
@@ -573,6 +596,11 @@ def init(view):
 		filename = root
 
 	TSS.start(view,filename,added)
+
+
+def update_dts(filename):
+	for root_file in ROOT_FILES:
+		TSS.start(root_file,root_file.file_name(),filename)
 
 
 def get_root():

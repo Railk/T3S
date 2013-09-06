@@ -119,7 +119,7 @@ class Tss(object):
 			return
 
 		process.stdin.write(bytes('reload\n','UTF-8'))
-		process.stdout.readline().decode('UTF-8')
+		print(process.stdout.readline().decode('UTF-8'))
 
 
 	# GET INDEXED FILES
@@ -422,6 +422,12 @@ class TssReader(Thread):
 
 
 # --------------------------------------- EVENT LISTENERS -------------------------------------- #
+
+class TypescriptReloadProject(sublime_plugin.TextCommand):
+
+	def run(self, edit, characters):
+		TSS.reload(self.view)
+
 
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 

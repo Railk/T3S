@@ -14,13 +14,15 @@ import sys
 
 # --------------------------------------- CONSTANT -------------------------------------- #
 
+# do not use realpath because it breaks on symlinked packages
+dirname = os.path.dirname(__file__)
+
 if os.name == 'nt':
-	ICONS_PATH = ".."+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal')
+	ICONS_PATH = ".."+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal')
 else:
-	ICONS_PATH = "Packages"+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal.png')
+	ICONS_PATH = "Packages"+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal.png')
 
-
-TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')
+TSS_PATH =  os.path.join(os.path.dirname(__file__),'bin','tss.js')
 COMPLETION_LIST = []
 ERRORS = {}
 
@@ -91,7 +93,7 @@ class Tss(object):
 	# START PROCESS
 	def start(self,view,filename,added):
 		if filename in self.processes:
-			if added != None and added not in self.processes: 
+			if added != None and added not in self.processes:
 				self.processes[added] = self.processes[filename]
 				self.queues[added] = self.queues[filename]
 				self.update(view)
@@ -177,6 +179,21 @@ class Tss(object):
 		self.queues[filename]['stdin'].put(bytes('showErrors\n'.format(filename.replace('\\','/')),'UTF-8'))
 
 
+	def get_panel_errors(self,view):
+		process = self.get_process(view)
+		if process == None:
+			return
+
+		filename = view.file_name()
+		(lineCount, col) = view.rowcol(view.size())
+		content = view.substr(sublime.Region(0, view.size()))
+		process.stdin.write(bytes('update nocheck {0} {1}\n'.format(str(lineCount+1),filename.replace('\\','/')),'UTF-8'))
+		process.stdin.write(bytes(content+'\n','UTF-8'))
+		process.stdout.readline().decode('UTF-8')
+		process.stdin.write(bytes('showErrors\n'.format(filename.replace('\\','/')),'UTF-8'))
+		return json.loads(process.stdout.readline().decode('UTF-8'))
+
+
 	# ADD THREADS
 	def add_thread(self,thread):
 		self.threads.append(thread)
@@ -241,12 +258,15 @@ class Tss(object):
 
 		if match:
 			variables = match.group(1).split(',')
+			count = 1
 			for variable in variables:
 				splits = variable.split(':')
 				if len(splits) > 1:
 					split = splits[1].replace(' ','')
-					data = self.data[split] if split in self.data else "" 
+					data = self.data[split] if split in self.data else ""
+					data = '${'+str(count)+':'+data+'}'
 					result.append(data)
+					count = count+1
 				else:
 					result.append('')
 
@@ -390,6 +410,49 @@ class TssReader(Thread):
 
 # --------------------------------------- EVENT LISTENERS -------------------------------------- #
 
+class TypescriptErrorPanel(sublime_plugin.TextCommand):
+
+	files = []
+	regions = []
+
+	def run(self, edit, characters):
+		liste = []
+		errors = TSS.get_panel_errors(self.view)
+		
+		try:
+			for e in errors:
+				segments = e['file'].split('/')
+				last = len(segments)-1
+				filename = segments[last]
+
+				start_line = e['start']['line']
+				end_line = e['end']['line']
+				left = e['start']['character']
+				right = e['end']['character']
+
+
+				a = self.view.text_point(start_line-1,left-1)
+				b = self.view.text_point(end_line-1,right-1)
+
+				self.regions.append( sublime.Region(a,b))
+				liste.append(['On '+filename+' At Line : '+str(start_line)+' Col : '+str(left),e['text']])
+				self.files.append(e['file'])
+
+			if len(liste) == 0: liste.append('no errors')
+
+			sublime.active_window().show_quick_panel(liste,self.on_done)
+		except:
+			sublime.message_dialog("error panel : plugin not yet intialize please retry after initialisation")
+
+		
+	def on_done(self,index):
+		if index == -1: return
+		view = sublime.active_window().open_file(self.files[index])
+		view.show(self.regions[index])
+		sublime.active_window().focus_view(view)
+
+
+
 class TypescriptComplete(sublime_plugin.TextCommand):
 
 	def run(self, edit, characters):
@@ -408,14 +471,20 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 class TypescriptEventListener(sublime_plugin.EventListener):
 
 	pending = 0
+	settings = None
 
 	def on_activated_async(self,view):
-		init(view)
-
+		self.init_view(view)
+		
 
 	def on_clone_async(self,view):
-		init(view)
+		self.init_view(view)
 
+
+	def init_view(self,view):
+		self.settings = sublime.load_settings('Typescript.sublime-settings')
+		init(view)
+		TSS.errors(view)
 
 	# def on_close_async(self,view):
 	# 	if not is_ts(view):
@@ -444,9 +513,14 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not is_ts(view):
 			return
 
-		TSS.update(view)
+		# TSS.update(view)
 		self.pending = self.pending + 1
-		sublime.set_timeout_async(lambda:self.handle_timeout(view),180)
+
+		if self.settings == None:
+			self.settings = sublime.load_settings('Typescript.sublime-settings')
+
+		if not self.settings.get('error_on_save_only'):
+			sublime.set_timeout_async(lambda:self.handle_timeout(view),180)
 
 
 	def handle_timeout(self,view):
@@ -496,10 +570,11 @@ def get_root():
 	project_settings = sublime.active_window().active_view().settings().get('typescript')
 	current_folder = os.path.dirname(os.path.realpath(sublime.active_window().active_view().file_name()))
 
+
 	if(project_settings != None):
 		for root in project_settings:
 			root_folder = os.path.dirname(os.path.realpath(root))
-			if root_folder == current_folder:
+			if root_folder.lower() == current_folder.lower():
 				return root
 
 		return None
@@ -508,11 +583,12 @@ def get_root():
 		open_folders = sublime.active_window().folders()
 		for folder in open_folders:
 			folder = os.path.realpath(folder)
-			if current_folder.startswith(folder):
+			if current_folder.lower().startswith(folder.lower()):
 				top_folder = folder
 				break
 
 		segments = current_folder.replace('\\','/').split('/')
+		segments[0] = top_folder.replace('\\','/').split('/')[0]
 		length = len(segments)
 		segment_range =reversed(range(0,length+1))
 
@@ -523,7 +599,7 @@ def get_root():
 			if config_data != None:
 				return os.path.join(folder,config_data['root'])
 
-			if folder == top_folder:
+			if folder.lower() == top_folder.lower():
 				break
 
 		return None

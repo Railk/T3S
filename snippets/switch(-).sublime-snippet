@@ -1,6 +1,5 @@
 <snippet>
-    <content><![CDATA[switch (${1:variable})
-{
+    <content><![CDATA[switch (${1:variable}) {
 	case "${2:value}":
 		${3:// code...}
 		break;

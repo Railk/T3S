@@ -1,0 +1,8 @@
+[
+    {
+        "caption": "Typescript: Open Error Panel",
+        "command": "typescript_error_panel",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
+    }
+]

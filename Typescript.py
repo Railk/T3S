@@ -412,10 +412,9 @@ class TssReader(Thread):
 
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
-	files = []
-	regions = []
-
 	def run(self, edit, characters):
+		self.files = []
+		self.regions = []
 		liste = []
 		errors = TSS.get_panel_errors(self.view)
 		
@@ -424,32 +423,42 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 				segments = e['file'].split('/')
 				last = len(segments)-1
 				filename = segments[last]
+				view = sublime.active_window().open_file(e['file'], sublime.TRANSIENT)
 
 				start_line = e['start']['line']
 				end_line = e['end']['line']
 				left = e['start']['character']
 				right = e['end']['character']
 
-
 				a = self.view.text_point(start_line-1,left-1)
 				b = self.view.text_point(end_line-1,right-1)
 
+				file_info = filename + " Line " + str(start_line) + " - "
+				title = self.error_text(e)
+				description = file_info + view.substr(view.full_line(a)).strip()
+
+				liste.append([title, description])
 				self.regions.append( sublime.Region(a,b))
-				liste.append(['On '+filename+' At Line : '+str(start_line)+' Col : '+str(left),e['text']])
 				self.files.append(e['file'])
 
 			if len(liste) == 0: liste.append('no errors')
 
 			sublime.active_window().show_quick_panel(liste,self.on_done)
-		except:
+		except (Exception) as e:
 			sublime.message_dialog("error panel : plugin not yet intialize please retry after initialisation")
 
 		
 	def on_done(self,index):
 		if index == -1: return
+		
 		view = sublime.active_window().open_file(self.files[index])
 		view.show(self.regions[index])
 		sublime.active_window().focus_view(view)
+
+	def error_text(self,error):
+		text = error['text']
+		text = re.sub(r'^.*?:\s*', '', text)
+		return text
 
 
 

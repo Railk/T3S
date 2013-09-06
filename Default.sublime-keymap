@@ -16,5 +16,11 @@
         "args": {"characters": ""},
         "keys": ["ctrl+shift+e"],
         "context": [ {"key": "typescript"} ]
+    },
+    {
+        "command": "typescript_reload_project",
+        "args": {"characters": ""},
+        "keys": ["ctrl+shift+r"],
+        "context": [ {"key": "typescript"} ]
     }
 ]

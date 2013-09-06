@@ -4,5 +4,11 @@
         "command": "typescript_error_panel",
         "args": {"characters": ""},
         "context": [ {"key": "typescript"} ]
+    },
+    {
+        "caption": "Typescript: Reload TypeScript Project",
+        "command": "typescript_reload_project",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
     }
 ]

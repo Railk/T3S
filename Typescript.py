@@ -12,6 +12,7 @@ import re
 import sys
 
 
+
 # --------------------------------------- CONSTANT -------------------------------------- #
 
 # do not use realpath because it breaks on symlinked packages
@@ -38,6 +39,12 @@ def get_lines(view):
 
 def get_content(view):
 	return view.substr(sublime.Region(0, view.size()))
+
+def error_text(e):
+	text = e['text']
+	text = re.sub(r'^.*?:\s*', '', text)
+	return text
+
 
 js_id_re = re.compile(u'^[_$a-zA-Z\u00FF-\uFFFF][_$a-zA-Z0-9\u00FF-\uFFFF]*')
 def is_member_completion(line):
@@ -191,7 +198,8 @@ class Tss(object):
 		process.stdin.write(bytes(content+'\n','UTF-8'))
 		process.stdout.readline().decode('UTF-8')
 		process.stdin.write(bytes('showErrors\n'.format(filename.replace('\\','/')),'UTF-8'))
-		return json.loads(process.stdout.readline().decode('UTF-8'))
+		errors = json.loads(process.stdout.readline().decode('UTF-8'))
+		return errors
 
 
 	# ADD THREADS
@@ -412,43 +420,51 @@ class TssReader(Thread):
 
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
-	files = []
-	regions = []
-
 	def run(self, edit, characters):
 		liste = []
 		errors = TSS.get_panel_errors(self.view)
+		self.errors = errors
+		self.regions = []
 		
 		try:
 			for e in errors:
 				segments = e['file'].split('/')
 				last = len(segments)-1
 				filename = segments[last]
+				view = sublime.active_window().open_file(e['file'], sublime.TRANSIENT)
 
 				start_line = e['start']['line']
 				end_line = e['end']['line']
 				left = e['start']['character']
 				right = e['end']['character']
+				
+				a = view.text_point(start_line-1,left-1)
+				b = view.text_point(end_line-1,right-1)
+				region = sublime.Region(a,b)
 
+				start_line = e['start']['line']
+				file_info = filename + " " + str(start_line) + " - "
+				title = error_text(e)
+				description = file_info + view.substr(view.full_line(a)).strip()
 
-				a = self.view.text_point(start_line-1,left-1)
-				b = self.view.text_point(end_line-1,right-1)
-
-				self.regions.append( sublime.Region(a,b))
-				liste.append(['On '+filename+' At Line : '+str(start_line)+' Col : '+str(left),e['text']])
-				self.files.append(e['file'])
+				liste.append([title, description])				
+				self.regions.append(region)
+				
 
 			if len(liste) == 0: liste.append('no errors')
 
 			sublime.active_window().show_quick_panel(liste,self.on_done)
-		except:
+		except (Exception) as e:
 			sublime.message_dialog("error panel : plugin not yet intialize please retry after initialisation")
 
 		
 	def on_done(self,index):
 		if index == -1: return
-		view = sublime.active_window().open_file(self.files[index])
-		view.show(self.regions[index])
+
+		e = self.errors[index]
+		r = self.regions[index]
+		view = sublime.active_window().open_file(e['file'])
+		view.show(r)
 		sublime.active_window().focus_view(view)
 
 
@@ -466,7 +482,6 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 			'api_completions_only': True,
 			'next_competion_if_showing': True
 		})
-
 
 class TypescriptEventListener(sublime_plugin.EventListener):
 

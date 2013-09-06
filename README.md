@@ -1,67 +1,67 @@
 TSS Sublime (T3S)
 ----------------------------------------------------------------------------
 
-Typescript plugin for sublime text 2 and 3 using Typescript tools ( https://github.com/clausreinke/typescript-tools )
+TypeScript plugin for Sublime Text 2 and 3 using TypeScript tools ( https://github.com/clausreinke/typescript-tools )
 
 I'm using the same error icons has SublimeLinter.
 
-I took inspiration from : https://github.com/raph-amiard/sublime-typescript
+I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 
-### Feature :
-1. TypeScript language auto completion
-2. TypeScript language error highlighting
-3. TypeScript language syntax highlighting
-4. A build System
+### Features
+- TypeScript language auto completion
+- TypeScript language error highlighting
+- TypeScript language syntax highlighting
+- A build System
 
 
-### Dependencies :
-1. nodejs
-2. tss (https://github.com/clausreinke/typescript-tools) if you set local_tss to false in settings
-3. tsc for the build system that you install via <code>npm install -g typescript</code> (http://www.typescriptlang.org/)
+### Dependencies
+- node.js
+- tss (https://github.com/clausreinke/typescript-tools) if you set local_tss to false in settings
+- tsc for the build system that you install via <code>npm install -g typescript</code> (http://www.typescriptlang.org/)
 
 
 ### OS
 Tested on Windows & Ubuntu & OSX
 
 ### Problem
-OSX has currently the path for node hardcoded (default installation directory) du to some environnment PATH for GUI app problem.
+OSX has currently the path for node hardcoded (default installation directory) du to some environnment <code>PATH</code> for GUI app problem.
 
-### Installation Sublime Text 3 :
+### Installation for Sublime Text 3:
 
-##### Sublime text Package directory :
-Click the Preferences > Browse Packages… menu
-
-
-##### Without Git : 
-Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named <code>T3S</code>.
-
-##### With Git : 
-Clone the repository in your Sublime Text "Packages" directory.
+##### Sublime text Package directory:
+Click the <code>Preferences > Browse Packages…</code> menu
 
 
-### Installation Sublime Text 2 :
+##### Without Git: 
+Download the latest source zip from github and extract the files to your Sublime Text <code>Packages</code> directory, into a new directory named <code>T3S</code>.
 
-##### Sublime text Package directory :
-Click the Preferences > Browse Packages… menu
+##### With Git:
+Clone the repository in your Sublime Text <code>Packages</code> directory.
 
 
-##### Without Git : 
+### Installation for Sublime Text 2:
+
+##### Sublime text Package directory:
+Click the <code>Preferences > Browse Packages…</code> menu
+
+
+##### Without Git:
 1. Choose ST2 Branch
-2. Download the latest source zip from github and extract the files to your Sublime Text "Packages" directory, into a new directory named <code>T3S</code>.
+2. Download the latest source zip from github and extract the files to your Sublime Text <code>Packages</code> directory, into a new directory named <code>T3S</code>.
 
-##### With Git : 
-1. Clone the repository in your Sublime Text "Packages" directory.
-2. Git checkout ST2 branch
+##### With Git:
+1. Clone the repository in your Sublime Text <code>Packages</code> directory.
+2. Checkout ST2 branch using <code>git checkout st2</code>.
 
 
 ### Settings:
 You can acces the plugin settings from <code>Preferences > Packages Settings > T3S</code>, to modify the settings please copy the default settings inside the user settings one, and make your modification there otherwise your settings will be override by an update of the plugin.
 
-You have 3 settings available :
+You have 3 settings available:
 
-1. local_tss : to use the local tss or the command line TSS, the default is using the local_tss
-2. error_on_save_only : to highlight errors only while saving or while typing, the default is showing error highlighting while typing
+1. <code>local_tss</code>: to use the local tss or the command line TSS, the default is using the local_tss
+2. <code>error_on_save_only</code>: to highlight errors only while saving or while typing, the default is showing error highlighting while typing
 3. the build parameters
 
 
@@ -89,7 +89,7 @@ You have 3 settings available :
 		}
 
 
-##### local_tss :
+##### local_tss:
 the plugin use a local version of tss situated in the bin folder :
 
 		
@@ -104,25 +104,25 @@ You can use the tss command line tool (check installation method on the tss page
 		
 		
 
-##### error_on_save_only :
-Error highlighting while typing (will lag a bit du to calculation and this cannot be changed) :
+##### error_on_save_only:
+Error highlighting while typing (will lag a bit du to calculation and this cannot be changed):
 
 		
 		"error_on_save_only":false
 		
 
-Error highlighting only shown when saving :
+Error highlighting only shown when saving:
 
 		
 		"error_on_save_only":true
 
 
-##### build_parameters :
+##### build_parameters:
 I've added a build system that take most of the command line parameters of TSC, i'll not explain them here, you can install TSC and look at the parameters via <code>tsc -h</code>
 
 And you also have two extra parameters that are <code>pre_processing_commands</code> and <code>post_processing_commands</code> that give you the opportunity to do command line things before and after <code>tsc</code> compiling
 
-These are the default values :
+These are the default values:
 		
 
 		"build_parameters":{
@@ -143,7 +143,7 @@ These are the default values :
 			"ecmascript_target":"ES3"
 		}
 
-Here's an exemple that do :
+Here's an exemple that do:
 
 1. One pre processing command : <code>node .settings/.components</code>
 2. The actual compilation with an output dir and amd module : <code>tsc /absolute/path/to/filename.ts --outDir ./.build --module amd</code>
@@ -175,7 +175,7 @@ Here's an exemple that do :
 
 ### Usage:
 	
-##### You have a sublime text project :
+##### You have a sublime text project:
 You can indicate your typescript root files in your project_name.sublime-project like so :
 			
 		
@@ -190,7 +190,7 @@ You can indicate your typescript root files in your project_name.sublime-project
 		}
 		
 
-##### You don't have a sublime text project :
+##### You don't have a sublime text project:
 You can create a .sublimets file in the folder containing the typescript root file
 
 
@@ -202,18 +202,18 @@ You can create a .sublimets file in the folder containing the typescript root fi
 If you don't chose either of these solutions the plugin wil launch a process for each file
 
 
-##### Initialisation :
+##### Initialisation:
 When you load a .ts file the plugin will initialize the root file or the current file and it can take some time for huge project.
 
 The Sublime Text Status bar will indicate Typescript initializing during this phase and disapear when it's finished
 
-##### Auto-completion :
+##### Auto-completion:
 You can circle through the function variables (if there's some) like with the snippets with the <code>tab</code> key
 
-##### Error highlighting : 
+##### Error highlighting: 
 You can click on highlighted part to see the error description in the status bar
 
 
-##### Error Panel : 
+##### Error Panel: 
 You have the possibility to open an <code>error panel</code> that will list all the errors accross all your project file with the command <code>ctrl+shift+e</code>
 You can then click on each row, it'll open or focus the already open file concerned by the error.

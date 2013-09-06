@@ -162,7 +162,7 @@ class Tss(object):
 		try:
 			entries = json.loads(data)['entries']
 		except:
-			print('completion json error')
+			print('completion json error : ',data)
 			entries = []
 		
 		self.prepare_completions_list(entries)
@@ -541,7 +541,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not is_ts(view):
 			return
 
-		# TSS.update(view)
+		TSS.update(view)
 		self.pending = self.pending + 1
 
 		if self.settings == None:

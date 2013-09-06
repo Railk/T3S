@@ -14,15 +14,12 @@ import sys
 
 # --------------------------------------- CONSTANT -------------------------------------- #
 
-# do not use realpath because it breaks on symlinked packages
-dirname = os.path.dirname(__file__)
-
 if os.name == 'nt':
-	ICONS_PATH = ".."+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal')
+	ICONS_PATH = ".."+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal')
 else:
-	ICONS_PATH = "Packages"+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal.png')
+	ICONS_PATH = "Packages"+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal.png')
 
-TSS_PATH =  os.path.join(os.path.dirname(__file__),'bin','tss.js')
+TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')
 ERRORS = {}
 COMPLETION_LIST = []
 ERRORS_LIST = []

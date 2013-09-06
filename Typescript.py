@@ -23,12 +23,16 @@ TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.
 ERRORS = {}
 COMPLETION_LIST = []
 ERRORS_LIST = []
+ROOT_FILES = []
 
 
 # -------------------------------------- UTILITIES -------------------------------------- #
 
 def is_ts(view):
-	return view.file_name() and view.file_name().endswith('.ts') 
+	return view.file_name() and view.file_name().endswith('.ts')
+
+def is_dts(view):
+	return view.file_name() and view.file_name().endswith('.d.ts')
 
 def get_lines(view):
 	(line,col) = view.rowcol(view.size())
@@ -104,7 +108,7 @@ class Tss(object):
 		settings = sublime.load_settings('Typescript.sublime-settings')
 		thread = TssInit(filename,self.queues[filename]['stdin'],self.queues[filename]['stdout'],settings.get('local_tss'))
 		self.add_thread(thread)
-		self.handle_threads(filename,added)
+		self.handle_threads(view,filename,added)
 
 
 	# RELOAD PROCESS
@@ -204,7 +208,7 @@ class Tss(object):
 
 	
 	#HANDLE THREADS
-	def handle_threads(self,filename,added, i=0, dir=1):
+	def handle_threads(self,view,filename,added, i=0, dir=1):
 		next_threads = []
 
 		for thread in self.threads:
@@ -212,6 +216,7 @@ class Tss(object):
 				next_threads.append(thread)
 				continue
 
+			ROOT_FILES.append(view)
 			self.processes[filename] = thread.result
 			if added != None: self.processes[added] = self.processes[filename]
 		
@@ -228,7 +233,7 @@ class Tss(object):
 			sublime.status_message(' Typescript is initializing [%s=%s]' % \
 				(' ' * before, ' ' * after))
 
-			sublime.set_timeout(lambda: self.handle_threads(filename,added,i,dir), 100)
+			sublime.set_timeout(lambda: self.handle_threads(view,filename,added,i,dir), 100)
 			return
 
 		sublime.status_message('')
@@ -575,6 +580,10 @@ def init(view):
 	filename = view.file_name()
 	view.settings().set('auto_complete',False)
 	view.settings().set('extensions',['ts'])
+
+	if is_dts(view):
+		update_dts(filename)
+		return
 	
 	root = get_root()
 	added = None
@@ -583,6 +592,11 @@ def init(view):
 		filename = root
 
 	TSS.start(view,filename,added)
+
+
+def update_dts(filename):
+	for root_file in ROOT_FILES:
+		TSS.start(root_file,root_file.file_name(),filename)
 
 
 def get_root():

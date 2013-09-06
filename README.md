@@ -217,3 +217,6 @@ You can click on highlighted part to see the error description in the status bar
 ##### Error Panel: 
 You have the possibility to open an <code>error panel</code> that will list all the errors accross all your project file with the command <code>ctrl+shift+e</code>
 You can then click on each row, it'll open or focus the already open file concerned by the error.
+
+##### Reloading the project:
+You have the possibility to <code>reload</code> the project with the command <code>ctrl+shift+r</code>, you can see in the console when the reload is finished

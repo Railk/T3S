@@ -424,52 +424,104 @@ class TypescriptReloadProject(sublime_plugin.TextCommand):
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
 	def run(self, edit, characters):
-		self.files = []
-		self.regions = []
+		views = []
 		liste = []
 		errors = TSS.get_panel_errors(self.view)
 		
 		try:
 			for e in errors:
-				segments = e['file'].split('/')
-				last = len(segments)-1
-				filename = segments[last]
-				view = sublime.active_window().open_file(e['file'], sublime.TRANSIENT)
+				views.append(sublime.active_window().open_file(e['file'], sublime.TRANSIENT))
 
-				start_line = e['start']['line']
-				end_line = e['end']['line']
-				left = e['start']['character']
-				right = e['end']['character']
+			if len(views) == 0: 
+				liste.append('no errors')
+				sublime.active_window().show_quick_panel(liste,self.on_done)
+			else:
+				self.open_panel(views,errors)
 
-				a = self.view.text_point(start_line-1,left-1)
-				b = self.view.text_point(end_line-1,right-1)
-
-				file_info = filename + " Line " + str(start_line) + " - "
-				title = self.error_text(e)
-				description = file_info + view.substr(view.full_line(a)).strip()
-
-				liste.append([title, description])
-				self.regions.append( sublime.Region(a,b))
-				self.files.append(e['file'])
-
-			if len(liste) == 0: liste.append('no errors')
-
-			sublime.active_window().show_quick_panel(liste,self.on_done)
 		except (Exception) as e:
 			sublime.message_dialog("error panel : plugin not yet intialize please retry after initialisation")
 
-		
-	def on_done(self,index):
-		if index == -1: return
-		
-		view = sublime.active_window().open_file(self.files[index])
-		view.show(self.regions[index])
-		sublime.active_window().focus_view(view)
+
+	def open_panel(self,views,errors,i=0,dir=1):
+		# LOADING
+		if self.has_loading_views(views):
+			before = i % 8
+			after = (7) - before
+			if not after:
+				dir = -1
+			if not before:
+				dir = 1
+			i += dir
+			sublime.status_message(' Typescript Error panel is loading [%s=%s]' % \
+				(' ' * before, ' ' * after))
+
+			sublime.set_timeout(lambda: self.open_panel(views,errors,i,dir), 100)
+			return
+
+		# FINISHED LOADING
+		sublime.status_message('')
+
+		# OPEN PANEL
+		self.files = []
+		self.regions = []
+		self.views = []
+		liste = []
+		count=0
+
+		for e in errors:
+			segments = e['file'].split('/')
+			last = len(segments)-1
+			filename = segments[last]
+			view = views[count]
+
+			start_line = e['start']['line']
+			end_line = e['end']['line']
+			left = e['start']['character']
+			right = e['end']['character']
+
+			a = view.text_point(start_line-1,left-1)
+			b = view.text_point(end_line-1,right-1)
+
+			file_info = filename + " Line " + str(start_line) + " - "
+			title = self.error_text(e)
+			description = file_info + view.substr(view.full_line(a)).strip()
+
+			liste.append([title, description])
+			self.regions.append( sublime.Region(a,b))
+			self.files.append(e['file'])
+			count = count+1
+
+		sublime.active_window().show_quick_panel(liste,self.on_done)
+
+
+	def has_loading_views(self,views):
+		for view in views:
+			if view.is_loading():
+				return True
+
+		return False
+
 
 	def error_text(self,error):
 		text = error['text']
 		text = re.sub(r'^.*?:\s*', '', text)
 		return text
+
+
+	def on_done(self,index):
+		if index == -1: return
+		
+		view = sublime.active_window().open_file(self.files[index])
+		self.open_view(view,self.regions[index])
+		
+
+	def open_view(self,view,region):
+		if view.is_loading():
+			sublime.set_timeout(lambda: self.open_view(view,region), 100)
+			return
+		else:
+			sublime.active_window().focus_view(view)
+			view.show(region)
 
 
 

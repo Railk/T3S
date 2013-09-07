@@ -22,5 +22,11 @@
         "args": {"characters": ""},
         "keys": ["ctrl+shift+r"],
         "context": [ {"key": "typescript"} ]
+    },
+    {
+        "command": "typescript_definition",
+        "args": {"characters": ""},
+        "keys": ["f4"],
+        "context": [ {"key": "typescript"} ]
     }
 ]

@@ -207,6 +207,9 @@ When you load a .ts file the plugin will initialize the root file or the current
 
 The Sublime Text Status bar will indicate Typescript initializing during this phase and disapear when it's finished
 
+##### Got to definition:
+you can click on variable or a method and press <code>F4</code> to go to the definition
+
 ##### Auto-completion:
 You can circle through the function variables (if there's some) like with the snippets with the <code>tab</code> key
 

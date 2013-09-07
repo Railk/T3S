@@ -476,24 +476,27 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 		(line, col) = self.view.rowcol(pos)
 		definition = TSS.definition(self.view,line,col)
 
+		if definition == None: return
+
 		view = sublime.active_window().open_file(definition['file'])
-		start_line = definition['min']['line']
-		end_line = definition['lim']['line']
-		left = definition['min']['character']
-		right = definition['lim']['character']
+		self.open_view(view,definition)
 
-		a = view.text_point(start_line-1,left-1)
-		b = view.text_point(end_line-1,right-1)
-
-		self.open_view(view,sublime.Region(a,b))
-
-	def open_view(self,view,region):
+	def open_view(self,view,definition):
 		if view.is_loading():
-			sublime.set_timeout(lambda: self.open_view(view,region), 100)
+			sublime.set_timeout(lambda: self.open_view(view,definition), 100)
 			return
 		else:
+			start_line = definition['min']['line']
+			end_line = definition['lim']['line']
+			left = definition['min']['character']
+			right = definition['lim']['character']
+
+			a = view.text_point(start_line-1,left-1)
+			b = view.text_point(end_line-1,right-1)
+			region = sublime.Region(a,b)
+
 			sublime.active_window().focus_view(view)
-			view.show(region)
+			view.show_at_center(region)
 			view.add_regions('typescript-definition', [region], 'comment', ICONS_PATH, sublime.DRAW_NO_FILL)
 
 

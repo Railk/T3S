@@ -52,7 +52,7 @@ Click the <code>Preferences > Browse Packages…</code> menu
 
 ##### With Git:
 1. Clone the repository in your Sublime Text <code>Packages</code> directory.
-2. Checkout ST2 branch using <code>git checkout st2</code>.
+2. Checkout ST2 branch using <code>git checkout ST2</code>.
 
 
 ### Settings:

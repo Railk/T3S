@@ -6,8 +6,14 @@
         "context": [ {"key": "typescript"} ]
     },
     {
-        "caption": "Typescript: Reload TypeScript Project",
+        "caption": "Typescript: Reload Project",
         "command": "typescript_reload_project",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
+    },
+    {
+        "caption": "Typescript: Go to definition",
+        "command": "typescript_definition",
         "args": {"characters": ""},
         "context": [ {"key": "typescript"} ]
     }

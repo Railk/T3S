@@ -150,6 +150,45 @@ class Tss(object):
 		print(process.stdout.readline().decode('UTF-8'))
 
 
+	# TYPE
+	def type(self,view,line,col):
+		process = self.get_process(view)
+		if process == None:
+			return
+
+		process.stdin.write(bytes('type {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/')),'UTF-8'))
+		print(process.stdout.readline().decode('UTF-8'))
+
+
+	# DEFINITION
+	def definition(self,view,line,col):
+		process = self.get_process(view)
+		if process == None:
+			return
+
+		process.stdin.write(bytes('definition {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/')),'UTF-8'))
+		return json.loads(process.stdout.readline().decode('UTF-8'))
+
+
+	# REFERENCES
+	def references(self,view,line,col):
+		process = self.get_process(view)
+		if process == None:
+			return
+
+		process.stdin.write(bytes('references {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/')),'UTF-8'))
+		print(process.stdout.readline().decode('UTF-8'))
+
+	# STRUCTURE
+	def structure(self,view):
+		process = self.get_process(view)
+		if process == None:
+			return
+
+		process.stdin.write(bytes('structure {0}\n'.format(view.file_name().replace('\\','/')),'UTF-8'))
+		print(process.stdout.readline().decode('UTF-8'))
+
+
 	# ASK FOR COMPLETIONS
 	def complete(self,view,line,col,member):
 		process = self.get_process(view)
@@ -421,17 +460,67 @@ class TssReader(Thread):
 
 
 
-# --------------------------------------- EVENT LISTENERS -------------------------------------- #
+# --------------------------------------- COMMANDS -------------------------------------- #
 
 class TypescriptReloadProject(sublime_plugin.TextCommand):
 
-	def run(self, edit, characters):
+	def run(self, edit, characters=None):
 		TSS.reload(self.view)
+
+
+class TypescriptType(sublime_plugin.TextCommand):
+
+	def run(self, edit, characters=None):
+		pos = self.view.sel()[0].begin()
+		(line, col) = self.view.rowcol(pos)
+		TSS.type(self.view,line,col)
+
+
+class TypescriptDefinition(sublime_plugin.TextCommand):
+
+	def run(self, edit, characters=None):
+		pos = self.view.sel()[0].begin()
+		(line, col) = self.view.rowcol(pos)
+		definition = TSS.definition(self.view,line,col)
+
+		view = sublime.active_window().open_file(definition['file'])
+		start_line = definition['min']['line']
+		end_line = definition['lim']['line']
+		left = definition['min']['character']
+		right = definition['lim']['character']
+
+		a = view.text_point(start_line-1,left-1)
+		b = view.text_point(end_line-1,right-1)
+
+		self.open_view(view,sublime.Region(a,b))
+
+	def open_view(self,view,region):
+		if view.is_loading():
+			sublime.set_timeout(lambda: self.open_view(view,region), 100)
+			return
+		else:
+			sublime.active_window().focus_view(view)
+			view.show(region)
+			view.add_regions('typescript-definition', [region], 'comment', ICONS_PATH, sublime.DRAW_NO_FILL)
+
+
+class TypescriptReferences(sublime_plugin.TextCommand):
+
+	def run(self, edit, characters=None):
+		pos = self.view.sel()[0].begin()
+		(line, col) = self.view.rowcol(pos)
+		TSS.references(self.view,line,col)
+
+
+class TypescriptStructure(sublime_plugin.TextCommand):
+
+	def run(self, edit, characters=None):
+		TSS.structure(self.view)
 
 
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
-	def run(self, edit, characters):
+	def run(self, edit, characters=None):
 		views = []
 		liste = []
 		errors = TSS.get_panel_errors(self.view)
@@ -549,6 +638,8 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 		})
 
 
+# --------------------------------------- EVENT LISTENERS -------------------------------------- #
+
 class TypescriptEventListener(sublime_plugin.EventListener):
 
 	pending = 0
@@ -566,6 +657,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		self.settings = sublime.load_settings('Typescript.sublime-settings')
 		init(view)
 		TSS.errors(view)
+
 
 	# def on_close_async(self,view):
 	# 	if not is_ts(view):
@@ -586,6 +678,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not is_ts(view):
 			return
 
+		view.erase_regions('typescript-definition')
 		TSS.set_error_status(view)
 
 

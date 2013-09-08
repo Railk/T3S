@@ -174,11 +174,11 @@ Here's an exemple that do:
 
 ### Commands:
 
-<code>f3</code> Open a panel to Navigate in file (class,methods,properties, etc...)
-<code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
-<code>f5</code> Reload the current project
-<code>ctrl+shift+e</code> Open a panel listing all the errors across all the files of the project
-<code>ctrl+shift+K</code> Close all projects (to reinialise just focus on/open a .ts file)
+1. <code>f3</code> Open a panel to Navigate in file (class,methods,properties, etc...)
+2. <code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
+3. <code>f5</code> Reload the current project
+4. <code>ctrl+shift+e</code> Open a panel listing all the errors across all the files of the project
+5. <code>ctrl+shift+K</code> Close all projects (to reinialise just focus on/open a .ts file)
 
 
 ### Usage:

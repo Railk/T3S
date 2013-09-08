@@ -14,7 +14,7 @@ version 0.1.1 :
 		. reload project
 
 
-version 0.1.1 :
+version 0.1.0 :
 
 	- added :
 		. error panel

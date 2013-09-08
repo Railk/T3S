@@ -6,14 +6,20 @@
         "context": [ {"key": "typescript"} ]
     },
     {
+        "caption": "Typescript: Go to definition",
+        "command": "typescript_definition",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
+    },
+    {
         "caption": "Typescript: Reload Project",
         "command": "typescript_reload_project",
         "args": {"characters": ""},
         "context": [ {"key": "typescript"} ]
     },
     {
-        "caption": "Typescript: Go to definition",
-        "command": "typescript_definition",
+        "caption": "Typescript: Close projects",
+        "command": "typescript_kill",
         "args": {"characters": ""},
         "context": [ {"key": "typescript"} ]
     }

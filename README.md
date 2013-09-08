@@ -222,4 +222,7 @@ You have the possibility to open an <code>error panel</code> that will list all 
 You can then click on each row, it'll open or focus the already open file concerned by the error.
 
 ##### Reloading the project:
-You have the possibility to <code>reload</code> the project with the command <code>ctrl+shift+r</code>, you can see in the console when the reload is finished
+You have the possibility to <code>reload</code> the project with the command <code>F5</code>, you can see in the console when the reload is finished
+
+##### Closing all project:
+You have the possibility to <code>close</code> all projects with the command <code>ctrl+shift+k</code>, you can then reinitialise a porject fy focusing one of the file of the project

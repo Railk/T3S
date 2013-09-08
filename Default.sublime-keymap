@@ -20,13 +20,19 @@
     {
         "command": "typescript_reload_project",
         "args": {"characters": ""},
-        "keys": ["ctrl+shift+r"],
+        "keys": ["f5"],
         "context": [ {"key": "typescript"} ]
     },
     {
         "command": "typescript_definition",
         "args": {"characters": ""},
         "keys": ["f4"],
+        "context": [ {"key": "typescript"} ]
+    },
+    {
+        "command": "typescript_kill",
+        "args": {"characters": ""},
+        "keys": ["ctrl+shift+k"],
         "context": [ {"key": "typescript"} ]
     }
 ]

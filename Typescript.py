@@ -24,6 +24,7 @@ ERRORS = {}
 COMPLETION_LIST = []
 ERRORS_LIST = []
 ROOT_FILES = []
+PROCESSES = []
 
 
 # -------------------------------------- UTILITIES -------------------------------------- #
@@ -121,13 +122,36 @@ class Tss(object):
 		print(process.stdout.readline().decode('UTF-8'))
 
 
-	# KILL PROCESS
-	def kill(self,view):
+	# GET INDEXED FILES
+	def files(self,view):
 		process = self.get_process(view)
 		if process == None:
 			return
+		
+		process.stdin.write(bytes('files\n','UTF-8'));
+		print(process.stdout.readline().decode('UTF-8'))
 
-		del self.processes[view.file_name()]
+
+	# KILL PROCESS
+	def kill(self):
+
+		del ROOT_FILES[:]
+		del COMPLETION_LIST[:]
+		del ERRORS_LIST[:]
+		self.threads= []
+		self.errors_list = []
+		ERRORS.clear()
+		self.processes.clear()
+		self.queues.clear()
+		
+
+		for process in PROCESSES:
+			process.stdin.write(bytes('quit\n','UTF-8'))
+			process.kill()
+
+		del PROCESSES[:]
+
+		sublime.status_message('typescript projects closed')
 
 
 	# DUMP FILE
@@ -410,6 +434,8 @@ class TssInit(Thread):
 				self.result = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 				p = Popen([cmd, self.filename], stdin=PIPE, stdout=PIPE, **kwargs)
 
+		PROCESSES.append(self.result)
+		PROCESSES.append(p)
 		
 		self.result.stdout.readline().decode('UTF-8')
 		p.stdout.readline().decode('UTF-8')
@@ -458,6 +484,7 @@ class TssReader(Thread):
 class TypescriptReloadProject(sublime_plugin.TextCommand):
 
 	def run(self, edit, characters=None):
+		sublime.status_message('reloading project')
 		TSS.reload(self.view)
 
 
@@ -497,7 +524,7 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 
 			sublime.active_window().focus_view(view)
 			view.show_at_center(region)
-			view.add_regions('typescript-definition', [region], 'comment', ICONS_PATH, sublime.DRAW_NO_FILL)
+			view.add_regions('typescript-definition', [region], 'comment', 'dot', sublime.DRAW_NO_FILL)
 
 
 class TypescriptReferences(sublime_plugin.TextCommand):
@@ -513,6 +540,11 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 	def run(self, edit, characters=None):
 		TSS.structure(self.view)
 
+
+class TypescriptKill(sublime_plugin.TextCommand):
+
+	def run(self, edit, characters=None):
+		TSS.kill()
 
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
@@ -654,13 +686,6 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		content = get_content(view)
 		lines = get_lines(view)
 		TSS.errors(view,content,lines)
-
-
-	# def on_close(self,view):
-	# 	if not is_ts(view):
-	# 		return
-
-	# 	TSS.kill(view)
 
 
 	def on_post_save(self,view):

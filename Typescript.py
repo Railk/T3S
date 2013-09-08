@@ -803,6 +803,9 @@ def init(view):
 
 
 def update_dts(filename):
+	if filename.endswith('lib.d.ts'):
+		return
+
 	for root_file in ROOT_FILES:
 		TSS.start(root_file,root_file.file_name(),filename)
 

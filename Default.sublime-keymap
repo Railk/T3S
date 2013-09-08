@@ -34,5 +34,11 @@
         "args": {"characters": ""},
         "keys": ["ctrl+shift+k"],
         "context": [ {"key": "typescript"} ]
+    },
+    {
+        "command": "typescript_structure",
+        "args": {"characters": ""},
+        "keys": ["f3"],
+        "context": [ {"key": "typescript"} ]
     }
 ]

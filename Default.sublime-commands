@@ -22,5 +22,11 @@
         "command": "typescript_kill",
         "args": {"characters": ""},
         "context": [ {"key": "typescript"} ]
+    },
+    {
+        "caption": "Typescript: Navigate in file",
+        "command": "typescript_structure",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
     }
 ]

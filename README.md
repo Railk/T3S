@@ -210,12 +210,14 @@ The Sublime Text Status bar will indicate Typescript initializing during this ph
 ##### Got to definition:
 you can click on variable or a method and press <code>F4</code> to go to the definition
 
+##### Navigate in file:
+you can open a panel by pressing <code>F4</code> on a file to list class variables and methods tou can then click on an item to scroll towards it
+
 ##### Auto-completion:
 You can circle through the function variables (if there's some) like with the snippets with the <code>tab</code> key
 
 ##### Error highlighting: 
 You can click on highlighted part to see the error description in the status bar
-
 
 ##### Error Panel: 
 You have the possibility to open an <code>error panel</code> that will list all the errors accross all your project file with the command <code>ctrl+shift+e</code>

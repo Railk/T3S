@@ -200,7 +200,7 @@ class Tss(object):
 			return
 
 		process.stdin.write(self.encode('structure {0}\n'.format(view.file_name().replace('\\','/'))))
-		print(process.stdout.readline().decode('UTF-8'))
+		return json.loads(process.stdout.readline().decode('UTF-8'))
 
 
 	# ASK FOR COMPLETIONS
@@ -535,10 +535,47 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 		TSS.references(self.view,line,col)
 
 
+# NAVIGATE IN FILE
 class TypescriptStructure(sublime_plugin.TextCommand):
 
+	prefixes = {
+		'method': u'○',
+		'property': u'●',
+		'class':u'♦',
+		'interface':u'◊',
+		'keyword':u'∆',
+		'constructor':'■'
+	}
+
 	def run(self, edit, characters=None):
-		TSS.structure(self.view)
+		self.regions = []
+		liste = []
+		members = TSS.structure(self.view)
+
+		try:
+			for member in members:
+				start_line = member['min']['line']
+				end_line = member['lim']['line']
+				left = member['min']['character']
+				right = member['lim']['character']
+
+				a = self.view.text_point(start_line-1,left-1)
+				b = self.view.text_point(end_line-1,right-1)
+				self.regions.append(sublime.Region(a,b))
+
+				kind = self.prefixes[member['loc']['kind']] if member['loc']['kind'] in self.prefixes else ""
+				container_kind = self.prefixes[member['loc']['containerKind']] if member['loc']['containerKind'] in self.prefixes else ""
+				liste.append([kind+' '+member['loc']['name']+' '+container_kind+' '+member['loc']['containerName'],member['loc']['kindModifiers']+' '+member['loc']['kind']])
+
+			sublime.active_window().show_quick_panel(liste,self.on_done)
+		except (Exception) as member:
+			sublime.message_dialog("File navigation : plugin not yet intialize please retry after initialisation")
+
+	def on_done(self,index):
+		if index == -1: return
+		view = sublime.active_window().active_view()
+		view.show_at_center(self.regions[index])
+		view.add_regions('typescript-definition', [self.regions[index]], 'comment', 'dot', sublime.DRAW_OUTLINED)
 
 
 class TypescriptKill(sublime_plugin.TextCommand):

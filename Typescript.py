@@ -147,7 +147,7 @@ class Tss(object):
 			process.stdin.write(bytes('quit\n','UTF-8'))
 			process.kill()
 
-		PROCESSES.clear()
+		del PROCESSES[:]
 
 		sublime.status_message('typescript projects closed')
 

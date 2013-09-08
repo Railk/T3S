@@ -172,6 +172,14 @@ Here's an exemple that do:
 			"ecmascript_target":"ES3"
 		}
 
+### Commands:
+
+<code>f3</code> Open a panel to Navigate in file (class,methods,properties, etc...)
+<code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
+<code>f5</code> Reload the current project
+<code>ctrl+shift+e</code> Open a panel listing all the errors across all the files of the project
+<code>ctrl+shift+K</code> Close all projects (to reinialise just focus on/open a .ts file)
+
 
 ### Usage:
 	
@@ -224,7 +232,7 @@ You have the possibility to open an <code>error panel</code> that will list all 
 You can then click on each row, it'll open or focus the already open file concerned by the error.
 
 ##### Reloading the project:
-You have the possibility to <code>reload</code> the project with the command <code>F5</code>, you can see in the console when the reload is finished
+You have the possibility to <code>reload</code> the project by pressing <code>F5</code>, you can see in the console when the reload is finished
 
 ##### Closing all project:
-You have the possibility to <code>close</code> all projects with the command <code>ctrl+shift+k</code>, you can then reinitialise a porject fy focusing one of the file of the project
+You have the possibility to <code>close</code> all projects by pressing <code>ctrl+shift+k</code>, you can then reinitialise a project by focusing one of the file of the project

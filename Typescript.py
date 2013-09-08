@@ -128,7 +128,7 @@ class Tss(object):
 		if process == None:
 			return
 		
-		process.stdin.write(bytes('files\n','UTF-8'));
+		process.stdin.write(self.encode('files\n'));
 		print(process.stdout.readline().decode('UTF-8'))
 
 
@@ -146,7 +146,7 @@ class Tss(object):
 		
 
 		for process in PROCESSES:
-			process.stdin.write(bytes('quit\n','UTF-8'))
+			process.stdin.write(self.encode('quit\n'))
 			process.kill()
 
 		del PROCESSES[:]
@@ -170,7 +170,7 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('type {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/')),'UTF-8'))
+		process.stdin.write(self.encode('type {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/'))))
 		print(process.stdout.readline().decode('UTF-8'))
 
 
@@ -180,7 +180,7 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('definition {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/')),'UTF-8'))
+		process.stdin.write(self.encode('definition {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/'))))
 		return json.loads(process.stdout.readline().decode('UTF-8'))
 
 
@@ -190,7 +190,7 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('references {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/')),'UTF-8'))
+		process.stdin.write(self.encode('references {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/'))))
 		print(process.stdout.readline().decode('UTF-8'))
 
 	# STRUCTURE
@@ -199,7 +199,7 @@ class Tss(object):
 		if process == None:
 			return
 
-		process.stdin.write(bytes('structure {0}\n'.format(view.file_name().replace('\\','/')),'UTF-8'))
+		process.stdin.write(self.encode('structure {0}\n'.format(view.file_name().replace('\\','/'))))
 		print(process.stdout.readline().decode('UTF-8'))
 
 
@@ -505,7 +505,7 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 
 		if definition == None: return
 
-		view = sublime.active_window().open_file(definition['file'])
+		view = sublime.active_window().open_file(definition['file'],sublime.TRANSIENT)
 		self.open_view(view,definition)
 
 	def open_view(self,view,definition):
@@ -524,7 +524,7 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 
 			sublime.active_window().focus_view(view)
 			view.show_at_center(region)
-			view.add_regions('typescript-definition', [region], 'comment', 'dot', sublime.DRAW_NO_FILL)
+			view.add_regions('typescript-definition', [region], 'comment', 'dot', sublime.DRAW_OUTLINED)
 
 
 class TypescriptReferences(sublime_plugin.TextCommand):

@@ -501,7 +501,7 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 
 		if definition == None: return
 
-		view = sublime.active_window().open_file(definition['file'])
+		view = sublime.active_window().open_file(definition['file'],sublime.TRANSIENT)
 		self.open_view(view,definition)
 
 	def open_view(self,view,definition):

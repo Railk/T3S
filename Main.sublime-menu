@@ -20,6 +20,11 @@
 								"args": {"file": "${packages}/T3S/README.md"},
 								"caption": "README"
 							},
+							{
+								"command": "open_file",
+								"args": {"file": "${packages}/T3S/CHANGES.txt"},
+								"caption": "CHANGES"
+							},
 							{ 
 								"caption": "-"
 							},

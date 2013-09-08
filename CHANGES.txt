@@ -1,0 +1,18 @@
+version 0.1.2 :
+
+	- added :
+		. Go to definition
+		. Navigate in file
+		. Close all projects
+
+
+version 0.1.1 :
+
+	- added :
+		. reload project
+
+
+version 0.1.1 :
+
+	- added :
+		. error panel

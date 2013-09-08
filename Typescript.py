@@ -502,6 +502,7 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 		definition = TSS.definition(self.view,line,col)
 
 		if definition == None: return
+		if 'file' not in definition: return
 
 		view = sublime.active_window().open_file(definition['file'],sublime.TRANSIENT)
 		self.open_view(view,definition)

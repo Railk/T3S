@@ -544,7 +544,7 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 		'class':u'♦',
 		'interface':u'◊',
 		'keyword':u'∆',
-		'constructor':'■'
+		'constructor':u'■'
 	}
 
 	def run(self, edit, characters=None):

@@ -183,7 +183,7 @@ Here's an exemple that do:
 
 ### Usage:
 
-You need to open the folder where your project is with <code>file > open folder</code> in Sublime Text, for the plugin to work correctly.
+You need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code> in Sublime Text, for the plugin to work correctly.
 	
 ##### You have a sublime text project:
 You can indicate your typescript root files in your project_name.sublime-project like so :

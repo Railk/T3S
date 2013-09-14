@@ -28,5 +28,11 @@
         "command": "typescript_structure",
         "args": {"characters": ""},
         "context": [ {"key": "typescript"} ]
+    },
+    {
+        "caption": "Typescript: View member type",
+        "command": "typescript_type",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
     }
 ]

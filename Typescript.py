@@ -21,7 +21,7 @@ if os.name == 'nt':
 else:
 	ICONS_PATH = "Packages"+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal.png')
 
-TSS_PATH =  os.path.join(os.path.dirname(__file__),'bin','tss.js')
+TSS_PATH =  os.path.join(dirname,'bin','tss.js')
 COMPLETION_LIST = []
 ROOT_FILES = []
 PROCESSES = []
@@ -168,7 +168,7 @@ class Tss(object):
 			return
 
 		process.stdin.write(bytes('type {0} {1} {2}\n'.format(str(line+1),str(col+1),view.file_name().replace('\\','/')),'UTF-8'))
-		print(process.stdout.readline().decode('UTF-8'))
+		return json.loads(process.stdout.readline().decode('UTF-8'))
 
 
 	# DEFINITION
@@ -484,12 +484,30 @@ class TypescriptReloadProject(sublime_plugin.TextCommand):
 		TSS.reload(self.view)
 
 
+# SHOW INFOS
 class TypescriptType(sublime_plugin.TextCommand):
+
+	prefixes = {
+		'method': u'○',
+		'property': u'●',
+		'class':u'♦',
+		'interface':u'◊',
+		'keyword':u'∆',
+		'constructor':u'■'
+	}
 
 	def run(self, edit, characters=None):
 		pos = self.view.sel()[0].begin()
 		(line, col) = self.view.rowcol(pos)
-		TSS.type(self.view,line,col)
+		types = TSS.type(self.view,line,col)
+
+		kind = self.prefixes[types['kind']] if types['kind'] in self.prefixes else ""
+		if types['docComment'] != '':
+			liste = types['docComment'].split('\n')+[kind+' '+types['fullSymbolName']+' '+types['type']]
+		else :
+			liste = [kind+' '+types['fullSymbolName']+' '+types['type']]
+
+		self.view.show_popup_menu(liste,None)
 
 
 # GO TO DEFINITION

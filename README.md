@@ -174,11 +174,12 @@ Here's an exemple that do:
 
 ### Commands:
 
-1. <code>f3</code> Open a panel to Navigate in file (class,methods,properties, etc...)
-2. <code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
-3. <code>f5</code> Reload the current project
-4. <code>ctrl+shift+e</code> Open a panel listing all the errors across all the files of the project
-5. <code>ctrl+shift+K</code> Close all projects (to reinialise just focus on/open a .ts file)
+1. <code>f1</code> Click on a property, a class, a method etc... then press f1 to have detail about it (doc comments etc...)
+2. <code>f3</code> Open a panel to Navigate in file (class,methods,properties, etc...)
+3. <code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
+4. <code>f5</code> Reload the current project
+5. <code>ctrl+shift+e</code> Open a panel listing all the errors across all the files of the project
+6. <code>ctrl+shift+K</code> Close all projects (to reinialise just focus on/open a .ts file)
 
 
 ### Usage:
@@ -231,6 +232,9 @@ If you don't chose either of these solutions the plugin wil launch a process for
 When you load a .ts file the plugin will initialize the root file or the current file and it can take some time for huge project.
 
 The Sublime Text Status bar will indicate Typescript initializing during this phase and disapear when it's finished
+
+##### Show Type:
+you can click on variable or a method and press <code>F1</code> to have detail about it (doc comments etc...)
 
 ##### Got to definition:
 you can click on variable or a method and press <code>F4</code> to go to the definition

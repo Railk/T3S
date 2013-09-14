@@ -183,7 +183,7 @@ Here's an exemple that do:
 
 ### Usage:
 
-You need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code> in Sublime Text, for the plugin to work correctly.
+When using .sublimets or a .sublime-project file, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code> in Sublime Text.
 	
 ##### You have a sublime text project:
 You can indicate your typescript root files in your project_name.sublime-project like so :
@@ -193,12 +193,27 @@ You can indicate your typescript root files in your project_name.sublime-project
 		{
 			"typescript":
 			[
-				"absolute/path/to/your/root/file_1.ts",
-				"absolute/path/to/your/root/file_2.ts",
+				"path/from/project/folder/to/your/root/file_1.ts",
+				"path/from/project/folder/to/your/root/file_2.ts",
 				...
 			]
 		}
-		
+
+
+Exemple : 
+
+if you have a root folder MyProject in you sublime project with a root file name root.ts inside MyProject folder 
+and another folder OtherProject width a subfolder OtherSubFolder with a root file name other_root.ts inside OtherSubFolder
+
+
+		"settings":
+		{
+			"typescript":
+			[
+				"MyProject/root.ts"
+				"OtherProject/OtherSubFolder/other_root.ts"
+			]
+		}
 
 ##### You don't have a sublime text project:
 You can create a .sublimets file in the folder containing the typescript root file

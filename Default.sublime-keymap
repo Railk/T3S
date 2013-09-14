@@ -40,5 +40,11 @@
         "args": {"characters": ""},
         "keys": ["f3"],
         "context": [ {"key": "typescript"} ]
+    },
+    {
+        "command": "typescript_type",
+        "args": {"characters": ""},
+        "keys": ["f1"],
+        "context": [ {"key": "typescript"} ]
     }
 ]

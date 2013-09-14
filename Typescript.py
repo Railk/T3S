@@ -14,12 +14,14 @@ import sys
 
 # --------------------------------------- CONSTANT -------------------------------------- #
 
-if os.name == 'nt':
-	ICONS_PATH = ".."+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal')
-else:
-	ICONS_PATH = "Packages"+os.path.join(os.path.dirname(os.path.realpath(__file__)).split('Packages')[1], 'icons', 'bright-illegal.png')
+dirname = os.path.dirname(os.path.abspath(__file__))
 
-TSS_PATH =  os.path.join(os.path.dirname(os.path.realpath(__file__)),'bin','tss.js')
+if os.name == 'nt':
+	ICONS_PATH = ".."+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal')
+else:
+	ICONS_PATH = "Packages"+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal.png')
+
+TSS_PATH =  os.path.join(dirname,'bin','tss.js')
 ERRORS = {}
 COMPLETION_LIST = []
 ERRORS_LIST = []
@@ -354,7 +356,7 @@ class Tss(object):
 			for e in errors :
 				ERRORS_LIST.append(e)
 		except:
-			print('error json error')
+			print('show_errors json error')
 
 		filename = view.file_name()
 		char_regions = []
@@ -362,7 +364,7 @@ class Tss(object):
 		ERRORS[filename] = {}
 		for e in ERRORS_LIST :
 			if 'file' not in e: continue
-			if os.path.realpath(e['file']).lower() == filename.lower():
+			if e['file'].replace('/',os.sep).lower() == filename.lower():
 				start_line = e['start']['line']
 				end_line = e['end']['line']
 				left = e['start']['character']
@@ -471,7 +473,7 @@ class TssReader(Thread):
 
 	def run(self):
 		for line in iter(self.stdout.readline, b''):
-			if line.startswith('"updated'):
+			if line.startswith('"updated') or line.startswith('"added'):
 				continue
 			else:
 				sublime.set_timeout(lambda: TSS.highlight_errors(sublime.active_window().active_view(),line), 1)
@@ -821,41 +823,53 @@ def update_dts(filename):
 
 def get_root():
 	project_settings = sublime.active_window().active_view().settings().get('typescript')
-	current_folder = os.path.dirname(os.path.realpath(sublime.active_window().active_view().file_name()))
+	current_folder = os.path.dirname(sublime.active_window().active_view().file_name())
+	top_folder =  get_top_folder(current_folder)
+	top_folder_segments = top_folder.split(os.sep)
 
-
+	# WITH PROJECT SETTINGS TYPESCRIP DEFINED
 	if(project_settings != None):
+			
 		for root in project_settings:
-			root_folder = os.path.dirname(os.path.realpath(root))
-			if root_folder.lower() == current_folder.lower():
-				return root
-
+			root_path = os.sep.join(top_folder_segments[:len(top_folder_segments)-1]+root.replace('\\','/').split('/'))
+			root_dir = os.path.dirname(root_path)
+			if current_folder.lower().startswith(root_dir.lower()):
+				return root_path
+			
 		return None
-	else:
-		top_folder = None
-		open_folders = sublime.active_window().folders()
-		for folder in open_folders:
-			folder = os.path.realpath(folder)
-			if current_folder.lower().startswith(folder.lower()):
-				top_folder = folder
-				break
 
-		segments = current_folder.replace('\\','/').split('/')
-		segments[0] = top_folder.replace('\\','/').split('/')[0]
+	# SUBLIME TS ?
+	else:
+
+		segments = current_folder.split(os.sep)
+		segments[0] = top_folder.split(os.sep)[0]
 		length = len(segments)
 		segment_range =reversed(range(0,length+1))
 
 		for index in segment_range:
-			folder = join_segments(segments,index)
+			folder = os.sep.join(segments[:index])
 			config_file = os.path.join(folder,'.sublimets')
 			config_data = get_data(config_file)
 			if config_data != None:
 				return os.path.join(folder,config_data['root'])
 
-			if folder.lower() == top_folder.lower():
-				break
-
 		return None
+	
+
+
+def get_top_folder(current_folder):
+	top_folder = None
+	open_folders = sublime.active_window().folders()
+	for folder in open_folders:
+		if current_folder.lower().startswith(folder.lower()):
+			top_folder = folder
+			break
+
+	if top_folder != None:
+		return top_folder
+	
+	return current_folder
+
 
 
 def get_data(file):
@@ -867,14 +881,6 @@ def get_data(file):
 			pass
 
 	return None
-
-
-def join_segments(liste,length):
-	join = ""
-	for index in reversed(range(0,length)):
-		join = liste[index] +'/'+ join 
-
-	return os.path.realpath(join)
 
 
 

@@ -502,6 +502,7 @@ class TypescriptType(sublime_plugin.TextCommand):
 		types = TSS.type(self.view,line,col)
 
 		if types == None: return
+		if 'kind' not in types: return
 
 		kind = self.prefixes[types['kind']] if types['kind'] in self.prefixes else ""
 		if types['docComment'] != '':

@@ -501,6 +501,8 @@ class TypescriptType(sublime_plugin.TextCommand):
 		(line, col) = self.view.rowcol(pos)
 		types = TSS.type(self.view,line,col)
 
+		if types == None: return
+
 		kind = self.prefixes[types['kind']] if types['kind'] in self.prefixes else ""
 		if types['docComment'] != '':
 			liste = types['docComment'].split('\n')+[kind+' '+types['fullSymbolName']+' '+types['type']]

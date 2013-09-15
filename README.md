@@ -203,8 +203,18 @@ You can indicate your typescript root files in your project_name.sublime-project
 
 Exemple : 
 
-if you have a root folder MyProject in you sublime project with a root file name root.ts inside MyProject folder 
-and another folder OtherProject width a subfolder OtherSubFolder with a root file name other_root.ts inside OtherSubFolder
+Open folder structure:
+
+
+- |
+- MyProject/
+-       |--------root.ts
+- OtherProject/
+-       |--------OtherSubFolder/
+-                      |-----------------other_root.ts
+
+
+And the corresponding settings :
 
 
 		"settings":

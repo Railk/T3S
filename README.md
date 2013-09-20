@@ -174,7 +174,7 @@ Here's an exemple that do:
 
 ### Commands:
 
-1. <code>f1</code> Click on a property, a class, a method etc... then press f1 to have detail about it (doc comments etc...)
+1. <code>f1</code> Click on a property, a class, a method etc... then press f1 to have detail about it (doc comments etc...) (sublime text 3 only)
 2. <code>f3</code> Open a panel to Navigate in file (class,methods,properties, etc...)
 3. <code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
 4. <code>f5</code> Reload the current project
@@ -243,7 +243,7 @@ When you load a .ts file the plugin will initialize the root file or the current
 
 The Sublime Text Status bar will indicate Typescript initializing during this phase and disapear when it's finished
 
-##### Show Type:
+##### Show Type: (sublime text 3 only)
 you can click on variable or a method and press <code>F1</code> to have detail about it (doc comments etc...)
 
 ##### Got to definition:

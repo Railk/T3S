@@ -69,7 +69,7 @@ function build_commands(){
 		commands[commands.length] = pre_processing_commands[i];
 	}
 
-	commands[commands.length] = 'tsc '+filename+tsc;
+	commands[commands.length] = 'tsc '+'"'+filename+'"'+tsc;
 
 	for (i = 0; i < post_processing_commands.length; i++) {
 		commands[commands.length] =post_processing_commands[i];

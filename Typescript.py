@@ -57,6 +57,7 @@ def is_member_completion(line):
 
 class Tss(object):
 
+	interface = False
 	threads = []
 	queues = {}
 	processes = {}
@@ -304,6 +305,7 @@ class Tss(object):
 		del COMPLETION_LIST[:]
 		
 		for entry in entries:
+			if self.interface and entry['kind'] != 'interface': continue
 			key = self.get_completions_list_key(entry)
 			value = self.get_completions_list_value(entry)
 			COMPLETION_LIST.append((key,value))
@@ -716,6 +718,7 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 			self.view.insert(edit, region.end(), characters)
 
 		TSS.update(self.view)
+		TSS.interface = (characters==':')
 
 		self.view.run_command('auto_complete',{
 			'disable_auto_insert': True,
@@ -789,7 +792,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 			is_member = str(is_member_completion(view.substr(sublime.Region(view.line(pos-1).a, pos)))).lower()
 			TSS.complete(view,line,col,is_member)
 
-			return COMPLETION_LIST
+			return (COMPLETION_LIST, sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
 
 
 	def on_query_context(self, view, key, operator, operand, match_all):

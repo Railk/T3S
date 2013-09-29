@@ -718,7 +718,7 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 			self.view.insert(edit, region.end(), characters)
 
 		TSS.update(self.view)
-		TSS.interface = (characters==':')
+		TSS.interface = (characters != '.' and self.view.substr(self.view.sel()[0].begin()-1) == ':')
 
 		self.view.run_command('auto_complete',{
 			'disable_auto_insert': True,

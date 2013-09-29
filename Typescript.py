@@ -58,6 +58,7 @@ def is_member_completion(line):
 
 class Tss(object):
 
+	interface = False
 	queues = {}
 	processes = {}
 	threads = []
@@ -313,6 +314,7 @@ class Tss(object):
 		del COMPLETION_LIST[:]
 		
 		for entry in entries:
+			if self.interface and entry['kind'] != 'primitive type' and entry['kind'] != 'interface' : continue
 			key = self.get_completions_list_key(entry)
 			value = self.get_completions_list_value(entry)
 			COMPLETION_LIST.append((key,value))
@@ -697,6 +699,7 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 			self.view.insert(edit, region.end(), characters)
 
 		TSS.update(self.view,get_content(self.view),get_lines(self.view))
+		TSS.interface = (characters != '.' and self.view.substr(self.view.sel()[0].begin()-1) == ':')
 
 		self.view.run_command('auto_complete',{
 			'disable_auto_insert': True,

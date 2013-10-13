@@ -243,5 +243,5 @@ You can then click on each row, it'll open or focus the already open file concer
 You have the possibility to <code>reload</code> the project by pressing <code>F5</code>, you can see in the console when the reload is finished
 
 ##### Building the project:
-you can build the current project with <code>F3</code> on a file. if you have activated <code>show_build_file</code> option it will show a <code>Split view</code> with the corresponding javascript file
+you can build the current project with <code>F8</code> on a file. if you have activated <code>show_build_file</code> option it will show a <code>Split view</code> with the corresponding javascript file
 

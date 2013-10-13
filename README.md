@@ -7,6 +7,16 @@ I'm using the same error icons has SublimeLinter.
 I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 
+### v0.2.0 Changes
+- You need to redo you user settings as the file name have changed to reflect the plugin name
+- Error and Outline panels have been replaced by views (you can click on each line to go to the corresponding place)
+- Build system is integrated to the plugin (you still need <code>tsc</code>) and you can set your node path (settings)
+- You can have a split view showing the current active ts file corresponding javascript file (settings)
+- When you close all the ts file of a project, the project (and the node corresponding node process) is closed
+- One branch only for Sublime text 2 and 3
+- You can build on save (settings)
+
+
 ### Features
 - TypeScript language auto completion
 - TypeScript language error highlighting

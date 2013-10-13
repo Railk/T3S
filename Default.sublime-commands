@@ -1,0 +1,38 @@
+[
+	{
+		"caption": "Typescript: Errors view",
+		"command": "typescript_error_panel",
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"caption": "Typescript: Go to definition",
+		"command": "typescript_definition",
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"caption": "Typescript: Reload Project",
+		"command": "typescript_reload_project",
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"caption": "Typescript: Outline view",
+		"command": "typescript_structure",
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"caption": "Typescript: View member type (ST3 only)",
+		"command": "typescript_type",
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"caption": "Typescript: Refactoring (DO NOT USE, Test only)",
+		"command": "typescript_references",
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"caption": "Typescript: Build",
+		"command": "typescript_build",
+		"args": {"characters": ""},
+		"context": [ {"key": "T3S"} ]
+	}
+]

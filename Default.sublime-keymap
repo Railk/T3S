@@ -1,0 +1,50 @@
+[
+	{
+		"command": "typescript_complete",
+		"args": {"characters": "."},
+		"keys": ["."],
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_complete",
+		"args": {"characters": ""},
+		"keys": ["ctrl+space"],
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_error_panel",
+		"keys": ["ctrl+shift+e"],
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_reload_project",
+		"keys": ["f5"],
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_definition",
+		"keys": ["f4"],
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_structure",
+		"keys": ["f3"],
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_type",
+		"keys": ["f1"],
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_references",
+		"keys": ["f2"],
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_build",
+		"args": {"characters": ""},
+		"keys": ["f8"],
+		"context": [ {"key": "T3S"} ]
+	}
+]

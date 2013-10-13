@@ -1,0 +1,15 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "."
+		}
+	],
+	"settings":{
+		"typescript":
+		[
+			"sublimeproject/main.ts"
+		]
+	}
+}

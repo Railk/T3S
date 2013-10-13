@@ -2,6 +2,7 @@ TSS Sublime (T3S)
 ----------------------------------------------------------------------------
 
 TypeScript plugin for Sublime Text 2 and 3 using TypeScript tools : https://github.com/clausreinke/typescript-tools
+
 I'm using the same error icons has SublimeLinter.
 I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 

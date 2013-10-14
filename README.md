@@ -16,7 +16,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - One branch only for Sublime text 2 and 3
 - You can build on save (settings)
 - Completion on <code>:</code> with <code>ctrl+space</code> to have the primitives and interface
-- Quick panel for user message (intilisation,closing project etc...)
+- Quick panel for user message (initialisation,closing project etc...)
 
 
 ### Features
@@ -174,7 +174,7 @@ Here's an exemple that do:
 
 ### Commands:
 
-1. <code>f1</code> Click on a property, a class, a method etc... then press f1 to have detail about it (doc comments etc...) (ST3 ONLY)
+1. <code>f1</code> Click on a property, a class, a method etc... then press f1 to have detail about it (ST3 ONLY)
 2. <code>f3</code> Open a outline <code>view</code> of the file (class,methods,properties, etc...)
 3. <code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
 4. <code>f5</code> Reload the current project

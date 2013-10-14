@@ -16,7 +16,7 @@ class Message(object):
 		sublime.status_message(message)
 
 		if hide:
-			debounce(self.hide, 2, 'message' + str(id(MESSAGE)))
+			debounce(self.hide, 1, 'message' + str(id(MESSAGE)))
 
 
 	def repeat(self,message):

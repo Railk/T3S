@@ -13,7 +13,7 @@ import json
 import os
 import re
 
-from .Utils import debounce, dirname, encode, version, get_node, get_root
+from .Utils import debounce, dirname, encode, get_node, get_root, ST3
 from .View import VIEW
 from .Message import MESSAGE
 
@@ -292,8 +292,14 @@ class Tss(object):
 			if not before:
 				dir = 1
 			i += dir
-			MESSAGE.show(' Typescript is initializing [%s=%s]' % \
-				(' ' * before, ' ' * after))
+
+			if not ST3:
+				MESSAGE.repeat('Typescript is initializing')
+				sublime.status_message(' Typescript is initializing [%s=%s]' % \
+					(' ' * before, ' ' * after))
+			else:
+				MESSAGE.repeat(' Typescript is initializing [%s=%s]' % \
+					(' ' * before, ' ' * after))
 
 			sublime.set_timeout(lambda: self.handle_threads(view,filename,added,done,i,dir), 100)
 			return
@@ -482,7 +488,7 @@ class TssReader(Thread):
 			if line.startswith('"updated') or line.startswith('"added'):
 				continue
 			else:
-				if version >= 3000: 
+				if ST3: 
 					TSS.show_errors(sublime.active_window().active_view(),line)
 				else: 
 					sublime.set_timeout(lambda: TSS.show_errors(sublime.active_window().active_view(),line), 1)

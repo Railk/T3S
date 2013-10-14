@@ -54,6 +54,7 @@ class Layout(object):
 	# DESTROY CURRENT PANE
 	def delete(self,window):
 		rows, cols, cells = self.get_layout(window)
+		if len(cells)<2: return
 
 		cols.pop(-1)
 		MAXCOLS = len(cols)-1

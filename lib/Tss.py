@@ -13,7 +13,7 @@ import json
 import os
 import re
 
-from .Utils import debounce, dirname, encode, get_node, get_root, ST3
+from .Utils import debounce, dirname, encode, get_node, get_root, is_ts, is_dts, ST3
 from .View import VIEW
 from .Message import MESSAGE
 
@@ -74,6 +74,17 @@ class Tss(object):
 
 		return None
 
+	# CHECK IF ALL OPENED VIEWS HAVE A PROCESS ATTACHE
+	def set_process(self,view,process):
+		views = sublime.active_window().views()
+		files = self.files(view)
+		for v in views:
+			filename = v.file_name() 
+			if is_ts(filename) and not is_dts(filename) and filename in self.processes and filename in files:
+				print(filename)
+				if self.processes[filename] == None:
+					self.processes[filename] == process
+
 
 	# START PROCESS
 	def start(self,view,filename,added,done=None):
@@ -83,6 +94,11 @@ class Tss(object):
 				self.processes[added] = self.processes[filename]
 				self.queues[added] = self.queues[filename]
 				self.update(view)
+
+			if added in self.processes and self.processes[added] == None:
+				self.processes[added] = self.processes[filename]
+				self.queues[added] = self.queues[filename]
+				
 			return
 
 		self.processes[filename] = None
@@ -121,11 +137,13 @@ class Tss(object):
 	# KILL PROCESS
 	def kill(self,view):
 		files = self.files(view)
+		if not files: return
+
 		views = sublime.active_window().views()
 		for v in views:
 			if v.file_name() == None: continue
 			for f in files:
-				if v.file_name().replace('\\','/').lower() == f.lower():
+				if v.file_name().replace('\\','/').lower() == f.lower() and not is_dts(v):
 					return
 
 		processes = PROCESSES[FILES[view.file_name()]]
@@ -137,13 +155,18 @@ class Tss(object):
 		for f in files:
 			f = f.replace('/',os.sep).lower()
 			for p in self.processes:
-				if f == p.lower():
+				if f == p.lower() or self.processes[p]==None:
 					to_delete.append(p)
 					
 		for f in to_delete:
 			if f in self.processes: del self.processes[f]
 			if f in self.queues: del self.queues[f]
-		
+			if f in FILES: del FILES[f]
+			for root in ROOT_FILES:
+				if root.file_name()==f:
+					ROOT_FILES.remove(root)
+					break
+
 		MESSAGE.show('TypeScript project close',True)
 
 
@@ -307,8 +330,8 @@ class Tss(object):
 		(head,tail) = os.path.split(get_root())
 		MESSAGE.show('TypeScript intialized for root file : '+tail,True)
 		debounce(TSS.errors_async, 0.3, 'errors' + str(id(TSS)), view)
-		debounce(done,0.3,'done')
-
+		debounce(done,0.3,'done')		
+	
 
 	# COMPLETIONS LIST
 	def prepare_completions_list(self,entries):

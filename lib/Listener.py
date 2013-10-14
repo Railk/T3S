@@ -48,7 +48,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if VIEW.is_view(view.name()): 
 			VIEW.delete_view(view.name())
 
-		if is_ts(view):
+		if is_ts(view) and not is_dts(view):
 			if ST3: TSS.kill(view)
 			else: sublime.set_timeout(lambda:TSS.kill(view),300)
 

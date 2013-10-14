@@ -17,6 +17,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - You can build on save (settings)
 - Completion on <code>:</code> with <code>ctrl+space</code> to have the primitives and interface
 - Quick panel for user message (initialisation,closing project etc...)
+- Todo : better layout management
 
 
 ### Features

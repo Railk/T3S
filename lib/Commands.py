@@ -10,6 +10,7 @@ from .Compiler import Compiler
 from .Refactor import Refactor
 from .View import VIEW
 from .Tss import TSS
+from .Message import MESSAGE
 
 
 # AUTO COMPLETION
@@ -42,6 +43,10 @@ class TypescriptReloadProject(sublime_plugin.TextCommand):
 class TypescriptType(sublime_plugin.TextCommand):
 
 	def run(self, edit):
+		if TSS.get_process(self.view) == None:
+			MESSAGE.show('You must wait for the initialisation to finish')
+			return
+
 		if not ST3: return
 		
 		pos = self.view.sel()[0].begin()
@@ -64,6 +69,10 @@ class TypescriptType(sublime_plugin.TextCommand):
 class TypescriptDefinition(sublime_plugin.TextCommand):
 
 	def run(self, edit):
+		if TSS.get_process(self.view) == None:
+			MESSAGE.show('You must wait for the initialisation to finish')
+			return
+
 		pos = self.view.sel()[0].begin()
 		(line, col) = self.view.rowcol(pos)
 		definition = TSS.definition(self.view,line,col)
@@ -99,6 +108,10 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 class TypescriptReferences(sublime_plugin.TextCommand):
 
 	def run(self, edit):
+		if TSS.get_process(self.view) == None:
+			MESSAGE.show('You must wait for the initialisation to finish')
+			return
+
 		pos = self.view.sel()[0].begin()
 		(line, col) = self.view.rowcol(pos)
 		self.refs = refs = TSS.references(self.view,line,col)
@@ -136,6 +149,10 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 class TypescriptStructure(sublime_plugin.TextCommand):
 
 	def run(self, edit):
+		if TSS.get_process(self.view) == None:
+			MESSAGE.show('You must wait for the initialisation to finish')
+			return
+
 		ts_view = self.view
 		regions = {}
 		members = TSS.structure(ts_view)
@@ -188,6 +205,10 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
 	def run(self, edit):
+		if TSS.get_process(self.view) == None:
+			MESSAGE.show('You must wait for the initialisation to finish')
+			return
+
 		VIEW.has_error = True
 		debounce(TSS.errors_async, 0.3, 'errors' + str(id(TSS)), self.view)
 
@@ -253,6 +274,10 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 class TypescriptBuild(sublime_plugin.TextCommand):
 
 	def run(self, edit, characters):
+		if TSS.get_process(self.view) == None:
+			MESSAGE.show('You must wait for the initialisation to finish')
+			return
+
 		self.window = sublime.active_window()
 		if characters != False: self.window.run_command('save')
 

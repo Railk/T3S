@@ -16,6 +16,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - One branch only for Sublime text 2 and 3
 - You can build on save (settings)
 - Completion on <code>:</code> with <code>ctrl+space</code> to have the primitives and interface
+- Quick panel for user message (intilisation,closing project etc...)
 
 
 ### Features

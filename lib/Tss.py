@@ -13,8 +13,9 @@ import json
 import os
 import re
 
-from .Utils import debounce, dirname, encode, version, get_node
+from .Utils import debounce, dirname, encode, version, get_node, get_root
 from .View import VIEW
+from .Message import MESSAGE
 
 
 
@@ -142,9 +143,8 @@ class Tss(object):
 		for f in to_delete:
 			if f in self.processes: del self.processes[f]
 			if f in self.queues: del self.queues[f]
-			
-		sublime.status_message("project close")
-		print("project close")
+		
+		MESSAGE.show('TypeScript project close',True)
 
 
 	# DUMP FILE
@@ -292,13 +292,14 @@ class Tss(object):
 			if not before:
 				dir = 1
 			i += dir
-			sublime.status_message(' Typescript is initializing [%s=%s]' % \
+			MESSAGE.show(' Typescript is initializing [%s=%s]' % \
 				(' ' * before, ' ' * after))
 
 			sublime.set_timeout(lambda: self.handle_threads(view,filename,added,done,i,dir), 100)
 			return
 
-		sublime.status_message('')
+		(head,tail) = os.path.split(get_root())
+		MESSAGE.show('TypeScript intialized for root file : '+tail,True)
 		debounce(TSS.errors_async, 0.3, 'errors' + str(id(TSS)), view)
 		debounce(done,0.3,'done')
 

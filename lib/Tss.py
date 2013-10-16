@@ -119,6 +119,7 @@ class Tss(object):
 		if process == None:
 			return
 
+		sublime.active_window().run_command('save_all')
 		process.stdin.write(encode('reload\n'))
 		print(process.stdout.readline().decode('UTF-8'))
 		self.errors_async(view)

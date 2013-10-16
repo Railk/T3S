@@ -246,6 +246,10 @@ The Sublime Text Status bar will indicate Typescript initializing during this ph
 ##### Show Type: (sublime text 3 only)
 you can click on variable or a method and press <code>F1</code> to have detail about it (doc comments etc...)
 
+##### References files
+
+if you change a references file or make a change in a definition file and completion don't show up as it should, please use F5 to reload the project
+
 ##### Got to definition:
 you can click on variable or a method and press <code>F4</code> to go to the definition
 

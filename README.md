@@ -232,6 +232,9 @@ When you load a .ts file the plugin will initialize the root file or the current
 
 The Sublime Text Status bar will indicate Typescript initializing during this phase and disapear when it's finished
 
+##### References file
+if you change a references file or make a change in a definition file and completion don't show up as it should, please use <code>F5</code> to reload the project
+
 ##### Got to definition:
 you can click on variable or a method and press <code>F4</code> to go to the definition
 

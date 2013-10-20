@@ -13,6 +13,7 @@ class Completion(object):
 		self.interface = value
 
 	def prepare_list(self,data):
+		del self.completion_list[:]
 
 		try:
 			entries = json.loads(data)['entries']
@@ -20,7 +21,6 @@ class Completion(object):
 			print('completion json error : ',data)
 			return
 		
-		del self.completion_list[:]
 		for entry in entries:
 			if self.interface and entry['kind'] != 'primitive type' and entry['kind'] != 'interface' : continue
 			key = self.get_list_key(entry)

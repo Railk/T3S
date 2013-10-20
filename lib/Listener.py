@@ -89,6 +89,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not is_ts(view): return
 		self.settings = sublime.load_settings('T3S.sublime-settings')
 		init(view)
+		VIEW.update()
 		debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), *get_file_infos(view))
 
 

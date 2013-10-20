@@ -21,6 +21,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 	- Better layout management
 	- Per Project settings
+	- Test refactor as typescript upstream bug is resolved
 
 
 ### Features

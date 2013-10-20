@@ -29,6 +29,11 @@ class View (object):
 		for line in self.liste:
 			self.find_open_view(window,*line)
 
+	# UPDATE
+	def update(self):
+		if self.is_open_view('Typescript : Outline View'): sublime.active_window().run_command('typescript_structure')
+		if self.is_open_view('Typescript : Errors List'): sublime.active_window().run_command('typescript_error_panel')
+
 	# HAS VIEWS
 	def has_view(self):
 		if not self.views:

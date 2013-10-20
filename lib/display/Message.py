@@ -1,5 +1,5 @@
 import sublime
-from .Utils import debounce, ST3
+from ..Utils import debounce, ST3
 
 class Message(object):
 

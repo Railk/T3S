@@ -7,7 +7,7 @@ I'm using the same error icons has SublimeLinter.
 I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 
-### v0.2.0 Changes (it's in dev so bugs are possible)
+### v0.2.0 Changes (updates i make can break some things as i don't always fully check on each OS)
 - You need to redo you user settings as the file name have changed to reflect the plugin name
 - Error and Outline panels have been replaced by views (you can click on each line to go to the corresponding place)
 - Build system is integrated to the plugin (you still need <code>tsc</code>) and you can set your node path (settings)
@@ -17,7 +17,10 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - You can build on save (settings)
 - Completion on <code>:</code> with <code>ctrl+space</code> to have the primitives and interface
 - Quick panel for user message (initialisation,closing project etc...)
-- Todo : better layout management
+- Todo : 
+
+	- Better layout management
+	- Per Project settings
 
 
 ### Features

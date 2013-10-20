@@ -23,7 +23,7 @@ class Error(Base):
 
 	def open_view(self,view,begin,end):
 		if view.is_loading():
-			sublime.set_timeout(lambda: self.open_view(view,region), 100)
+			sublime.set_timeout(lambda: self.open_view(view,begin,end), 100)
 			return
 		else:
 			a = view.text_point(*begin)

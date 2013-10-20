@@ -1,7 +1,7 @@
 # coding=utf8
 
-import sublime
-from .Utils import ST3
+import sublime, sublime_plugin
+from ..Utils import ST3
 
 class Layout(object):
 
@@ -63,3 +63,13 @@ class Layout(object):
 
 		layout = {"cols": cols, "rows": rows, "cells": cells}
 		self.set_layout(window, layout, True)
+
+
+class LayoutListener(sublime_plugin.EventListener):
+
+	def on_close(self):
+		pass
+
+
+def plugin_unloaded():
+	pass

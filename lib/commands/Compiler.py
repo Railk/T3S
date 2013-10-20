@@ -6,12 +6,11 @@ except ImportError:
 	from Queue import Queue
 
 import sublime
-import subprocess
 import os
 import json
 
-from .Utils import dirname, get_node, ST3
-from .Panel import PANEL
+from ..Utils import dirname, get_node, get_kwargs, ST3
+from ..display.Panel import PANEL
 
 # ----------------------------------------- UTILS --------------------------------------- #
 
@@ -38,13 +37,7 @@ class Compiler(Thread):
 		Thread.__init__(self)
 
 	def run(self):
-		kwargs = {}
-		if os.name == 'nt':
-			errorlog = open(os.devnull, 'w')
-			startupinfo = subprocess.STARTUPINFO()
-			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-			kwargs = {'stderr':errorlog, 'startupinfo':startupinfo}
-
+		kwargs = get_kwargs()
 		node = get_node()
 		default_settings = os.path.join(sublime.packages_path(),"T3S","T3S.sublime-settings")
 		user_setting = os.path.join(sublime.packages_path(),"User","T3S.sublime-settings")

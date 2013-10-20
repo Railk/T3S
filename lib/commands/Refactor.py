@@ -6,13 +6,13 @@ except ImportError:
 	from Queue import Queue
 
 import sublime
-import subprocess
 import os
 import json
 
-from .Utils import dirname, get_node, ST3
-from .Panel import PANEL
-from .Tss import TSS
+from ..display.Panel import PANEL
+from ..Tss import TSS
+from ..Utils import dirname, get_node, get_kwargs, ST3
+
 
 # ----------------------------------------- UTILS --------------------------------------- #
 
@@ -36,16 +36,10 @@ class Refactor(Thread):
 		Thread.__init__(self)
 
 	def run(self):
-		kwargs = {}
-		if os.name == 'nt':
-			errorlog = open(os.devnull, 'w')
-			startupinfo = subprocess.STARTUPINFO()
-			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-			kwargs = {'stderr':errorlog, 'startupinfo':startupinfo}
-
 		if ST3:clear_panel(self.window)
 		else: sublime.set_timeout(lambda:clear_panel(self.window),0)
 
+		kwargs = get_kwargs()
 		node = get_node()
 		p = Popen([node, os.path.join(dirname,'bin','refactor.js'), self.member, json.dumps(self.refs)], stdin=PIPE, stdout=PIPE, **kwargs)	 
 		reader = RefactorReader(self.window,p.stdout,Queue(),self.root)

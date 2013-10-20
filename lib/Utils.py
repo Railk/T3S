@@ -2,6 +2,7 @@
 
 import sublime
 import threading
+import subprocess
 import sys
 import os
 import re
@@ -11,12 +12,40 @@ import json
 # PACKAGE PATH
 dirname = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
 
+
 # NODE SETTINGS
 node_path_settings = sublime.load_settings('T3S.sublime-settings').get("node_path")
+
 
 # VERSIONS
 version = int(sublime.version())
 ST3 = int(sublime.version()) >= 3000
+
+
+# MEMBER PREFIX
+PREFIXES = {
+	'method': u'○',
+	'property': u'●',
+	'class':u'♦',
+	'interface':u'◊',
+	'keyword':u'∆',
+	'constructor':u'■',
+	'variable': u'V',
+	'public':u'[pub]',
+	'private':u'[priv]'
+}
+
+def get_prefix(token):
+	if token in PREFIXES:
+		return PREFIXES[token]
+	else:
+		return ''
+
+
+# GET TSS PATH
+def get_tss():
+	return os.path.join(dirname,'bin','tss.js')
+
 
 # NODE PATH
 def get_node():
@@ -28,10 +57,23 @@ def get_node():
 	else:
 		return node_path+'/node'
 
+
+# GET PROCESS KWARGS
+def get_kwargs():
+	if os.name == 'nt':
+		errorlog = open(os.devnull, 'w')
+		startupinfo = subprocess.STARTUPINFO()
+		startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+		return {'stderr':errorlog, 'startupinfo':startupinfo}
+	else:
+		return {}
+
+
 # BYTE ENCODE
 def encode(message):
 	if ST3: return bytes(message,'UTF-8')
 	else: return message.encode('UTF-8')
+
 
 # IS A TYPESCRIPT FILE
 def is_ts(view):
@@ -140,3 +182,19 @@ def get_data(file,decode=False):
 			pass
 
 	return None
+
+
+# GET VIEW CONTENT
+def get_content(view):
+	return view.substr(sublime.Region(0, view.size()))
+
+
+# GET LINES
+def get_lines(view):
+	(lines, col) = view.rowcol(view.size())
+	return lines
+
+
+# GET FILE INFO
+def get_file_infos(view):
+	return (view.file_name(),get_lines(view),get_content(view))

@@ -1,6 +1,6 @@
 # coding=utf8
 
-from .Utils import ST3
+from ..Utils import ST3
 
 class Panel(object):
 

@@ -73,7 +73,11 @@ function build_commands(){
 		commands[commands.length] = pre_processing_commands[i];
 	}
 
-	if(process.platform === 'darwin') process.env.PATH += ':/usr/local/bin';
+	if(process.platform === 'darwin'){
+		if(process.env.PATH.indexOf(':/usr/local/bin') === -1){
+			process.env.PATH += ':/usr/local/bin';
+		}
+	}
 	commands[commands.length] = 'tsc '+'"'+filename+'"'+tsc;
 
 	for (i = 0; i < post_processing_commands.length; i++) {

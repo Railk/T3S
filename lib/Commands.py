@@ -1,16 +1,18 @@
 # coding=utf8
 
+from threading import Thread
 import sublime
 import sublime_plugin
 import os
 import re
 
-from .Utils import get_data, get_root, debounce, ST3
-from .Compiler import Compiler
-from .Refactor import Refactor
-from .View import VIEW
+from .commands.Compiler import Compiler
+from .commands.Refactor import Refactor
+from .display.View import VIEW
+from .display.Message import MESSAGE
+from .display.Completion import COMPLETION
 from .Tss import TSS
-from .Message import MESSAGE
+from .Utils import get_data, get_root, get_file_infos, get_prefix, debounce, ST3
 
 
 # AUTO COMPLETION
@@ -20,10 +22,7 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 		for region in self.view.sel():
 			self.view.insert(edit, region.end(), characters)
 
-		TSS.update(self.view)
-		TSS.get_interface_completion(characters != '.' and self.view.substr(self.view.sel()[0].begin()-1) == ':')
-		TSS.get_method_completion(characters != '.' and self.view.substr(self.view.sel()[0].begin()-1) == '(')
-
+		COMPLETION.set_interface_completion(characters != '.' and self.view.substr(self.view.sel()[0].begin()-1) == ':')
 		self.view.run_command('auto_complete',{
 			'disable_auto_insert': True,
 			'api_completions_only': True,
@@ -35,15 +34,27 @@ class TypescriptComplete(sublime_plugin.TextCommand):
 class TypescriptReloadProject(sublime_plugin.TextCommand):
 
 	def run(self, edit):
-		sublime.status_message('reloading project')
-		TSS.reload(self.view)
+		sublime.active_window().run_command('save_all')
+		MESSAGE.show('Reloading project')
+		reload = ReloadThread(self.view.file_name())
+		reload.daemon = True
+		reload.start()
+
+class ReloadThread(Thread):
+
+	def __init__(self,filename):
+		self.filename = filename
+		Thread.__init__(self)
+	
+	def run(self):
+		TSS.reload(self.filename)
 
 
 # SHOW INFOS
 class TypescriptType(sublime_plugin.TextCommand):
 
 	def run(self, edit):
-		if TSS.get_process(self.view) == None:
+		if TSS.get_process(self.view.file_name()) == None:
 			MESSAGE.show('You must wait for the initialisation to finish')
 			return
 
@@ -51,12 +62,12 @@ class TypescriptType(sublime_plugin.TextCommand):
 		
 		pos = self.view.sel()[0].begin()
 		(line, col) = self.view.rowcol(pos)
-		types = TSS.type(self.view,line,col)
+		types = TSS.type(self.view.file_name(),line,col)
 
 		if types == None: return
 		if 'kind' not in types: return
 
-		kind = TSS.get_prefix(types['kind'])
+		kind = get_prefix(types['kind'])
 		if types['docComment'] != '':
 			liste = types['docComment'].split('\n')+[kind+' '+types['fullSymbolName']+' '+types['type']]
 		else :
@@ -69,13 +80,13 @@ class TypescriptType(sublime_plugin.TextCommand):
 class TypescriptDefinition(sublime_plugin.TextCommand):
 
 	def run(self, edit):
-		if TSS.get_process(self.view) == None:
+		if TSS.get_process(self.view.file_name()) == None:
 			MESSAGE.show('You must wait for the initialisation to finish')
 			return
 
 		pos = self.view.sel()[0].begin()
 		(line, col) = self.view.rowcol(pos)
-		definition = TSS.definition(self.view,line,col)
+		definition = TSS.definition(self.view.file_name(),line,col)
 
 		if definition == None: return
 		if 'file' not in definition: return
@@ -108,13 +119,13 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 class TypescriptReferences(sublime_plugin.TextCommand):
 
 	def run(self, edit):
-		if TSS.get_process(self.view) == None:
+		if TSS.get_process(self.view.file_name()) == None:
 			MESSAGE.show('You must wait for the initialisation to finish')
 			return
 
 		pos = self.view.sel()[0].begin()
 		(line, col) = self.view.rowcol(pos)
-		self.refs = refs = TSS.references(self.view,line,col)
+		self.refs = refs = TSS.references(self.view.file_name(),line,col)
 		self.window = sublime.active_window()
 
 		if refs == None: return
@@ -149,13 +160,13 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 class TypescriptStructure(sublime_plugin.TextCommand):
 
 	def run(self, edit):
-		if TSS.get_process(self.view) == None:
+		if TSS.get_process(self.view.file_name()) == None:
 			MESSAGE.show('You must wait for the initialisation to finish')
 			return
 
 		ts_view = self.view
 		regions = {}
-		members = TSS.structure(ts_view)
+		members = TSS.structure(ts_view.file_name())
 
 		try:
 			characters = ""
@@ -169,8 +180,8 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 				a = ts_view.text_point(start_line-1,left-1)
 				b = ts_view.text_point(end_line-1,right-1)
 				region = sublime.Region(a,b)
-				kind = TSS.get_prefix(member['loc']['kind'])
-				container_kind = TSS.get_prefix(member['loc']['containerKind'])
+				kind = get_prefix(member['loc']['kind'])
+				container_kind = get_prefix(member['loc']['containerKind'])
 
 				if member['loc']['kind'] != 'class' and member['loc']['kind'] != 'interface':
 					line = kind+' '+member['loc']['kindModifiers']+' '+member['loc']['kind']+' '+member['loc']['name']
@@ -205,12 +216,12 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
 	def run(self, edit):
-		if TSS.get_process(self.view) == None:
+		if TSS.get_process(self.view.file_name()) == None:
 			MESSAGE.show('You must wait for the initialisation to finish')
 			return
 
 		VIEW.has_error = True
-		debounce(TSS.errors_async, 0.3, 'errors' + str(id(TSS)), self.view)
+		debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), *get_file_infos(self.view))
 
 
 class TypescriptErrorPanelView(sublime_plugin.TextCommand):
@@ -274,7 +285,7 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 class TypescriptBuild(sublime_plugin.TextCommand):
 
 	def run(self, edit, characters):
-		if TSS.get_process(self.view) == None:
+		if TSS.get_process(self.view.file_name()) == None:
 			MESSAGE.show('You must wait for the initialisation to finish')
 			return
 

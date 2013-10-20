@@ -23,7 +23,7 @@ def init(view):
 	root = get_root()
 	if root == 'no_ts': return
 
-	view.settings().set('auto_complete',False)
+	view.settings().set('auto_complete',True)
 	view.settings().set('extensions',['ts'])
 
 	process = PROCESSES.get(root)
@@ -148,13 +148,15 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	# ON QUERY COMPLETION
 	def on_query_completions(self,view,prefix,locations):
 		if is_ts(view):
-			TSS.update(*get_file_infos(view))
-			pos = view.sel()[0].begin()
-			(line, col) = view.rowcol(pos)
-			is_member = str(is_member_completion(view.substr(sublime.Region(view.line(pos-1).a, pos)))).lower()
-			TSS.complete(view.file_name(),line,col,is_member)
+			if COMPLETION.enabled:
+				TSS.update(*get_file_infos(view))
+				pos = view.sel()[0].begin()
+				(line, col) = view.rowcol(pos)
+				is_member = str(is_member_completion(view.substr(sublime.Region(view.line(pos-1).a, pos)))).lower()
+				TSS.complete(view.file_name(),line,col,is_member)
 
-			return (COMPLETION.get_list(), sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
+				COMPLETION.enabled = False
+				return (COMPLETION.get_list(), sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
 
 
 	# ON QUERY CONTEXT

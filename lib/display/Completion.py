@@ -8,6 +8,7 @@ class Completion(object):
 
 	completion_list = []
 	interface = False
+	enabled = False
 
 	def set_interface_completion(self,value):
 		self.interface = value

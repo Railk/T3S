@@ -20,8 +20,10 @@ class Errors(object):
 	def __init__(self):
 		if os.name == 'nt':
 			self.error_icon = ".."+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal')
+			self.warning_icon = ".."+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-warning')
 		else:
 			self.error_icon = "Packages"+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal.png')
+			self.warning_icon = "Packages"+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-warning.png')
 
 
 	def init(self,root,queue):
@@ -48,7 +50,8 @@ class Errors(object):
 
 
 	def highlight(self,view,errors) :
-		char_regions = []
+		error_regions = []
+		warning_regions = []
 		filename = view.file_name()
 
 		self.errors[filename] = {}
@@ -61,10 +64,15 @@ class Errors(object):
 
 				a = view.text_point(start_line-1,left-1)
 				b = view.text_point(end_line-1,right-1)
-				char_regions.append( sublime.Region(a,b))
 				self.errors[filename][(a,b)] = e['text']
 
-		view.add_regions('typescript-error' , char_regions , 'invalid' , self.error_icon)
+				if e['level']== 'illegal': 
+					error_regions.append( sublime.Region(a,b))
+				else:
+					warning_regions.append( sublime.Region(a,b))
+
+		view.add_regions('typescript-error' , error_regions , 'invalid' , self.error_icon)
+		view.add_regions('typescript-error' , warning_regions , 'invalid' , self.warning_icon)
 
 
 	def set_status(self,view):

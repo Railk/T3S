@@ -66,16 +66,18 @@ class Completion(object):
 		callback = False
 
 		for char in group:
-			if char == '(':
+			if char == '(' or char == '<':
 				arg += char
 				callback = True
-			elif char == ')':
+			elif char == ')' or char == '>':
 				arg += char
 				callback = False
 			elif char == ',':
 				if callback == False:
 					args.append(arg)
 					arg = ""
+				else:
+					arg+=char	
 			else:
 				arg+=char
 

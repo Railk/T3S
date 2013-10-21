@@ -66,13 +66,13 @@ class Errors(object):
 				b = view.text_point(end_line-1,right-1)
 				self.errors[filename][(a,b)] = e['text']
 
-				if e['level']== 'illegal': 
-					error_regions.append( sublime.Region(a,b))
+				if e['category'] == 'Error': 
+					error_regions.append(sublime.Region(a,b))
 				else:
-					warning_regions.append( sublime.Region(a,b))
+					warning_regions.append(sublime.Region(a,b))
 
 		view.add_regions('typescript-error' , error_regions , 'invalid' , self.error_icon)
-		view.add_regions('typescript-error' , warning_regions , 'invalid' , self.warning_icon)
+		view.add_regions('typescript-warnings' , warning_regions , 'invalid' , self.warning_icon)
 
 
 	def set_status(self,view):

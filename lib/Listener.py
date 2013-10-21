@@ -6,6 +6,7 @@ import sublime_plugin
 from .display.View import VIEW
 from .display.Completion import COMPLETION
 from .display.Errors import ERRORS
+from .display.Message import MESSAGE
 from .system.Files import FILES
 from .system.Liste import LISTE
 from .system.Processes import PROCESSES
@@ -22,6 +23,9 @@ def init(view):
 
 	root = get_root()
 	if root == 'no_ts': return
+	if root == None: 
+		MESSAGE.show('Cannot find root file please review you settings')
+		return
 
 	view.settings().set('auto_complete',True)
 	view.settings().set('extensions',['ts'])
@@ -120,6 +124,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		filename = view.file_name()
 		if not LISTE.has(filename) and get_data(filename) != None:
 			root = get_root()
+			if root == None or root == 'no_ts':return
 			args = (root,)+get_file_infos(view)
 			FILES.add(root,filename)
 			TSS.add(*args)

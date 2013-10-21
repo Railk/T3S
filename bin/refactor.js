@@ -16,20 +16,29 @@ function encode(message){
 	return JSON.stringify(message);
 }
 
+function get_chars(out,num_lines){
+	lines = out.split('\n');
+	chars = 0;
+	for (var i = 0; i < num_lines-1; i++) {
+		chars += lines[i].length+1;
+	}
+	return chars;
+}
+
 var output = "";
 
 // REPLACE
 for (var i = 0; i < refs.length; i++) {
 	var path = refs[i].ref.fileName;
-	var index = refs[i].ref.minChar;
-	var size = refs[i].ref.limChar-refs[i].ref.minChar;
-
-	var out = fs.readFileSync(path, FILE_ENCODING).replaceAt(index,size,replace);
+	var out = fs.readFileSync(path, FILE_ENCODING);
+	var index = get_chars(out,refs[i]['min']['line']) + refs[i]['min']['character']-1;
+	var end = refs[i]['lim']['character'] - refs[i]['min']['character'];
+	out = out.replaceAt(index,end,replace);
 	fs.writeFileSync(path, out, FILE_ENCODING);
 
 	lines = out.split('\n').length;
 	console.log(encode({"file": {"content":out,"lines":lines,"filename":path} }));
-	output += '\n'+path+' ('+lines+')';
+	output += '\n'+path+' ('+index+','+end+')';
 }
 
 console.log(encode({"output":"Typescript refactor finished, the following files have been modified :\n"+ output}));

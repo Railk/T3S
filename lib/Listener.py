@@ -27,7 +27,7 @@ def init(view):
 		MESSAGE.show('Cannot find root file please review you settings')
 		return
 
-	view.settings().set('auto_complete',True)
+	view.settings().set('auto_complete',False)
 	view.settings().set('extensions',['ts'])
 
 	process = PROCESSES.get(root)

@@ -75,5 +75,5 @@ class RefactorReader(Thread):
 		self.stdout.close()
 
 	def send(self,root,filename,lines,content,delay):
-		pass
 		# sublime.set_timeout(lambda:TSS.update(filename,lines,content,True),delay)
+		pass

@@ -44,7 +44,7 @@ class Process(Thread):
 		reader.start()
 
 		# trigger compilation for completion and others
-		self.init()
+		# self.init()
 
 	def init(self):
 		self.send('showErrors\n')

@@ -124,7 +124,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		filename = view.file_name()
 		if not LISTE.has(filename) and get_data(filename) != None:
 			root = get_root()
-			if root == None or root == 'no_ts':return
+			if root == None or root == 'no_ts': return
 			args = (root,)+get_file_infos(view)
 			FILES.add(root,filename)
 			TSS.add(*args)

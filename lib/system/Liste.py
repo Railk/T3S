@@ -3,6 +3,7 @@ class Liste(object):
 	liste = {}
 
 	def get_root(self,filename):
+		if not filename: return
 		if filename.replace('\\','/').lower() not in self.liste: 
 			return None
 

@@ -56,7 +56,7 @@ class TypescriptType(sublime_plugin.TextCommand):
 
 	def run(self, edit):
 		if TSS.get_process(self.view.file_name()) == None:
-			MESSAGE.show('You must wait for the initialisation to finish')
+			sublime.status_message('You must wait for the initialisation to finish')
 			return
 
 		if not ST3: return
@@ -82,7 +82,7 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 
 	def run(self, edit):
 		if TSS.get_process(self.view.file_name()) == None:
-			MESSAGE.show('You must wait for the initialisation to finish')
+			sublime.status_message('You must wait for the initialisation to finish')
 			return
 
 		pos = self.view.sel()[0].begin()
@@ -121,7 +121,7 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 
 	def run(self, edit):
 		if TSS.get_process(self.view.file_name()) == None:
-			MESSAGE.show('You must wait for the initialisation to finish')
+			sublime.status_message('You must wait for the initialisation to finish')
 			return
 
 		pos = self.view.sel()[0].begin()
@@ -162,7 +162,7 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 
 	def run(self, edit):
 		if TSS.get_process(self.view.file_name()) == None:
-			MESSAGE.show('You must wait for the initialisation to finish')
+			sublime.status_message('You must wait for the initialisation to finish')
 			return
 
 		ts_view = self.view
@@ -218,7 +218,7 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
 	def run(self, edit):
 		if TSS.get_process(self.view.file_name()) == None:
-			MESSAGE.show('You must wait for the initialisation to finish')
+			sublime.status_message('You must wait for the initialisation to finish')
 			return
 
 		VIEW.has_error = True
@@ -287,7 +287,7 @@ class TypescriptBuild(sublime_plugin.TextCommand):
 
 	def run(self, edit, characters):
 		if TSS.get_process(self.view.file_name()) == None:
-			MESSAGE.show('You must wait for the initialisation to finish')
+			sublime.status_message('You must wait for the initialisation to finish')
 			return
 
 		self.window = sublime.active_window()

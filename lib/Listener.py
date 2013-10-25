@@ -94,7 +94,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		self.settings = sublime.load_settings('T3S.sublime-settings')
 		init(view)
 		VIEW.update()
-		debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), *get_file_infos(view))
+		debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
 
 	# ON SAVE
@@ -106,7 +106,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		TSS.update(*args)
 		VIEW.update()
 		FILES.update(view,True)
-		debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), *args)
+		debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
 		if self.settings == None:
 			self.settings = sublime.load_settings('T3S.sublime-settings')
@@ -148,7 +148,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		VIEW.update()
 
 		if not self.settings.get('error_on_save_only'):
-			debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), *args)
+			debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
 
 	# ON QUERY COMPLETION

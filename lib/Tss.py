@@ -104,14 +104,15 @@ class Tss(object):
 
 
 	# UPDATE FILE
-	def update(self,filename,lines,content,both=False):
+	def update(self,filename,lines,content):
 		process = self.get_process(filename)
 		if process == None:
 			return
 
 		update = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
+		process.send_async(update)
 		process.send(update)
-		if both : process.send_async(update)
+			
 
 	# ADD FILE
 	def add(self,root,filename,lines,content):
@@ -120,17 +121,16 @@ class Tss(object):
 			return
 
 		update = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
-		process.send(update)
 		process.send_async(update)
+		process.send(update)
 
 
 	# ASYNC ERRORS
-	def errors(self,filename,lines,content):
+	def errors(self,filename):
 		process = self.get_process(filename)
 		if process == None:
 			return
 
-		process.send_async('update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content))
 		process.send_async('showErrors\n')
 	
 

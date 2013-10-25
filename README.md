@@ -7,7 +7,7 @@ I'm using the same error icons has SublimeLinter.
 I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 
-### v0.2.0 Changes (updates i make can break some things as i don't always fully check on each OS)
+### v0.2.0 Changes (it's in beta for now, so bugs are still present and my updates can break things)
 - You need to redo you user settings as the file name have changed to reflect the plugin name
 - Error and Outline panels have been replaced by views (you can click on each line to go to the corresponding place)
 - Build system is integrated to the plugin (you still need <code>tsc</code>) and you can set your node path (settings)
@@ -21,7 +21,6 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 	- Better layout management
 	- Per Project settings
-	- Test refactor as typescript upstream bug is resolved
 
 
 ### Features
@@ -185,6 +184,7 @@ Here's an exemple that do:
 4. <code>f5</code> Reload the current project
 5. <code>f8</code> Build the project
 6. <code>ctrl+shift+e</code> Open a <code>view</code> listing all the errors across all the files of the project
+7. 2. <code>f2</code> Click on a property, a method etc... then press <code>F2</code> to change the name (Beware EXPERIMENTAL)
 
 
 ### Usage:

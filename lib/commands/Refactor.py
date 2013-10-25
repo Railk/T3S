@@ -9,9 +9,9 @@ import sublime
 import os
 import json
 
-from ..display.Panel import PANEL
 from ..Tss import TSS
-from ..Utils import dirname, get_node, get_kwargs, ST3
+from ..display.Panel import PANEL
+from ..Utils import debounce, dirname, get_node, get_data, get_kwargs, ST3
 
 
 # ----------------------------------------- UTILS --------------------------------------- #
@@ -28,9 +28,8 @@ def clear_panel(window):
 
 class Refactor(Thread):
 
-	def __init__(self, window, root, member, refs):
+	def __init__(self, window, member, refs):
 		self.window = window
-		self.root = root
 		self.member = member
 		self.refs = refs
 		Thread.__init__(self)
@@ -42,38 +41,45 @@ class Refactor(Thread):
 		kwargs = get_kwargs()
 		node = get_node()
 		p = Popen([node, os.path.join(dirname,'bin','refactor.js'), self.member, json.dumps(self.refs)], stdin=PIPE, stdout=PIPE, **kwargs)	 
-		reader = RefactorReader(self.window,p.stdout,Queue(),self.root)
+		reader = RefactorReader(self.window,p.stdout,Queue())
 		reader.daemon = True
 		reader.start()
 
 
 class RefactorReader(Thread):
 
-	def __init__(self,window,stdout,queue,root):
+	def __init__(self,window,stdout,queue):
 		self.window = window
 		self.stdout = stdout
 		self.queue = queue
-		self.root = root
 		Thread.__init__(self)
 
 	def run(self):
 		delay = 1000
+		previous = ""
 		for line in iter(self.stdout.readline, b''):
 			line = json.loads(line.decode('UTF-8'))
 			if 'output' in line:
-				if ST3:show_output(self.window,line)
+				if ST3: show_output(self.window,line)
 				else: sublime.set_timeout(lambda:show_output(self.window,line),0)
 			elif 'file' in line:
-				filename = line['file']['filename']
-				lines = line['file']['lines']
-				content = line['file']['content']
-				self.send(self.root,filename,lines,content,delay)
-				delay+=100
+				filename = line['file']
+				content = get_data(filename)
+				lines = len(content.split('\n'))-1
+				if previous != filename:
+					self.send(filename,lines,content,delay)
+					delay+=100
+
+				previous = filename
 			else:
 				print('refactor error')
 
+		
 		self.stdout.close()
 
-	def send(self,root,filename,lines,content,delay):
-		# sublime.set_timeout(lambda:TSS.update(filename,lines,content,True),delay)
-		pass
+	def send(self,filename,lines,content,delay):
+		sublime.set_timeout(lambda:self.update(filename,lines,content),delay)
+
+	def update(self,filename,lines,content):
+		TSS.update(filename,lines,content)
+		debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), filename)

@@ -152,7 +152,7 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 		return sublime.Region(a,b)
 
 	def on_done(self,name):
-		refactor = Refactor(self.window,get_root(),name,self.refs)
+		refactor = Refactor(self.window,name,self.refs)
 		refactor.daemon = True
 		refactor.start()
 
@@ -222,7 +222,8 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 			return
 
 		VIEW.has_error = True
-		debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), *get_file_infos(self.view))
+		TSS.update(*get_file_infos(self.view))
+		debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), self.view.file_name())
 
 
 class TypescriptErrorPanelView(sublime_plugin.TextCommand):
@@ -269,7 +270,7 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 					characters += "\n\nOn File : " + filename+'\n'
 					lines +=3
 
-			characters += '\n\t'+"On Line " + str(start_line) +' : '+re.sub(r'^.*?:\s*', '', e['text'])
+			characters += '\n\t'+"On Line " + str(start_line) +' : '+re.sub(r'^.*?:\s*', '', e['text'].replace('\r',''))
 			points[lines] = (a,b)
 			files[lines] = e['file']
 

@@ -8,7 +8,7 @@ import json
 
 from .View import VIEW
 from ..Tss import TSS
-from ..Utils import dirname, debounce, get_file_infos, ST3
+from ..Utils import dirname, debounce, ST3
 
 # --------------------------------------- ERRORS -------------------------------------- #
 
@@ -32,7 +32,7 @@ class Errors(object):
 		reader.start()
 
 		self.errors_reader[root] = reader 
-		debounce(TSS.errors, 0, 'errors' + str(id(TSS)), *get_file_infos(sublime.active_window().active_view()))
+		debounce(TSS.errors, 0, 'errors' + str(id(TSS)), root)
 
 
 	def remove(self,root):

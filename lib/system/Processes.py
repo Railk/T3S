@@ -109,7 +109,7 @@ class Processes(object):
 		
 	def add(self,root,done):
 		if root in self.liste: return
-		print('typescript initializing '+root)
+		print('Typescript initializing '+root)
 
 		process = Process(root)
 		process.start()
@@ -132,18 +132,18 @@ class Processes(object):
 			i += dir
 
 			if not ST3:
-				MESSAGE.repeat('Typescript is initializing')
-				sublime.status_message(' Typescript is initializing [%s=%s]' % \
+				MESSAGE.repeat('Typescript project is initializing')
+				sublime.status_message(' Typescript project is initializing [%s=%s]' % \
 					(' ' * before, ' ' * after))
 			else:
-				MESSAGE.repeat(' Typescript is initializing [%s=%s]' % \
+				MESSAGE.repeat(' Typescript project is initializing [%s=%s]' % \
 					(' ' * before, ' ' * after))
 
 			sublime.set_timeout(lambda: self._handle(process,done,i,dir), 100)
 			return
 
 		(head,tail) = os.path.split(process.root)
-		MESSAGE.show('TypeScript intialized for root file : '+tail,True)
+		MESSAGE.show('Typescript project intialized for root file : '+tail,True)
 		done("init",process)
 
 

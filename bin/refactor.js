@@ -36,8 +36,7 @@ for (var i = 0; i < refs.length; i++) {
 	out = out.replaceAt(index,end,replace);
 	fs.writeFileSync(path, out, FILE_ENCODING);
 
-	lines = out.split('\n').length;
-	console.log(encode({"file": {"content":out,"lines":lines,"filename":path} }));
+	console.log(encode({"file":path}));
 	output += '\n'+path+' ('+index+','+end+')';
 }
 

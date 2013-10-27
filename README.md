@@ -57,8 +57,8 @@ Download the latest source zip from github and extract the files to your Sublime
 
 For the plugin to work you need to define a project :
 
-	1. Inside your <code>project_name.sublime-project</code> file if you have one
-	2. By creating a <code>.sublimets</code> at the root of your project folder
+1. Inside your <code>project_name.sublime-project</code> file if you have one
+2. By creating a <code>.sublimets</code> at the root of your project folder
 
 You can look inside the <code>example folder</code> for setup examples.
 

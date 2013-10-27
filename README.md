@@ -160,6 +160,7 @@ And also add (optionnal) your project settings :
 ### Commands:
 
 1. <code>f1</code> Click on a property, a class, a method etc... then press f1 to have detail about it (ST3 ONLY)
+2. <code>f2</code> Click on a property, a class, a method etc... then press f2 to refactor the member (EXPERIMENTAL use at your own risk)
 2. <code>f3</code> Open a outline <code>view</code> of the file (class,methods,properties, etc...)
 3. <code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
 4. <code>f5</code> Reload the current project

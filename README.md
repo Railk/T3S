@@ -62,7 +62,7 @@ For the plugin to work you need to define a project :
 
 You can look inside the <code>example folder</code> for setup examples.
 
-To open a porject, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code>
+To open a project, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code>
 	
 ##### You have a sublime text project:
 You can indicate your typescript root files in your project_name.sublime-project like so :
@@ -161,7 +161,7 @@ And also add (optionnal) your project settings :
 2. <code>f3</code> Open a outline <code>view</code> of the file (class,methods,properties, etc...)
 3. <code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
 4. <code>f5</code> Reload the current project
-5. <code>f8</code> Build the project
+5. <code>f8</code> or <code>ctrl+b</code> Build the project
 6. <code>ctrl+shift+e</code> Open a <code>view</code> listing all the errors across all the files of the project
 
 ### Settings:
@@ -172,7 +172,7 @@ You have 5 settings available:
 
 1. <code>node_path</code>: to set you node path
 2. <code>error_on_save_only</code>: to highlight errors only while saving or while typing, the default is showing error highlighting while typing
-3. <code>build_on_save</code>: to build the porject each time you save
+3. <code>build_on_save</code>: to build the project each time you save
 4. <code>show_build_file</code>: to show the resulting javascript file of the current TypeScript file in a split view when building
 5. the build parameters
 

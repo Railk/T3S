@@ -46,5 +46,11 @@
 		"args": {"characters": ""},
 		"keys": ["f8"],
 		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_build",
+		"args": {"characters": ""},
+		"keys": ["ctrl+b"],
+		"context": [ {"key": "T3S"} ]
 	}
 ]

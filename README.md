@@ -29,6 +29,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - TypeScript language error highlighting
 - TypeScript language syntax highlighting
 - A build System
+- Basic refactoring
 
 
 ### Dependencies
@@ -37,7 +38,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 
 ### OS
-Tested on Windows & Ubuntu & OSX
+Tested on Windows & Ubuntu & OSX not entirely for now on <code>DEV</code>
 
 
 ### Installation

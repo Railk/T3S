@@ -21,6 +21,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - Todo : 
 
 	1. Better layout management
+	2. Tests everything on OSes and ST2/ST3
 
 
 ### Features

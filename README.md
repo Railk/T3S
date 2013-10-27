@@ -7,8 +7,9 @@ I'm using the same error icons has SublimeLinter.
 I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 
-### v0.2.0 Changes (it's in beta for now, so bugs are still present and my updates can break things)
-- You need to redo you user settings as the file name have changed to reflect the plugin name
+### v0.2.0 Changes (updates i make can break some things as i don't always fully check on each OS)
+- You need to redo your project settings as i've added the possibility to have settings per project (cf. examples)
+- You need to redo your user settings as the file name have changed to reflect the plugin name
 - Error and Outline panels have been replaced by views (you can click on each line to go to the corresponding place)
 - Build system is integrated to the plugin (you still need <code>tsc</code>) and you can set your node path (settings)
 - You can have a split view showing the current active ts file corresponding javascript file (settings)
@@ -19,8 +20,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - Quick panel for user message (initialisation,closing project etc...)
 - Todo : 
 
-	- Better layout management
-	- Per Project settings
+	1. Better layout management
 
 
 ### Features
@@ -53,8 +53,120 @@ Download the latest source zip from github and extract the files to your Sublime
 2. Checkout dev branch using <code>git checkout dev</code>.
 
 
+### Project
+
+For the plugin to work you need to define a project :
+
+	1. Inside your <code>project_name.sublime-project</code> file if you have one
+	2. By creating a <code>.sublimets</code> at the root of your project folder
+
+You can look inside the <code>example folder</code> for setup examples.
+
+To open a porject, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code>
+	
+##### You have a sublime text project:
+You can indicate your typescript root files in your project_name.sublime-project like so :
+
+	"settings":
+	{
+			"typescript":
+			{
+				"roots":[
+					"path/from/top/folder/to/your/root/file_1.ts",
+					"path/from/top/folder/to/your/root/file_2.ts",
+					...
+					"path/from/top/folder/to/your/root/file_X.ts"
+				]
+			}
+	}
+
+And also add (optionnal) your project settings :
+
+		"settings":
+		{
+			"typescript":
+			{
+				"roots":[
+					"path/from/top/folder/to/your/root/file_1.ts",
+					"path/from/top/folder/to/your/root/file_2.ts",
+					...
+					"path/from/top/folder/to/your/root/file_X.ts"
+				],
+				"settings":{
+					"node_path":"none",
+					"error_on_save_only":false,
+					"build_on_save":false,
+					"show_build_file":false,
+					"build_parameters":{
+						"pre_processing_commands":[],
+						"post_processing_commands":[],
+						"output_dir_path":"none",
+						"concatenate_and_emit_output_file_path":"none",
+						"source_files_root_path":"none",
+						"map_files_root_path":"none",
+						"module_kind":"none",
+						"allow_bool_synonym":false,
+						"allow_import_module_synonym":false,
+						"generate_declaration":false,
+						"no_implicit_any_warning":false,
+						"skip_resolution_and_preprocessing":false,
+						"remove_comments_from_output":false,
+						"generate_source_map":false,
+						"ecmascript_target":"ES3"
+					}
+				}
+			}
+		}
+
+
+##### You don't have a sublime text project:
+You can create a .sublimets file in the folder containing the typescript root file :
+
+	{
+			"root":"root_file_name.ts"
+	}
+
+And also add (optionnal) your project settings :
+
+		{
+			"root":"root_file_name.ts",
+			"settings":{
+				"node_path":"none",
+				"error_on_save_only":false,
+				"build_on_save":false,
+				"show_build_file":false,
+				"build_parameters":{
+					"pre_processing_commands":[],
+					"post_processing_commands":[],
+					"output_dir_path":"none",
+					"concatenate_and_emit_output_file_path":"none",
+					"source_files_root_path":"none",
+					"map_files_root_path":"none",
+					"module_kind":"none",
+					"allow_bool_synonym":false,
+					"allow_import_module_synonym":false,
+					"generate_declaration":false,
+					"no_implicit_any_warning":false,
+					"skip_resolution_and_preprocessing":false,
+					"remove_comments_from_output":false,
+					"generate_source_map":false,
+					"ecmascript_target":"ES3"
+				}
+			}
+		}
+
+### Commands:
+
+1. <code>f1</code> Click on a property, a class, a method etc... then press f1 to have detail about it (ST3 ONLY)
+2. <code>f3</code> Open a outline <code>view</code> of the file (class,methods,properties, etc...)
+3. <code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
+4. <code>f5</code> Reload the current project
+5. <code>f8</code> Build the project
+6. <code>ctrl+shift+e</code> Open a <code>view</code> listing all the errors across all the files of the project
+
 ### Settings:
-You can acces the plugin settings from <code>Preferences > Packages Settings > T3S</code>, to modify the settings please copy the default settings inside the user settings one, and make your modification there otherwise your settings will be override by an update of the plugin.
+You can acces the plugin settings from <code>Preferences > Packages Settings > T3S</code>, to modify the settings please copy the default settings inside the user settings one, and make your modification there otherwise your settings will be override by an update of the plugin, or put the settings inside your project file.
+
 
 You have 5 settings available:
 
@@ -110,9 +222,9 @@ Error highlighting only shown when saving:
 
 
 ##### build_on_save:
-On save the file can be automaticaly or not :
+On save the file can be automaticaly built or not :
 
-		"build_on_save_only":true|false
+		"build_on_save":true|false
 
 
 ##### show_build_file:
@@ -176,62 +288,8 @@ Here's an exemple that do:
 			"ecmascript_target":"ES3"
 		}
 
-### Commands:
-
-1. <code>f1</code> Click on a property, a class, a method etc... then press f1 to have detail about it (ST3 ONLY)
-2. <code>f3</code> Open a outline <code>view</code> of the file (class,methods,properties, etc...)
-3. <code>f4</code> Click on a property, a class, a method etc... then press f4 to go to the definition
-4. <code>f5</code> Reload the current project
-5. <code>f8</code> Build the project
-6. <code>ctrl+shift+e</code> Open a <code>view</code> listing all the errors across all the files of the project
-7. <code>f2</code> Click on a property, a method etc... then press <code>F2</code> to refactor it across files (Beware EXPERIMENTAL)
-
 
 ### Usage:
-
-When using .sublimets or a .sublime-project file, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code> in Sublime Text.
-	
-##### You have a sublime text project:
-You can indicate your typescript root files in your project_name.sublime-project like so :
-			
-		
-		"settings":
-		{
-			"typescript":
-			[
-				"path/from/project/folder/to/your/root/file_1.ts",
-				"path/from/project/folder/to/your/root/file_2.ts",
-				...
-			]
-		}
-
-
-Exemple : 
-
-if you have a root folder MyProject in you sublime project with a root file name root.ts inside MyProject folder 
-and another folder OtherProject width a subfolder OtherSubFolder with a root file name other_root.ts inside OtherSubFolder
-
-
-		"settings":
-		{
-			"typescript":
-			[
-				"MyProject/root.ts"
-				"OtherProject/OtherSubFolder/other_root.ts"
-			]
-		}
-
-##### You don't have a sublime text project:
-You can create a .sublimets file in the folder containing the typescript root file
-
-
-		{
-			"root":"root_file_name.ts"
-		}
-
-
-If you don't chose either of these solutions the plugin wil launch a process for each file
-
 
 ##### Initialisation:
 When you load a .ts file the plugin will initialize the root file or the current file and it can take some time for huge project.

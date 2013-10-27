@@ -10,8 +10,9 @@ from .display.Message import MESSAGE
 from .system.Files import FILES
 from .system.Liste import LISTE
 from .system.Processes import PROCESSES
+from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import debounce, is_ts, is_dts, is_member_completion, get_root, get_data, get_file_infos, ST3
+from .Utils import debounce, is_ts, is_dts, is_member_completion, get_data, get_file_infos, ST3
 
 
 # ------------------------------------------- INIT ------------------------------------------ #
@@ -21,7 +22,7 @@ def init(view):
 	if is_dts(view): return
 	if get_data(view.file_name()) == None: return
 
-	root = get_root()
+	root = SETTINGS.get_root(view)
 	if root == 'no_ts': return
 	if root == None: 
 		MESSAGE.show('Cannot find root file please review you settings')
@@ -41,7 +42,11 @@ def init(view):
 				args = (root,)+args
 				FILES.add(root,filename)
 				TSS.add(*args)
+
+			VIEW.update()
+			debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), view.file_name())
 	else:
+		FILES.add(root,root)
 		TSS.addEventListener('init',root,on_init)
 		TSS.addEventListener('kill',root,on_kill)
 		TSS.init(root)
@@ -63,7 +68,6 @@ def on_kill(process):
 
 class TypescriptEventListener(sublime_plugin.EventListener):
 
-	settings = None
 	error_delay = 0.3
 
 
@@ -80,21 +84,14 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 	# FILE ACTIVATED
 	def on_activated(self,view):
-		self.init_view(view)
+		if not is_ts(view): return
+		init(view)
 
 		
 	# ON CLONED FILE
 	def on_clone(self,view):
-		self.init_view(view)
-
-
-	# INIT NEW FILE
-	def init_view(self,view):
 		if not is_ts(view): return
-		self.settings = sublime.load_settings('T3S.sublime-settings')
 		init(view)
-		VIEW.update()
-		debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
 
 	# ON SAVE
@@ -108,22 +105,20 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		FILES.update(view,True)
 		debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
-		if self.settings == None:
-			self.settings = sublime.load_settings('T3S.sublime-settings')
 
-		if self.settings.get('build_on_save'):
+		if SETTINGS.get('build_on_save'):
 			sublime.active_window().run_command('typescript_build',{"characters":False})
 
 
 	# ON CLICK
-	def on_selection_modified(self, view):
+	def on_selection_modified(self,view):
 		if not is_ts(view):
 			if VIEW.is_open_view(view.name()): VIEW.on_view(view)
 			return
 
 		filename = view.file_name()
 		if not LISTE.has(filename) and get_data(filename) != None:
-			root = get_root()
+			root = SETTINGS.get_root(view)
 			if root == None or root == 'no_ts': return
 			args = (root,)+get_file_infos(view)
 			FILES.add(root,filename)
@@ -139,15 +134,12 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not is_ts(view):
 			return
 
-		if self.settings == None:
-			self.settings = sublime.load_settings('T3S.sublime-settings')
-
 		args = get_file_infos(view)
 		TSS.update(*args)
 		FILES.update(view)
 		VIEW.update()
 
-		if not self.settings.get('error_on_save_only'):
+		if not SETTINGS.get('error_on_save_only'):
 			debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
 

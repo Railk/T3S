@@ -10,8 +10,9 @@ except ImportError:
 import sublime
 import os
 
+from .Settings import SETTINGS
 from ..display.Message import MESSAGE
-from ..Utils import get_node, get_tss, get_kwargs, encode, ST3
+from ..Utils import get_tss, get_kwargs, encode, ST3
 
 
 # ----------------------------------------- THREADS ---------------------------------------- #
@@ -24,7 +25,7 @@ class Process(Thread):
 
 	
 	def run(self):
-		node = get_node()
+		node = SETTINGS.get_node()
 		tss = get_tss()
 		kwargs = get_kwargs()
 

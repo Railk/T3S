@@ -11,7 +11,8 @@ import json
 
 from ..Tss import TSS
 from ..display.Panel import PANEL
-from ..Utils import debounce, dirname, get_node, get_data, get_kwargs, ST3
+from ..system.Settings import SETTINGS
+from ..Utils import debounce, dirname, get_data, get_kwargs, ST3
 
 
 # ----------------------------------------- UTILS --------------------------------------- #
@@ -38,8 +39,8 @@ class Refactor(Thread):
 		if ST3:clear_panel(self.window)
 		else: sublime.set_timeout(lambda:clear_panel(self.window),0)
 
+		node = SETTINGS.get_node()
 		kwargs = get_kwargs()
-		node = get_node()
 		p = Popen([node, os.path.join(dirname,'bin','refactor.js'), self.member, json.dumps(self.refs)], stdin=PIPE, stdout=PIPE, **kwargs)	 
 		reader = RefactorReader(self.window,p.stdout,Queue())
 		reader.daemon = True

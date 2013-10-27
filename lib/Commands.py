@@ -11,8 +11,10 @@ from .commands.Refactor import Refactor
 from .display.View import VIEW
 from .display.Message import MESSAGE
 from .display.Completion import COMPLETION
+from .system.Liste import LISTE
+from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import get_data, get_root, get_file_infos, get_prefix, debounce, ST3
+from .Utils import get_data, get_file_infos, get_prefix, debounce, ST3
 
 
 # AUTO COMPLETION
@@ -295,7 +297,7 @@ class TypescriptBuild(sublime_plugin.TextCommand):
 		if characters != False: self.window.run_command('save')
 
 		filename = self.view.file_name()
-		compiler = Compiler(self.window,get_root(),filename)
+		compiler = Compiler(self.window,LISTE.get_root(filename),filename)
 		compiler.daemon = True
 		compiler.start()
 		
@@ -304,16 +306,13 @@ class TypescriptBuild(sublime_plugin.TextCommand):
 
 class TypescriptBuildView(sublime_plugin.TextCommand):
 	
-	def run(self, edit, filename):
-		window = sublime.active_window()
-		settings = sublime.load_settings('T3S.sublime-settings')
-		
+	def run(self, edit, filename):		
 		if filename != 'error':
-			if settings.get('show_build_file'):
+			if SETTINGS.get('show_build_file'):
 				if os.path.exists(filename):
 					data = get_data(filename)
 					VIEW.create_view(self.view,'compile',edit,'Typescript : Built File',data)
 				else:
 					VIEW.create_view(self.view,'compile',edit,'Typescript : Built File',filename)
 		else:
-			window.run_command("typescript_error_panel")
+			sublime.active_window().run_command("typescript_error_panel")

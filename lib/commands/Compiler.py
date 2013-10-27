@@ -9,8 +9,9 @@ import sublime
 import os
 import json
 
-from ..Utils import dirname, get_node, get_kwargs, ST3
+from ..Utils import dirname, get_kwargs, ST3
 from ..display.Panel import PANEL
+from ..system.Settings import SETTINGS
 
 # ----------------------------------------- UTILS --------------------------------------- #
 
@@ -37,16 +38,15 @@ class Compiler(Thread):
 		Thread.__init__(self)
 
 	def run(self):
+		node = SETTINGS.get_node()
 		kwargs = get_kwargs()
-		node = get_node()
-		default_settings = os.path.join(sublime.packages_path(),"T3S","T3S.sublime-settings")
-		user_setting = os.path.join(sublime.packages_path(),"User","T3S.sublime-settings")
+		settings = json.dumps(SETTINGS.get('build_parameters'))
 		(head, tail) = os.path.split(self.filename)
 
 		if ST3:clear_panel(self.window)
 		else: sublime.set_timeout(lambda:clear_panel(self.window),0)
 
-		p = Popen([node, os.path.join(dirname,'bin','build.js'), default_settings, user_setting, self.root, tail.replace('.ts','.js')], stdin=PIPE, stdout=PIPE, **kwargs)		 
+		p = Popen([node, os.path.join(dirname,'bin','build.js'), settings, self.root, tail.replace('.ts','.js')], stdin=PIPE, stdout=PIPE, **kwargs)		 
 		reader = CompilerReader(self.window,p.stdout,Queue())
 		reader.daemon = True
 		reader.start()

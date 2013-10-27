@@ -15,7 +15,6 @@ from .Liste import LISTE
 class Files(object):
 
 	def init(self,root):
-		self.add(root,root)
 		files = TSS.files(root)
 		for f in files:
 			self.add(root,f)

@@ -8,10 +8,9 @@ var fs = require('fs'),
 var FILE_ENCODING = 'utf-8';
 var EOL = '[end]';
 
-var config_file = process.argv[2];
-var user_config_file = process.argv[3];
-var filename = process.argv[4];
-var js_file = process.argv[5];
+var config = JSON.parse(process.argv[2]);
+var filename = process.argv[3];
+var js_file = process.argv[4];
 var directory = path.dirname(filename);
 
 var commands_map = {
@@ -49,10 +48,6 @@ var default_values = {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 process.chdir(directory);
-
-if(fs.existsSync(user_config_file)) config_file = user_config_file;
-
-var config =  JSON.parse(fs.readFileSync(config_file, FILE_ENCODING))['build_parameters'];
 
 function build_commands(){
 	var tsc = "";

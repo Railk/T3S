@@ -3,7 +3,6 @@
 import sublime
 import threading
 import subprocess
-import sys
 import os
 import re
 import json
@@ -11,10 +10,6 @@ import json
 
 # PACKAGE PATH
 dirname = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
-
-
-# NODE SETTINGS
-node_path_settings = sublime.load_settings('T3S.sublime-settings').get("node_path")
 
 
 # VERSIONS
@@ -45,17 +40,6 @@ def get_prefix(token):
 # GET TSS PATH
 def get_tss():
 	return os.path.join(dirname,'bin','tss.js')
-
-
-# NODE PATH
-def get_node():
-	if ST3: node_path = sublime.load_settings('T3S.sublime-settings').get("node_path")
-	else : node_path = node_path_settings
-
-	if node_path == 'none':
-		return '/usr/local/bin/node' if sys.platform == "darwin" else 'node'
-	else:
-		return node_path+'/node'
 
 
 # GET PROCESS KWARGS
@@ -118,57 +102,6 @@ def debounce(fn, delay, uid=None, *args):
 def thread_safe(fn,args=None):
 	if args!= None: sublime.set_timeout(lambda:fn(args),0)
 	else: sublime.set_timeout(lambda:fn(),0)
-
-
-# GET PROJECT ROOT FILE
-def get_root():
-	if sublime.active_window().active_view().file_name() == None: return 'no_ts'
-	project_settings = sublime.active_window().active_view().settings().get('typescript')
-	current_folder = os.path.dirname(sublime.active_window().active_view().file_name())
-	top_folder =  get_top_folder(current_folder)
-	top_folder_segments = top_folder.split(os.sep)
-
-	# WITH PROJECT SETTINGS TYPESCRIPT DEFINED
-	if(project_settings != None):
-		for root in project_settings:
-			root_path = os.sep.join(top_folder_segments[:len(top_folder_segments)-1]+root.replace('\\','/').split('/'))
-			root_dir = os.path.dirname(root_path)
-			if current_folder.lower().startswith(root_dir.lower()):
-				return root_path
-			
-		return None
-
-	# SUBLIME TS ?
-	else:
-
-		segments = current_folder.split(os.sep)
-		segments[0] = top_folder.split(os.sep)[0]
-		length = len(segments)
-		segment_range =reversed(range(0,length+1))
-
-		for index in segment_range:
-			folder = os.sep.join(segments[:index])
-			config_file = os.path.join(folder,'.sublimets')
-			config_data = get_data(config_file,True)
-			if config_data != None:
-				return os.path.join(folder,config_data['root'])
-
-		return None
-	
-
-# GET SUBLIME OPEN FOLDERS
-def get_top_folder(current_folder):
-	top_folder = None
-	open_folders = sublime.active_window().folders()
-	for folder in open_folders:
-		if current_folder.lower().startswith(folder.lower()):
-			top_folder = folder
-			break
-
-	if top_folder != None:
-		return top_folder
-	
-	return current_folder
 
 
 # GET FILE DATA

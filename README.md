@@ -12,10 +12,9 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - You need to redo your user settings as the file name have changed to reflect the plugin name
 - Error and Outline panels have been replaced by views (you can click on each line to go to the corresponding place)
 - Build system is integrated to the plugin (you still need <code>tsc</code>) and you can set your node path (settings)
-- You can have a split view showing the current active ts file corresponding javascript file (settings)
+- You can build on save (settings) and have a the current file resulting javascript file in a split view (settings)
 - When you close all the ts file of a project, the project (and the node corresponding node process) is closed
 - One branch only for Sublime text 2 and 3
-- You can build on save (settings)
 - Completion on <code>:</code> with <code>ctrl+space</code> to have the primitives and interface
 - Quick panel for user message (initialisation,closing project etc...)
 - Todo : 

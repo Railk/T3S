@@ -8,6 +8,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 
 ### v0.2.0 Changes (updates i make can break some things as i don't always fully check on each OS)
+- On focusing a ts file if no project is found for it; a project creation process begin
 - You need to redo your project settings as i've added the possibility to have settings per project (cf. examples)
 - You need to redo your user settings as the file name have changed to reflect the plugin name
 - Error and Outline panels have been replaced by views (you can click on each line to go to the corresponding place)

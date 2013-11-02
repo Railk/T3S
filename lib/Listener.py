@@ -6,7 +6,6 @@ import sublime_plugin
 from .display.View import VIEW
 from .display.Completion import COMPLETION
 from .display.Errors import ERRORS
-from .display.Message import MESSAGE
 from .system.Files import FILES
 from .system.Liste import LISTE
 from .system.Processes import PROCESSES
@@ -23,10 +22,7 @@ def init(view):
 	if get_data(view.file_name()) == None: return
 
 	root = SETTINGS.get_root(view)
-	if root == 'no_ts': return
-	if root == None: 
-		MESSAGE.show('Cannot find root file please review you settings')
-		return
+	if root == 'no_ts' or root == None: return
 
 	view.settings().set('auto_complete',False)
 	view.settings().set('extensions',['ts'])
@@ -84,13 +80,11 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 	# FILE ACTIVATED
 	def on_activated(self,view):
-		if not is_ts(view): return
 		init(view)
 
 		
 	# ON CLONED FILE
 	def on_clone(self,view):
-		if not is_ts(view): return
 		init(view)
 
 

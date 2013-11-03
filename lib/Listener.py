@@ -3,7 +3,7 @@
 import sublime
 import sublime_plugin
 
-from .display.View import VIEW
+from .display.Views import VIEWS
 from .display.Completion import COMPLETION
 from .display.Errors import ERRORS
 from .system.Files import FILES
@@ -28,10 +28,10 @@ def init(view):
 	view.settings().set('extensions',['ts'])
 
 	process = PROCESSES.get(root)
+	filename = view.file_name()
 	if process != None:
 		if not process.is_alive():
 			args = get_file_infos(view)
-			filename = view.file_name()
 			if LISTE.has(filename):
 				TSS.update(*args)
 			else:
@@ -39,10 +39,11 @@ def init(view):
 				FILES.add(root,filename)
 				TSS.add(*args)
 
-			VIEW.update()
+			VIEWS.update()
 			debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), view.file_name())
 	else:
-		FILES.add(root,root)
+		FILES.add(root,filename)
+		if filename != root: FILES.add(root,root)
 		TSS.addEventListener('init',root,on_init)
 		TSS.addEventListener('kill',root,on_kill)
 		TSS.init(root)
@@ -51,7 +52,7 @@ def on_init(process):
 	TSS.removeEventListener('init',process.root,on_init)
 	FILES.init(process.root)
 	ERRORS.init(process.root,process.r_async)
-	VIEW.init()
+	VIEWS.init()
 
 def on_kill(process):
 	TSS.removeEventListener('kill',process.root,on_kill)
@@ -69,8 +70,8 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 	# CLOSE FILE
 	def on_close(self,view):
-		if VIEW.is_view(view.name()): 
-			VIEW.delete_view(view.name())
+		if VIEWS.is_view(view.name()): 
+			VIEWS.delete_view(view.name())
 
 		if is_ts(view) and not is_dts(view):
 			filename = view.file_name()
@@ -95,7 +96,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 		args = get_file_infos(view)
 		TSS.update(*args)
-		VIEW.update()
+		VIEWS.update()
 		FILES.update(view,True)
 		debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
@@ -107,7 +108,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	# ON CLICK
 	def on_selection_modified(self,view):
 		if not is_ts(view):
-			if VIEW.is_open_view(view.name()): VIEW.on_view(view)
+			if VIEWS.is_open_view(view.name()): VIEWS.on_view(view)
 			return
 
 		filename = view.file_name()
@@ -131,7 +132,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		args = get_file_infos(view)
 		TSS.update(*args)
 		FILES.update(view)
-		VIEW.update()
+		VIEWS.update()
 
 		if not SETTINGS.get('error_on_save_only'):
 			debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())

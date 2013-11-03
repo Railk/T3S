@@ -6,8 +6,21 @@ from ..Utils import ST3
 
 class Layout(object):
 
+	# CONSTRUCTEUR
 	def __init__(self):
 		super(Layout, self).__init__()
+
+
+	# UPDATE
+	def update(self):
+		windows = sublime.windows()
+		for window in windows:
+			self.check_groups(window)
+
+	def check_groups(self,window):
+		groups = window.num_groups()
+		for group in range(0,groups):
+			pass
 
 
 	# GET LAYOUT

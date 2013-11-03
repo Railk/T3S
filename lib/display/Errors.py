@@ -6,7 +6,7 @@ import sublime
 import os
 import json
 
-from .View import VIEW
+from .Views import VIEWS
 from ..Tss import TSS
 from ..Utils import dirname, debounce, ST3
 
@@ -44,7 +44,7 @@ class Errors(object):
 		try:
 			errors = json.loads(errors)
 			self.highlight(view,errors)
-			if VIEW.has_error: sublime.active_window().run_command('typescript_error_panel_view',{"errors":errors})
+			if VIEWS.has_error: sublime.active_window().run_command('typescript_error_panel_view',{"errors":errors})
 		except:
 			print('show_errors json error : ',errors)
 

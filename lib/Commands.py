@@ -8,7 +8,7 @@ import re
 
 from .commands.Compiler import Compiler
 from .commands.Refactor import Refactor
-from .display.View import VIEW
+from .display.Views import VIEWS
 from .display.Message import MESSAGE
 from .display.Completion import COMPLETION
 from .system.Liste import LISTE
@@ -206,7 +206,7 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 
 
 			if characters != "": characters += '\n\n}'
-			view = VIEW.create_view(ts_view,'outline',edit,'Typescript : Outline View',characters)
+			view = VIEWS.create_view(ts_view,'outline',edit,'Typescript : Outline View',characters)
 			view.setup(ts_view,regions)
 
 		except (Exception) as e:
@@ -223,7 +223,7 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 			sublime.status_message('You must wait for the initialisation to finish')
 			return
 
-		VIEW.has_error = True
+		VIEWS.has_error = True
 		TSS.update(*get_file_infos(self.view))
 		debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), self.view.file_name())
 
@@ -235,7 +235,7 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 
 		try:
 			if len(errors) == 0: 
-				VIEW.create_view(self.view,'error',self.edit,'Typescript : Errors List','no errors')
+				VIEWS.create_view(self.view,'error',self.edit,'Typescript : Errors List','no errors')
 			else:
 				self.open_panel(errors)
 		except (Exception) as e:
@@ -281,7 +281,7 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 		
 		characters += '\n'			
 
-		view = VIEW.create_view(self.view,'error',self.edit,'Typescript : Errors List',characters)
+		view = VIEWS.create_view(self.view,'error',self.edit,'Typescript : Errors List',characters)
 		view.setup(files,points)		
 
 
@@ -311,8 +311,8 @@ class TypescriptBuildView(sublime_plugin.TextCommand):
 			if SETTINGS.get('show_build_file'):
 				if os.path.exists(filename):
 					data = get_data(filename)
-					VIEW.create_view(self.view,'compile',edit,'Typescript : Built File',data)
+					VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',data)
 				else:
-					VIEW.create_view(self.view,'compile',edit,'Typescript : Built File',filename)
+					VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',filename)
 		else:
 			sublime.active_window().run_command("typescript_error_panel")

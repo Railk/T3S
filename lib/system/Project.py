@@ -69,8 +69,8 @@ class ProjectError(object):
 			self.messages.append(['Show me a project-file example','Click here to open the example file'])
 			self.window.show_quick_panel(self.messages,self._on_done)
 		elif self.kind == 'no_project':
-			self.messages.append(['Create a sublime project-file','Click here and follow the instructions'])
-			self.messages.append(['Create a .sublimets project file','Click here and follow the instructions'])
+			self.messages.append(['Create a sublime project-file (one or multiple root files)','Click here and follow the instructions'])
+			self.messages.append(['Create a .sublimets project file (one root file only)','Click here and follow the instructions'])
 			self.messages.append(['I don\'t understand please show me the README file','Click here to open the README.md file'])
 			self.window.show_quick_panel(self.messages,self._on_create_project)
 

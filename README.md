@@ -59,14 +59,15 @@ Download the latest source zip from github and extract the files to your Sublime
 
 For the plugin to work you need to define a project :
 
+
 1. Inside your <code>project_name.sublime-project</code> file if you have one
 2. By creating a <code>.sublimets</code> at the root of your project folder
 
-You can look inside the <code>example folder</code> for setup examples.
+You can look inside the <code>example folder</code> for setup examples or if you focus a ts file and no project are found a project creation porcess will be initiated
 
 To open a project, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code>
 	
-##### You have a sublime text project:
+##### You have a sublime text project or want to create a project with multiple root files
 You can indicate your typescript root files in your project_name.sublime-project like so :
 
 	"settings":
@@ -121,7 +122,7 @@ And also add (optionnal) your project settings :
 		}
 
 
-##### You don't have a sublime text project:
+##### You want to create a single root file project and don't want to create a sublime-project
 You can create a .sublimets file in the folder containing the typescript root file :
 
 	{

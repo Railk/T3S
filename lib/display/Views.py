@@ -10,6 +10,8 @@ from .views.Compile import Compile
 
 class Views (object):
 
+	group = None
+	window = None
 	has_error = False
 	inited = False
 	layout = Layout()
@@ -34,7 +36,10 @@ class Views (object):
 	def update(self):
 		if self.is_open_view('Typescript : Outline View'): sublime.active_window().run_command('typescript_structure')
 		if self.is_open_view('Typescript : Errors List'): sublime.active_window().run_command('typescript_error_panel')
-		self.layout.update()
+		if self.views and self.window:
+			if self.layout.update(self.window,self.group):
+				window = sublime.active_window()
+				(self.window,self.group) = self.get_view_group(window)
 
 
 	# HAS VIEWS
@@ -65,8 +70,8 @@ class Views (object):
 			view = self.views[name]
 		else:
 			view = self.create_view_kind(kind,name,None)
-			group = self.get_view_group(window)
-			self.layout.add_view(window,view.view,group)
+			(self.window,self.group) = self.get_view_group(window)
+			self.layout.add_view(self.window,view.view,self.group)
 			self.views[name] = view
 		
 		view.update(edit,content)
@@ -77,11 +82,15 @@ class Views (object):
 	# GET VIEW GROUP
 	def get_view_group(self,window):
 		if not self.views:
-			return window.num_groups()-1
+			return (window,window.num_groups()-1)
 		else:
 			for view in self.views:
-				(group, index) = window.get_view_index(self.views[view].view)
-				return group
+				view = self.views[view].view
+				break
+
+			window = view.window()
+			(group,index) = window.get_view_index(view)
+			return (window,group)
 
 
 	# VIEW CONTENT CLICK
@@ -99,10 +108,7 @@ class Views (object):
 			del self.views[name]
 
 		if not self.views:
-			try:
-				self.layout.delete(sublime.active_window())
-			except (Exception) as e:
-				print(e)
+			sublime.set_timeout(lambda:self.layout.update(self.window,self.group),1)
 
 
 	# FIND OPEN VIEW

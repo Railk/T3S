@@ -235,7 +235,8 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 
 		try:
 			if len(errors) == 0: 
-				VIEWS.create_view(self.view,'error',self.edit,'Typescript : Errors List','no errors')
+				view = VIEWS.create_view(self.view,'error',self.edit,'Typescript : Errors List','no errors')
+				view.setup(self.view,None,None)
 			else:
 				self.open_panel(errors)
 		except (Exception) as e:
@@ -282,7 +283,7 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 		characters += '\n'			
 
 		view = VIEWS.create_view(self.view,'error',self.edit,'Typescript : Errors List',characters)
-		view.setup(files,points)		
+		view.setup(self.view,files,points)
 
 
 # COMPILE VIEW
@@ -311,8 +312,10 @@ class TypescriptBuildView(sublime_plugin.TextCommand):
 			if SETTINGS.get('show_build_file'):
 				if os.path.exists(filename):
 					data = get_data(filename)
-					VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',data)
+					view = VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',data)
 				else:
-					VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',filename)
+					view = VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',filename)
+
+				view.setup(self.view)
 		else:
 			sublime.active_window().run_command("typescript_error_panel")

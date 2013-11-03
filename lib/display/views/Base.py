@@ -20,6 +20,3 @@ class Base(object):
 		self.view.erase(edit, sublime.Region(0, self.view.size()))
 		self.view.insert(edit,0,content)
 		self.view.set_read_only(True)
-
-	def set_focus(self):
-		sublime.active_window().focus_view(self.view)

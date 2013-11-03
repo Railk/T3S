@@ -17,6 +17,7 @@ from .Utils import debounce, is_ts, is_dts, is_member_completion, get_data, get_
 # ------------------------------------------- INIT ------------------------------------------ #
 
 def init(view):
+	if VIEWS.is_open_view(view.name()): VIEWS.on_view(view)
 	if not is_ts(view): return
 	if is_dts(view): return
 	if get_data(view.file_name()) == None: return
@@ -58,7 +59,6 @@ def on_kill(process):
 	TSS.removeEventListener('kill',process.root,on_kill)
 	FILES.remove_by(process.root)
 	ERRORS.remove(process.root)
-	pass
 
 
 # ----------------------------------------- LISTENERS ---------------------------------------- #
@@ -70,7 +70,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 	# CLOSE FILE
 	def on_close(self,view):
-		if VIEWS.is_view(view.name()): 
+		if VIEWS.is_view(view.name()):
 			VIEWS.delete_view(view.name())
 
 		if is_ts(view) and not is_dts(view):

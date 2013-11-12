@@ -26,7 +26,7 @@ Tested on Windows & Ubuntu & OSX
 
 ### Known Problems
 - OSX has currently the path for node hardcoded (default installation directory) du to some environnment <code>PATH</code> for GUI app problem. (OSX path settings added on v0.2.0 <code>dev</code> branch version soon to be released)
-- Adding réference after loading porject doesn't track them correctly (resolved on v0.2.0 <code>dev</code> branch version soon to be released)
+- Adding reference after loading a project doesn't track them correctly (resolved on v0.2.0 <code>dev</code> branch version soon to be released)
 
 ### Installation for Sublime Text 3:
 

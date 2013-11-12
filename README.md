@@ -25,7 +25,8 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 Tested on Windows & Ubuntu & OSX
 
 ### Problem
-OSX has currently the path for node hardcoded (default installation directory) du to some environnment <code>PATH</code> for GUI app problem.
+- OSX has currently the path for node hardcoded (default installation directory) du to some environnment <code>PATH</code> for GUI app problem.
+- Adding réference after loading porject doesn't track them correctly (corrected on v0.2.0 <code>dev</code> branch version soon to be released)
 
 ### Installation for Sublime Text 3:
 

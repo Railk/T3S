@@ -397,7 +397,7 @@ class TssInit(Thread):
 		self.filename = filename
 		self.stdin_queue = stdin_queue
 		self.stdout_queue = stdout_queue
-		self.result = ""
+		self.result = None
 		self.settings = sublime.load_settings('Typescript.sublime-settings')
 		Thread.__init__(self)
 

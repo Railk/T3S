@@ -112,7 +112,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 			return
 
 		filename = view.file_name()
-		if not LISTE.has(filename) and get_data(filename) != None:
+		if not LISTE.has(filename) and get_data(filename) != None and not is_dts(view):
 			root = SETTINGS.get_root(view)
 			if root == None or root == 'no_ts': return
 			args = (root,)+get_file_infos(view)

@@ -52,8 +52,8 @@ class Settings(object):
 			roots = project_settings.get('roots')
 			for root in roots:
 				root_path = os.sep.join(top_folder_segments[:len(top_folder_segments)-1]+root.replace('\\','/').split('/'))
-				root_dir = os.path.dirname(root_path)
-				if current_folder.lower().startswith(root_dir.lower()):
+				root_top_folder = self.get_top_folder(os.path.dirname(root_path))
+				if current_folder.lower().startswith(root_top_folder.lower()):
 					if root_path not in self.projects_type: 
 						self.projects_type[root_path] = ProjectSettings(SUBLIME_PROJECT)
 

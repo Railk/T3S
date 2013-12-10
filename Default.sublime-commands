@@ -1,0 +1,7 @@
+[
+    {
+        "caption": "Typescript: Show Error Panel",
+        "command": "typescript_show_error_panel"
+    },
+
+]

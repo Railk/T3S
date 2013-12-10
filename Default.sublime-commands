@@ -5,6 +5,12 @@
         "args": {"characters": ""},
         "context": [ {"key": "typescript"} ]
     },
+
+    {
+        "caption": "Typescript: Open Error Output Window",
+        "command": "typescript_show_error_output_panel",
+        "context": [ {"key": "typescript"} ]
+    },
     {
         "caption": "Typescript: Go to definition",
         "command": "typescript_definition",

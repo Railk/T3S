@@ -11,6 +11,10 @@ import json
 import re
 import sys
 
+from .errors import TypescriptErrorOutputPanel, TypescriptWindowManager
+
+window_manager = TypescriptWindowManager()
+
 
 # --------------------------------------- CONSTANT -------------------------------------- #
 
@@ -367,7 +371,10 @@ class Tss(object):
 				a = view.text_point(start_line-1,left-1)
 				b = view.text_point(end_line-1,right-1)
 				char_regions.append( sublime.Region(a,b))
+				e['region'] = (a,b)
 				ERRORS[filename][(a,b)] = e['text']
+
+		window_manager.errors_for_view(view).add(errors)
 
 		view.add_regions('typescript-error' , char_regions , 'invalid' , ICONS_PATH)
 
@@ -895,6 +902,20 @@ def get_data(file):
 
 	return None
 
+def join_segments(liste,length):
+	join = ""
+	for index in reversed(range(0,length)):
+		join = liste[index] +'/'+ join 
+
+	return os.path.realpath(join)
+
+
+# ---------------------------------------- ERROR PANEL ----------------------------------------- #
+class TypescriptShowErrorOutputPanelCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        error_list = window_manager.errors_for_window(sublime.active_window())
+        panel = TypescriptErrorOutputPanel()
+        panel.show_errors(error_list)
 
 # ---------------------------------------- PLUGIN LOADED --------------------------------------- #
 

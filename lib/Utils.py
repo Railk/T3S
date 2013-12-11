@@ -6,6 +6,7 @@ import subprocess
 import os
 import re
 import json
+import codecs
 
 
 # PACKAGE PATH
@@ -108,11 +109,14 @@ def thread_safe(fn,args=None):
 def get_data(file,decode=False):
 	if os.path.isfile(file): 
 		try: 
-			f = open(file,'r').read()
+			f = codecs.open(file,'r', 'utf-8').read()
 			if decode: return json.loads(f)
 			else: return f
 		except IOError: 
 			pass
+		except Exception as e:
+			print("get_data error:", file, decode, e)
+			raise
 
 	return None
 

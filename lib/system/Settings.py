@@ -44,14 +44,13 @@ class Settings(object):
 		project_settings = view.settings().get('typescript')
 		current_folder = os.path.dirname(view.file_name())
 		top_folder =  self.get_top_folder(current_folder)
-		top_folder_segments = top_folder.split(os.sep)
-		has_project_settings = project_settings != None
+		has_project_settings = project_settings != None and hasattr(project_settings, 'get')
 
 		# DO WE HAVE ROOT FILES DEFINED INSIDE THE PROJECT FILE
 		if has_project_settings:
 			roots = project_settings.get('roots')
 			for root in roots:
-				root_path = os.sep.join(top_folder_segments[:len(top_folder_segments)-1]+root.replace('\\','/').split('/'))
+				root_path = os.path.join(top_folder, root)
 				root_top_folder = self.get_top_folder(os.path.dirname(root_path))
 				if current_folder.lower().startswith(root_top_folder.lower()):
 					if root_path not in self.projects_type: 

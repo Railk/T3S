@@ -55,9 +55,9 @@ class Completion(object):
 				else:
 					result.append('')
 
-			return entry['name']+'('+','.join(result)+');'
+			return re.escape(entry['name'])+'('+','.join(result)+');'
 		else:
-			return entry['name']
+			return re.escape(entry['name'])
 
 
 	def parse_args(self,group):

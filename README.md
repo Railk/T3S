@@ -95,7 +95,7 @@ You can create a .sublimets file in the folder containing the typescript root fi
 If you don't chose either of these solutions the plugin wil launch a process for each file, making them not being able to talk to each other.
 
 
-### Settings:
+### Plugin settings:
 You can acces the plugin settings from <code>Preferences > Packages Settings > T3S</code>, to modify the settings please copy the default settings inside the user settings one, and make your modification there otherwise your settings will be override by an update of the plugin.
 
 You have 3 settings available:

@@ -59,6 +59,42 @@ Click the <code>Preferences > Browse Packages…</code> menu
 2. Checkout ST2 branch using <code>git checkout ST2</code>.
 
 
+### Project Settings:
+
+To use the plugin correctly you need to setup a project either via a .sublimets file or using the sublime-project file.
+
+When using .sublimets or a .sublime-project file, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code> in Sublime Text.
+	
+##### sublime-project file
+You can setup multiple root files
+You can indicate your typescript root files in your project_name.sublime-project like so :
+			
+		
+		"settings":
+		{
+			"typescript":
+			[
+				"path/from/project/folder/to/your/root/file_1.ts",
+				"path/from/project/folder/to/your/root/file_2.ts",
+				...
+			]
+		}
+
+
+
+##### .sublimets file:
+You can setup only one root file.
+You can create a .sublimets file in the folder containing the typescript root file
+
+
+		{
+			"root":"root_file_name.ts"
+		}
+
+
+If you don't chose either of these solutions the plugin wil launch a process for each file, making them not being able to talk to each other.
+
+
 ### Settings:
 You can acces the plugin settings from <code>Preferences > Packages Settings > T3S</code>, to modify the settings please copy the default settings inside the user settings one, and make your modification there otherwise your settings will be override by an update of the plugin.
 
@@ -186,60 +222,6 @@ Here's an exemple that do:
 6. <code>ctrl+shift+K</code> Close all projects (to reinialise just focus on/open a .ts file)
 
 
-### Usage:
-
-When using .sublimets or a .sublime-project file, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code> in Sublime Text.
-	
-##### You have a sublime text project:
-You can indicate your typescript root files in your project_name.sublime-project like so :
-			
-		
-		"settings":
-		{
-			"typescript":
-			[
-				"path/from/project/folder/to/your/root/file_1.ts",
-				"path/from/project/folder/to/your/root/file_2.ts",
-				...
-			]
-		}
-
-
-Exemple : 
-
-Open folder structure:
-
-
-- |
-- MyProject/
--       |--------root.ts
-- OtherProject/
--       |--------OtherSubFolder/
--                      |-----------------other_root.ts
-
-
-And the corresponding settings :
-
-
-		"settings":
-		{
-			"typescript":
-			[
-				"MyProject/root.ts"
-				"OtherProject/OtherSubFolder/other_root.ts"
-			]
-		}
-
-##### You don't have a sublime text project:
-You can create a .sublimets file in the folder containing the typescript root file
-
-
-		{
-			"root":"root_file_name.ts"
-		}
-
-
-If you don't chose either of these solutions the plugin wil launch a process for each file
 
 
 ##### Initialisation:

@@ -96,6 +96,7 @@ And also add (optionnal) your project settings :
 					"path/from/top/folder/to/your/root/file_X.ts"
 				],
 				"settings":{
+					"auto_complete":false,
 					"node_path":"none",
 					"error_on_save_only":false,
 					"build_on_save":false,
@@ -134,6 +135,7 @@ And also add (optionnal) your project settings :
 		{
 			"root":"root_file_name.ts",
 			"settings":{
+				"auto_complete":false,
 				"node_path":"none",
 				"error_on_save_only":false,
 				"build_on_save":false,
@@ -172,16 +174,18 @@ And also add (optionnal) your project settings :
 You can acces the plugin settings from <code>Preferences > Packages Settings > T3S</code>, to modify the settings please copy the default settings inside the user settings one, and make your modification there otherwise your settings will be override by an update of the plugin, or put the settings inside your project file.
 
 
-You have 5 settings available:
+You have 6 settings available:
 
-1. <code>node_path</code>: to set you node path
-2. <code>error_on_save_only</code>: to highlight errors only while saving or while typing, the default is showing error highlighting while typing
-3. <code>build_on_save</code>: to build the project each time you save
-4. <code>show_build_file</code>: to show the resulting javascript file of the current TypeScript file in a split view when building
-5. the build parameters
+1. <code>auto_complete</code>: if you want to have sublime normal completion with typescript completion (dot completion may fail sometimes)
+2. <code>node_path</code>: to set you node path
+3. <code>error_on_save_only</code>: to highlight errors only while saving or while typing, the default is showing error highlighting while typing
+4. <code>build_on_save</code>: to build the project each time you save
+5. <code>show_build_file</code>: to show the resulting javascript file of the current TypeScript file in a split view when building
+6. the build parameters
 
 
 		{
+			"auto_complete":false,
 			"node_path":"none",
 			"error_on_save_only":false,
 			"build_on_save":false,
@@ -204,6 +208,11 @@ You have 5 settings available:
 				"ecmascript_target":"ES3"
 			}
 		}
+
+##### auto_complete:
+you can have normal sublime auto completion with typescript completion (if chnaged you need to restart sublime)
+
+		"auto_complete":true|false
 
 
 ##### node_path:

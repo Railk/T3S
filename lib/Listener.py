@@ -25,9 +25,6 @@ def init(view):
 	root = SETTINGS.get_root(view)
 	if root == 'no_ts' or root == None: return
 
-	view.settings().set('auto_complete',False)
-	view.settings().set('extensions',['ts'])
-
 	process = PROCESSES.get(root)
 	filename = view.file_name()
 	if process != None:
@@ -48,6 +45,8 @@ def init(view):
 		TSS.addEventListener('init',root,on_init)
 		TSS.addEventListener('kill',root,on_kill)
 		TSS.init(root)
+		view.settings().set('auto_complete',SETTINGS.get("auto_complete"))
+		view.settings().set('extensions',['ts'])
 
 def on_init(process):
 	TSS.removeEventListener('init',process.root,on_init)

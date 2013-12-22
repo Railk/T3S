@@ -210,7 +210,7 @@ You have 6 settings available:
 		}
 
 ##### auto_complete:
-you can have normal sublime auto completion with typescript completion (if chnaged you need to restart sublime)
+you can have normal sublime auto completion with typescript completion (if changed you need to restart sublime)
 
 		"auto_complete":true|false
 

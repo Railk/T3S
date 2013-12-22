@@ -171,6 +171,11 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 		regions = {}
 		members = TSS.structure(ts_view.file_name())
 
+		if len(members) == 0:
+			view = VIEWS.create_view(ts_view,'outline',edit,'Typescript : Outline View','')
+			view.setup(None,None)
+			return
+
 		try:
 			characters = ""
 			lines = 0

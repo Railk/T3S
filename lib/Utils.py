@@ -108,12 +108,12 @@ def thread_safe(fn,args=None):
 # GET FILE DATA
 def get_data(file,decode=False):
 	if os.path.isfile(file): 
-		try: 
+		try:
 			if os.name == 'nt': f = open(file,'r').read()
 			else: f = codecs.open(file,'r','utf-8').read()
 			if decode: return json.loads(f)
 			else: return f
-		except IOError: 
+		except IOError:
 			pass
 
 	return None

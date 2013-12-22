@@ -31,8 +31,9 @@ class Process(Thread):
 
 		self.sync = Popen([node, tss, self.root], stdin=PIPE, stdout=PIPE, **kwargs)
 		self.async = Popen([node, tss, self.root], stdin=PIPE, stdout=PIPE, **kwargs)
-		self.sync.stdout.readline().decode('UTF-8')
-		self.async.stdout.readline().decode('UTF-8')
+
+		self.sync.stdout.readline()
+		self.async.stdout.readline()
 
 		self.w_async = Queue()
 		writer = AsyncWriter(self.async.stdin,self.w_async)
@@ -52,6 +53,7 @@ class Process(Thread):
 
 	def send(self,message):
 		self.sync.stdin.write(encode(message))
+		self.sync.stdin.flush()
 		return self.sync.stdout.readline().decode('UTF-8')
 
 	def send_async(self,message):
@@ -72,6 +74,7 @@ class AsyncWriter(Thread):
 	def run(self):
 		for item in iter(self.queue.get, None):
 			self.stdin.write(item)
+			self.stdin.flush()
 		self.stdin.close()
 
 

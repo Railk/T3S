@@ -3,7 +3,7 @@
 		"command": "typescript_complete",
 		"args": {"characters": "."},
 		"keys": ["."],
-		"context": [ {"key": "T3S"} ]
+		"context": [ {"key": "T3S", "key": "vi_must_change_mode"}, {"key": "vi_is_buffer"} ]
 	},
 	{
 		"command": "typescript_complete",

@@ -1,13 +1,6 @@
 [
 	{
-		"command": "typescript_complete",
-		"args": {"characters": "."},
-		"keys": ["."],
-		"context": [ {"key": "T3S"} ]
-	},
-	{
-		"command": "typescript_complete",
-		"args": {"characters": ""},
+		"command": "typescript_completion",
 		"keys": ["ctrl+space"],
 		"context": [ {"key": "T3S"} ]
 	},

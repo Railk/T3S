@@ -96,7 +96,7 @@ And also add (optionnal) your project settings :
 					"path/from/top/folder/to/your/root/file_X.ts"
 				],
 				"settings":{
-					"auto_complete":false,
+					"auto_complete":true,
 					"node_path":"none",
 					"error_on_save_only":false,
 					"build_on_save":false,
@@ -135,7 +135,7 @@ And also add (optionnal) your project settings :
 		{
 			"root":"root_file_name.ts",
 			"settings":{
-				"auto_complete":false,
+				"auto_complete":true,
 				"node_path":"none",
 				"error_on_save_only":false,
 				"build_on_save":false,
@@ -176,7 +176,7 @@ You can acces the plugin settings from <code>Preferences > Packages Settings > T
 
 You have 6 settings available:
 
-1. <code>auto_complete</code>: if you want to have sublime normal completion with typescript completion (dot completion may fail sometimes)
+1. <code>auto_complete</code>: if you want to have sublime normal completion with typescript completion
 2. <code>node_path</code>: to set you node path
 3. <code>error_on_save_only</code>: to highlight errors only while saving or while typing, the default is showing error highlighting while typing
 4. <code>build_on_save</code>: to build the project each time you save
@@ -185,7 +185,7 @@ You have 6 settings available:
 
 
 		{
-			"auto_complete":false,
+			"auto_complete":true,
 			"node_path":"none",
 			"error_on_save_only":false,
 			"build_on_save":false,

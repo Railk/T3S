@@ -47,6 +47,7 @@ def init(view):
 		TSS.init(root)
 		view.settings().set('auto_complete',SETTINGS.get("auto_complete"))
 		view.settings().set('extensions',['ts'])
+		
 
 def on_init(process):
 	TSS.removeEventListener('init',process.root,on_init)
@@ -132,6 +133,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		TSS.update(*args)
 		FILES.update(view)
 		VIEWS.update()
+		COMPLETION.show(view)
 
 		if not SETTINGS.get('error_on_save_only'):
 			debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
@@ -141,13 +143,13 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	def on_query_completions(self,view,prefix,locations):
 		if is_ts(view):
 			if COMPLETION.enabled:
-				TSS.update(*get_file_infos(view))
-				pos = view.sel()[0].begin()
-				(line, col) = view.rowcol(pos)
+				pos = locations[0]
 				is_member = str(is_member_completion(view.substr(sublime.Region(view.line(pos-1).a, pos)))).lower()
+				(line, col) = view.rowcol(pos)
+
+				TSS.update(*get_file_infos(view))
 				TSS.complete(view.file_name(),line,col,is_member)
 
-				COMPLETION.enabled = False
 				return (COMPLETION.get_list(), sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
 
 

@@ -1,5 +1,5 @@
 {
-	"auto_complete":false,
+	"auto_complete":true,
 	"node_path":"none",
 	"error_on_save_only":false,
 	"build_on_save":false,

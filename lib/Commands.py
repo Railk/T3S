@@ -18,19 +18,10 @@ from .Utils import get_data, get_file_infos, get_prefix, debounce, ST3
 
 
 # AUTO COMPLETION
-class TypescriptComplete(sublime_plugin.TextCommand):
-
-	def run(self, edit, characters):
-		for region in self.view.sel():
-			self.view.insert(edit, region.end(), characters)
-
-		COMPLETION.enabled = True
-		COMPLETION.set_interface_completion(characters != '.' and self.view.substr(self.view.sel()[0].begin()-1) == ':')
-		self.view.run_command('auto_complete',{
-			'disable_auto_insert': True,
-			'api_completions_only': True,
-			'next_completion_if_showing': True
-		})
+class TypescriptCompletion(sublime_plugin.TextCommand):
+	
+	def run(self, edit):
+		COMPLETION.show(self.view,True)
 
 
 # RELOAD PROJECT
@@ -322,5 +313,5 @@ class TypescriptBuildView(sublime_plugin.TextCommand):
 					view = VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',filename)
 
 				view.setup(self.view)
-		else:
-			sublime.active_window().run_command("typescript_error_panel")
+		# else:
+		# 	sublime.active_window().run_command("typescript_error_panel")

@@ -109,7 +109,7 @@ def thread_safe(fn,args=None):
 def get_data(file,decode=False):
 	if os.path.isfile(file): 
 		try:
-			if os.name == 'nt': f = open(file,'r').read()
+			if os.name == 'nt': f = open(file,'r', encoding='utf8').read()
 			else: f = codecs.open(file,'r','utf-8').read()
 			if decode: return json.loads(f)
 			else: return f

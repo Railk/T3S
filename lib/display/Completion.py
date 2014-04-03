@@ -7,7 +7,7 @@ from ..Utils import get_prefix
 
 class Completion(object):
 
-	completion_chars = ['.',':']
+	completion_chars = ['.']#['.',':']
 	completion_list = []
 	interface = False
 	enabled = False
@@ -54,12 +54,15 @@ class Completion(object):
 	def _get_list_key(self,entry):
 		kindModifiers = get_prefix(entry['kindModifiers'])
 		kind = get_prefix(entry['kind'])
+		type = entry['type'] if 'type' in entry else entry['name']
 
-		return kindModifiers+' '+kind+' '+str(entry['name'])+' '+str(entry['type'])
+		return kindModifiers+' '+kind+' '+str(entry['name'])+' '+str(type)
+
 
 	# ENTRY VALUE
 	def _get_list_value(self,entry):
-		match = re.match('(<.*>|)\((.*)\):',str(entry['type']))
+		type = entry['type'] if 'type' in entry else entry['name']
+		match = re.match('(<.*>|)\((.*)\):',str(type))
 		result = []
 
 		if match:
@@ -75,7 +78,7 @@ class Completion(object):
 				else:
 					result.append('')
 
-			return re.escape(entry['name'])+'('+','.join(result)+');'
+			return re.escape(entry['name'])+'('+','.join(result)+')'
 		else:
 			return re.escape(entry['name'])
 

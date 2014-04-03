@@ -16,6 +16,7 @@ class Errors(object):
 
 	errors = {}
 	errors_reader = {}
+	underline = sublime.DRAW_SQUIGGLY_UNDERLINE | sublime.DRAW_NO_FILL | sublime.DRAW_NO_OUTLINE | sublime.DRAW_EMPTY_AS_OVERWRITE
 
 	def __init__(self):
 		if os.name == 'nt':
@@ -71,8 +72,8 @@ class Errors(object):
 				else:
 					warning_regions.append(sublime.Region(a,b))
 
-		view.add_regions('typescript-error' , error_regions , 'invalid' , self.error_icon)
-		view.add_regions('typescript-warnings' , warning_regions , 'invalid' , self.warning_icon)
+		view.add_regions('typescript-error' , error_regions , 'invalid' , self.error_icon, self.underline)
+		view.add_regions('typescript-warnings' , warning_regions , 'invalid' , self.warning_icon, self.underline)
 
 
 	def set_status(self,view):

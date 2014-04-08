@@ -249,7 +249,7 @@
       "begin": "\\b([a-zA-Z_$][\\w$]*)\\s*(?=(=|:))",
       "end": "(;)",
       "beginCaptures": {
-        "1": { "name": "variable.ts" }
+        "1": { "name": "meta.toc-list.class.member.ts" }
       },
       "endCaptures": {
         "1": { "name": "punctuation.terminator.statement.ts" }

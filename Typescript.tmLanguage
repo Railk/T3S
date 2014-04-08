@@ -35,6 +35,10 @@
 					<key>include</key>
 					<string>#block-braces-round</string>
 				</dict>
+				<dict>
+					<key>include</key>
+					<string>#block-braces-square</string>
+				</dict>
 			</array>
 		</dict>
 		<key>block-braces-curly</key>
@@ -93,6 +97,38 @@
 			</dict>
 			<key>name</key>
 			<string>meta.expression.braces.round</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#expression</string>
+				</dict>
+			</array>
+		</dict>
+		<key>block-braces-square</key>
+		<dict>
+			<key>begin</key>
+			<string>\[</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>meta.brace.square.ts</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>\]</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>meta.brace.square.ts</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>meta.expression.braces.square</string>
 			<key>patterns</key>
 			<array>
 				<dict>
@@ -332,11 +368,45 @@
 				</dict>
 				<dict>
 					<key>include</key>
-					<string>#meta-class-member-method</string>
+					<string>#meta-class-member-attribute</string>
 				</dict>
 				<dict>
 					<key>include</key>
-					<string>#expression</string>
+					<string>#meta-class-member-method</string>
+				</dict>
+			</array>
+		</dict>
+		<key>meta-class-member-attribute</key>
+		<dict>
+			<key>begin</key>
+			<string>\b([a-zA-Z_$][\w$]*)\s*(?=(=|:))</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>variable.ts</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(;)</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.terminator.statement.ts</string>
+				</dict>
+			</dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#meta-variable-type</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#meta-variable-initializer</string>
 				</dict>
 			</array>
 		</dict>
@@ -462,7 +532,7 @@
 				</dict>
 			</dict>
 			<key>match</key>
-			<string>\b([a-zA-Z_$][\w$]*)\s*(=|:)\s*(?=(\bfunction\b))</string>
+			<string>\b([a-zA-Z_$][\w$]*)\s*(?:(=)|:)\s*(?=(\bfunction\b))</string>
 		</dict>
 		<key>meta-function-assignment-quoted</key>
 		<dict>
@@ -588,6 +658,10 @@
 					<key>include</key>
 					<string>#meta-variable-type</string>
 				</dict>
+				<dict>
+					<key>include</key>
+					<string>#meta-variable-initializer</string>
+				</dict>
 			</array>
 		</dict>
 		<key>meta-storage-modifier</key>
@@ -597,12 +671,34 @@
 			<key>name</key>
 			<string>storage.modifier.ts</string>
 		</dict>
+		<key>meta-variable-initializer</key>
+		<dict>
+			<key>begin</key>
+			<string>(=)</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.operator.ts</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(?=[,);=])</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#expression</string>
+				</dict>
+			</array>
+		</dict>
 		<key>meta-variable-type</key>
 		<dict>
 			<key>begin</key>
 			<string>:</string>
 			<key>end</key>
-			<string>(?=[,);])</string>
+			<string>(?=[,);=])</string>
 			<key>patterns</key>
 			<array>
 				<dict>

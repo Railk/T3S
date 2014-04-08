@@ -151,11 +151,26 @@
         { "include": "#expression" }
       ]
     },
+    "block-braces-square": {
+      "name": "meta.expression.braces.square",
+      "begin": "\\[",
+      "end": "\\]",
+      "beginCaptures": {
+        "0": { "name": "meta.brace.square.ts" }
+      },
+      "endCaptures": {
+        "0": { "name": "meta.brace.square.ts" }
+      },
+      "patterns": [
+        { "include": "#expression" }
+      ]
+    },
     "block": {
       "name": "block.ts",
       "patterns": [
         { "include": "#block-braces-curly" },
-        { "include": "#block-braces-round" }
+        { "include": "#block-braces-round" },
+        { "include": "#block-braces-square" }
       ]
     },
 
@@ -200,7 +215,17 @@
     },
     "meta-variable-type": {
       "begin":":",
-      "end": "(?=[,);])",
+      "end": "(?=[,);=])",
+      "patterns": [
+        { "include": "#expression" }
+      ]
+    },
+    "meta-variable-initializer": {
+      "begin": "(=)",
+      "end": "(?=[,);=])",
+      "beginCaptures": {
+        "1": { "name": "keyword.operator.ts" }
+      },
       "patterns": [
         { "include": "#expression" }
       ]
@@ -216,8 +241,22 @@
       "patterns": [
         { "include": "#comment" },
         { "include": "#meta-storage-modifier" },
-        { "include": "#meta-class-member-method" },
-        { "include": "#expression" }
+        { "include": "#meta-class-member-attribute" },
+        { "include": "#meta-class-member-method" }
+      ]
+    },
+    "meta-class-member-attribute": {
+      "begin": "\\b([a-zA-Z_$][\\w$]*)\\s*(?=(=|:))",
+      "end": "(;)",
+      "beginCaptures": {
+        "1": { "name": "variable.ts" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.terminator.statement.ts" }
+      },
+      "patterns": [
+        { "include": "#meta-variable-type" },
+        { "include": "#meta-variable-initializer" }
       ]
     },
     "meta-class-member-method": {
@@ -257,7 +296,8 @@
           "name": "variable.parameter.function.ts",
           "match": "[a-zA-Z_$][\\w$]*"
         },
-        { "include": "#meta-variable-type" }
+        { "include": "#meta-variable-type" },
+        { "include": "#meta-variable-initializer" }
       ]
     },
     "meta-function-body": {
@@ -275,7 +315,7 @@
       ]
     },
     "meta-function-assignment": {
-      "match": "\\b([a-zA-Z_$][\\w$]*)\\s*(=|:)\\s*(?=(\\bfunction\\b))",
+      "match": "\\b([a-zA-Z_$][\\w$]*)\\s*(?:(=)|:)\\s*(?=(\\bfunction\\b))",
       "captures": {
           "1": { "name": "entity.name.function.ts" },
           "2": { "name": "keyword.operator.ts" }

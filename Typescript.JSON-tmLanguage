@@ -246,7 +246,7 @@
       ]
     },
     "meta-class-member-attribute": {
-      "begin": "\\b([a-zA-Z_$][\\w$]*)\\s*(?=(=|:))",
+      "begin": "\\b([a-zA-Z_$][\\w$]*)\\s*(\\?\\s*)?(?=(=|:))",
       "end": "(;)",
       "beginCaptures": {
         "1": { "name": "meta.toc-list.class.member.ts" }

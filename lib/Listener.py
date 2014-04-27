@@ -65,7 +65,7 @@ def on_kill(process):
 
 class TypescriptEventListener(sublime_plugin.EventListener):
 
-	error_delay = 0.3
+	error_delay = 0.8
 
 
 	# CLOSE FILE

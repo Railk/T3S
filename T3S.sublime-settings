@@ -1,4 +1,5 @@
 {
+	"activate_build_system":true,
 	"auto_complete":true,
 	"node_path":"none",
 	"error_on_save_only":false,

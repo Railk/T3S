@@ -75,6 +75,7 @@ class Files(object):
 
 
 	def _get_references(self,content):
+		if content == None: return
 		refs = [ref[1:-1] for ref in re.findall("/// *<reference path *\=('.*?'|\".*?\")", content)]
 		return refs
 

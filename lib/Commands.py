@@ -286,6 +286,9 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 class TypescriptBuild(sublime_plugin.TextCommand):
 
 	def run(self, edit, characters):
+		if not SETTINGS.get('activate_build_system'):
+			print("build_system_disabled")
+			return;
 		if TSS.get_process(self.view.file_name()) == None:
 			sublime.status_message('You must wait for the initialisation to finish')
 			return

@@ -16,6 +16,7 @@ from .Liste import LISTE
 from ..display.Message import MESSAGE
 from ..Utils import get_tss, get_kwargs, encode, ST3
 
+Debug = True
 
 # ----------------------------------------- THREADS ---------------------------------------- #
 
@@ -48,12 +49,12 @@ class Process(Thread):
 
 
 	def send(self,message):
-		print("DEPRECIATED: sync: " + message[0:50])
+		if(Debug) print("DEPRECIATED: sync: " + message[0:50])
 		return ""
 
 	def send_async_command(self, async_command):
 		self.tss_queue.put(async_command);
-		print("CMD queued (send): %s" % async_command.id)
+		if(Debug) print("CMD queued (send): %s" % async_command.id)
 
 	def kill(self):
 		self.tss_queue.put("stop!") # setinel value to stop queue
@@ -92,7 +93,7 @@ class AsyncCommand(object):
 		if self.replaced_callback is not None:
 			sublime.set_timeout(lambda:self.replaced_callback(self),000)
 			
-		print("CMD replaced after %f s [ %s" % (time.time() - self.time_queue, self.id))
+		if(Debug) print("CMD replaced after %f s [ %s" % (time.time() - self.time_queue, self.id))
 		
 	def on_result(self, result):
 		self.result = result
@@ -101,7 +102,7 @@ class AsyncCommand(object):
 			sublime.set_timeout(lambda:self.result_callback(self),000)
 			
 		self.time_finish = time.time()
-		print("CMD %fs = %fs + %fs to execute %s" % (
+		if(Debug) print("CMD %fs = %fs + %fs to execute %s" % (
 			self.time_finish - self.time_queue,
 			self.time_execute - self.time_queue,
 			self.time_finish - self.time_execute,
@@ -165,7 +166,7 @@ class AsyncProcess(Thread):
 				commands_to_remove.append(possible_replacement)
 
 		if len(commands_to_remove) > 0:
-			print("MERGED with %i (immediate): %s" % (len(commands_to_remove), command.id) )
+			if(Debug) print("MERGED with %i (immediate): %s" % (len(commands_to_remove), command.id) )
 			
 		for c in commands_to_remove:
 			self.middleware_queue.remove(c)
@@ -185,7 +186,7 @@ class AsyncProcess(Thread):
 			commands_to_remove.pop() # don't delete newest duplicate command. 
 			for c in commands_to_remove:
 				self.middleware_queue.remove(c)	
-			print("MERGED with %i (procr->defer): %s" % (len(commands_to_remove), command.id) )	
+			if(Debug) print("MERGED with %i (procr->defer): %s" % (len(commands_to_remove), command.id) )	
 			return None # defer, no execution in this round
 		else:
 			return command # no defer, execute now, command has already been poped
@@ -193,7 +194,7 @@ class AsyncProcess(Thread):
 	def pop_and_execute_from_middleware_queue(self):
 		if not self.middleware_queue_is_empty():
 			command_to_execute = self.middleware_queue.pop(0)
-			print("POPED from middleware: %s" % command_to_execute.id)
+			if(Debug) print("POPED from middleware: %s" % command_to_execute.id)
 			command_to_execute = self.tidy_middleware_queue_and_return_newest_item_with_same_id(command_to_execute)
 			if command_to_execute: # can be None if MERGE_PROCRASTINATE has defered current item
 				self.execute(command_to_execute)
@@ -214,7 +215,7 @@ class AsyncProcess(Thread):
 	
 		# block until queue is not empty anymore
 		for async_command in iter(self.queue.get, "stop!"): 
-			print("CONTINUTE execution queue")
+			if(Debug) print("CONTINUTE execution queue")
 			self.middleware_queue.append(async_command)
 			self.add_pending_items_in_queue_to_middleware_queue()	
 			
@@ -226,7 +227,7 @@ class AsyncProcess(Thread):
 
 			# queue and middleware_queue are empty
 			# => enter thread block
-			print("WAIT for new work")
+			if(Debug) print("WAIT for new work")
 			
 		self.stdin.close()
 		self.stdout.close()

@@ -5,7 +5,7 @@ import json
 
 from .display.Completion import COMPLETION
 from .display.Message import MESSAGE
-from .system.Processes import PROCESSES
+from .system.Processes import PROCESSES, AsyncCommand
 from .system.Liste import LISTE
 from .Utils import is_dts
 
@@ -14,7 +14,7 @@ from .Utils import is_dts
 
 class Tss(object):
 
-	listeners = {}
+
 
 
 	# GET PROCESS
@@ -24,24 +24,27 @@ class Tss(object):
 
 	# INIT ROOT FILE
 	def init(self,root):
-		PROCESSES.add(root,self.notify)
+		PROCESSES.add(root, self.notify)
 
 
 	# RELOAD PROCESS
-	def reload(self,filename,silent=False):
-		process = self.get_process(filename)
-		if process == None:
-			return
+	def reload(self,filename):
+		AsyncCommand('reload\n', None, 'reload').append_to_global_queue(filename)
+		self.errors(filename)
+		#AsyncCommand('showErrors\n', None).append_to_global_queue(filename)	
+		#process = self.get_process(filename)
+		#if process == None:
+		#	return
 
-		process.send_async('reload\n')
-		process.send_async('showErrors\n')
-		process.send('reload\n')
-		process.send('showErrors\n')
-		if not silent: MESSAGE.show('Project reloaded',True)
-
+		#process.send_async('reload\n')
+		#process.send_async('showErrors\n')
+		#process.send('reload\n')
+		#process.send('showErrors\n')
+		
 
 	# GET INDEXED FILES
 	def files(self,filename):
+		return "TODO: implement async files"
 		process = self.get_process(filename)
 		if process == None:
 			return
@@ -51,6 +54,7 @@ class Tss(object):
 
 	# DUMP FILE
 	def dump(self,filename,output):
+		return "TODO: implement async dump"
 		process = self.get_process(filename)
 		if process == None:
 			return
@@ -60,6 +64,8 @@ class Tss(object):
 
 	# TYPE
 	def type(self,filename,line,col):
+		return { type: "todo: implement", docComment: "TODO: implement async type" }
+
 		process = self.get_process(filename)
 		if process == None:
 			return
@@ -69,6 +75,10 @@ class Tss(object):
 
 	# DEFINITION
 	def definition(self,filename,line,col):
+		return { file: "TODO: implement async definition"
+			, min:  { line: 5, character: 0 }
+			, lim:  { line: 5, character: 0 }
+			} 
 		process = self.get_process(filename)
 		if process == None:
 			return
@@ -78,6 +88,10 @@ class Tss(object):
 
 	# REFERENCES
 	def references(self,filename,line,col):
+		return  [{ file: "TODO: implement async references"
+			, min:  { line: 5, character: 0 }
+			, lim:  { line: 5, character: 0 }
+			}]
 		process = self.get_process(filename)
 		if process == None:
 			return
@@ -87,6 +101,7 @@ class Tss(object):
 
 	# STRUCTURE
 	def structure(self,filename):
+		return  []
 		process = self.get_process(filename)
 		if process == None:
 			return
@@ -96,6 +111,8 @@ class Tss(object):
 
 	# ASK FOR COMPLETIONS
 	def complete(self,filename,line,col,member):
+		return  COMPLETION.prepare_list('{ entries: [{name: "TODO: implement async Completions", type: "todo", docComment: "todo"}]   }')
+		
 		process = self.get_process(filename)
 		if process == None:
 			return
@@ -105,28 +122,50 @@ class Tss(object):
 
 	# UPDATE FILE
 	def update(self,filename,lines,content):
+		update_cmdline = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
+		AsyncCommand(update_cmdline, None, 'update %s' % filename).append_to_global_queue(filename)
+		return
+		
 		process = self.get_process(filename)
 		if process == None:
 			return
 
-		update = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
 		process.send_async(update)
 		process.send(update)
 			
 
 	# ADD FILE
 	def add(self,root,filename,lines,content):
+		update_cmdline = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
+		AsyncCommand(update_cmdline, None, 'add %s' % filename).append_to_global_queue(root) ## root here makes the difference to update
+		
+		return
 		process = self.get_process(root)
 		if process == None:
 			return
 
-		update = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
 		process.send_async(update)
 		process.send(update)
 
 
-	# ASYNC ERRORS
-	def errors(self,filename):
+	# ERRORS
+	# callback format: def x(result, filename)
+	def set_default_errors_callback(self, callback):
+		self.default_errors_callback = callback
+		
+	def errors(self, filename, callback=None):
+		if not callback:
+			callback = self.default_errors_callback
+			
+		AsyncCommand('showErrors\n', \
+			lambda async_command: callback(async_command.result, async_command.payload['filename'] ),
+			_id="showErrors" \
+			).add_payload(filename=filename) \
+			.procrastinate() \
+			.append_to_global_queue(filename)	
+			
+		return
+		
 		process = self.get_process(filename)
 		if process == None:
 			return
@@ -142,50 +181,65 @@ class Tss(object):
 
 		sublime.active_window().run_command('save_all')
 		files = self.files(filename)
-		if not files: return
+		# TODO: why?
+		if not files:
+			return
 
+		# don't quit tss if an added *.ts file is still open in an editor view
 		views = sublime.active_window().views()
 		for v in views:
-			if v.file_name() == None: continue
+			if v.file_name() == None:
+				continue
 			for f in files:
 				if v.file_name().replace('\\','/').lower() == f.lower() and not is_dts(v):
 					return
 
-		process.send('quit\n')
-		process.send_async('quit\n')
-		process.kill()
-		PROCESSES.remove(LISTE.get_root(filename))
+		def killAndRemove():
+			process.kill()
+			PROCESSES.remove(LISTE.get_root(filename))
+			MESSAGE.show('TypeScript project close',True)
+			self.notify('kill', process)
 
-		MESSAGE.show('TypeScript project close',True)
-		self.notify('kill',process)
-
+		# send quit and kill process afterwards
+		AsyncCommand('quit\n', killAndRemove, 'quit').append_to_global_queue(filename)	
+		# if the tss process has hang up (previous lambda will not be executed)
+		# , force kill after 5 sek
+		sublime.set_timeout(killAndRemove,5000)
+		
+		
+		
+	listeners = {}
+	# LIST OF EVENT TYPES:
+	# kill
 
 	# NOTIFY LISTENERS
-	def notify(self,type,process):
+	def notify(self, event_type, process):
 		if process.root not in self.listeners: return
-		for f in self.listeners[process.root][type]:
+		for f in self.listeners[process.root][event_type]:
 			f(process)
 
 
-	# ADD LISTENER
-	def addEventListener(self,type,root,function):
-		if root not in self.listeners: self.listeners[root] = {}
-		if type not in self.listeners[root]: self.listeners[root][type] = []
-		self.listeners[root][type].append(function)
+	# ADD EVENT LISTENER
+	def addEventListener(self, event_type, root, callback):
+		if root not in self.listeners:
+			self.listeners[root] = {}
+		if type not in self.listeners[root]:
+			self.listeners[root][event_type] = []
+		self.listeners[root][event_type].append(callback)
 
 
-	# REMOVE LISTENER
-	def removeEventListener(self,type,root,function):
+	# REMOVE EVENT LISTENER
+	def removeEventListener(self, event_type, root, callback):
 		if root not in self.listeners: return
 		if type not in self.listeners[root]: return
 
 		to_delete = []
-		for f in self.listeners[root][type]:
-			if f == function:
+		for f in self.listeners[root][event_type]:
+			if f == callback:
 				to_delete.append(f)
 
 		for f in to_delete:
-			self.listeners[root][type].remove(f)
+			self.listeners[root][event_type].remove(f)
 
 
 # --------------------------------------- INITIALISATION -------------------------------------- #

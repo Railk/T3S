@@ -52,7 +52,8 @@ def init(view):
 def on_init(process):
 	TSS.removeEventListener('init',process.root,on_init)
 	FILES.init(process.root)
-	ERRORS.init(process.root,process.r_async)
+	ERRORS.init(process.root)
+	TSS.set_default_errors_callback(ERRORS.on_results)
 	VIEWS.init()
 
 def on_kill(process):

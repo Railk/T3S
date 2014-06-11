@@ -94,7 +94,7 @@ class ReloadReference(Thread):
 		Thread.__init__(self)
 	
 	def run(self):
-		TSS.reload(self.filename,True)
+		TSS.reload(self.filename)
 
 
 # ----------------------------------- INITIALISATION --------------------------------- #

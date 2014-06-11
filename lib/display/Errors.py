@@ -15,7 +15,7 @@ from ..Utils import dirname, debounce, ST3
 class Errors(object):
 
 	errors = {}
-	errors_reader = {}
+
 	underline = sublime.DRAW_SQUIGGLY_UNDERLINE | sublime.DRAW_NO_FILL | sublime.DRAW_NO_OUTLINE | sublime.DRAW_EMPTY_AS_OVERWRITE
 
 	def __init__(self):
@@ -27,25 +27,25 @@ class Errors(object):
 			self.warning_icon = "Packages"+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-warning.png')
 
 
-	def init(self,root,queue):
-		reader = ErrorsReader(queue)
-		reader.daemon = True
-		reader.start()
-
-		self.errors_reader[root] = reader 
-		debounce(TSS.errors, 0, 'errors' + str(id(TSS)), root)
-
-
-	def remove(self,root):
-		if root in self.errors_reader:
-			del self.errors_reader[root]
+	def init(self,root):
+		pass
+		# TODO i suppose it's not needed anymore
+		# debounce(TSS.errors, 0, 'errors' + str(id(TSS)), root)
 		
 
+	def on_results(self, errors, filename):
+		if ST3:
+			self.show(sublime.active_window().active_view(), errors)
+		else:
+			sublime.set_timeout(lambda: self.show(sublime.active_window().active_view(), errors), 1)
+
 	def show(self,view,errors):
+		print("SHOW ERRORS -> %s" % ( ["%s" % errors][0][0:100] ) )
 		try:
 			errors = json.loads(errors)
-			self.highlight(view,errors)
-			if VIEWS.has_error: sublime.active_window().run_command('typescript_error_panel_view',{"errors":errors})
+			self.highlight(view, errors)
+			if VIEWS.has_error:
+				sublime.active_window().run_command('typescript_error_panel_view',{"errors":errors})
 		except:
 			print('show_errors json error : ',errors)
 

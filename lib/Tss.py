@@ -148,6 +148,7 @@ class Tss(object):
 			_id="showErrors" \
 			).add_payload(filename=filename) \
 			.procrastinate() \
+			.activate_debounce() \
 			.append_to_slow_queue(filename)	
 			
 

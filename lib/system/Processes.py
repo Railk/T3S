@@ -17,7 +17,7 @@ from .Liste import LISTE
 from ..display.Message import MESSAGE
 from ..Utils import get_tss, get_kwargs, encode, ST3
 
-Debug = 1
+Debug = 2
 
 # ----------------------------------------- PROCESS (tss and adapter starter) ------------------------ #
 
@@ -53,7 +53,7 @@ class Process(Thread):
 
 	def send_async_command(self, async_command):
 		self.tss_queue.put(async_command);
-		if(Debug): print("CMD queued (send): %s" % async_command.id)
+		if(Debug > 1): print("CMD queued (put in async queue): %s" % async_command.id)
 
 	def kill_queue_and_adapter(self):
 		self.tss_queue.put("stop!") # setinel value to stop queue
@@ -158,14 +158,17 @@ class AsyncCommand(object):
 		self.result = ""
 		self.payload = payload
 		self.merge_behaviour = merge_behaviour
+		self.debounce_time = 0
 		
 		#debug
 		self.time_queue = 0
+		self.time_last_bounce = 0
 		self.time_execute = 0
 		self.time_finish = 0
 		
 	def on_replaced(self, by):
 		self.replaced_by = by
+		#by.time_last_bounce = time.time()
 		if self.replaced_callback is not None:
 			sublime.set_timeout(lambda:self.replaced_callback(self),000)
 			
@@ -183,6 +186,26 @@ class AsyncCommand(object):
 			self.time_execute - self.time_queue,
 			self.time_finish - self.time_execute,
 			self.id))
+
+	def can_be_executed_now(self):
+		if self.debounce_time:
+			return time.time() - self.time_last_bounce > self.debounce_time
+		else:
+			return True # debounce not activated
+			
+	def time_until_execution(self):
+		if self.debounce_time:
+			return self.debounce_time - (time.time() - self.time_last_bounce)  
+		else:
+			return 0 # debounce not activated
+	
+
+	# shortcut function (chainable)			
+	# debouncing also works with the id. if there is no new command within
+	# self.debounce_time, the command will be executed
+	def activate_debounce(self, sec=0.8):
+		self.debounce_time = sec
+		return self
 		
 	# shortcut function (chainable)
 	def procrastinate(self):
@@ -200,7 +223,7 @@ class AsyncCommand(object):
 		if not PROCESSES.is_initialized(root):
 			return False
 			
-		self.time_queue = time.time()
+		self.time_last_bounce = self.time_queue = time.time()
 			
 		process = PROCESSES.get(root, process_type)
 		process.send_async_command(self)
@@ -235,7 +258,7 @@ class AsyncProcess(Thread):
 	def add_pending_items_in_queue_to_middleware_queue(self):
 		try:
 			while(True):
-				self.middleware_queue.append(self.queue.get_nowait())
+				self.append_to_middlewarequeue(self.queue.get_nowait())
 		except Empty:
 			pass
 
@@ -271,8 +294,8 @@ class AsyncProcess(Thread):
 		# delete all same-id commands except for the last one(=newest) in the array
 		commands_to_remove = []
 		for possible_duplicate in self.middleware_queue: # from old to new
-			if possible_duplicate.id == command.id:
-				commands_to_remove.append(possible_duplicate) # this also appends item itself
+			if possible_duplicate.id == command.id: #command is already poped from array
+				commands_to_remove.append(possible_duplicate) 
 		
 		if len(commands_to_remove) > 0:						
 			commands_to_remove.pop() # don't delete newest duplicate command. 
@@ -284,22 +307,51 @@ class AsyncProcess(Thread):
 			return command # no defer, execute now, command has already been poped
 
 	def pop_and_execute_from_middleware_queue(self):
-		if not self.middleware_queue_is_empty():
+		if not self.middleware_queue_is_finished():
 			command_to_execute = self.middleware_queue.pop(0)
-			if(Debug > 1): print("POPED from middleware: %s" % command_to_execute.id)
+			if(Debug > 1): print("POPPED from middleware: %s" % command_to_execute.id)
+			
+			if command_to_execute.id is "trigger":
+				if(Debug > 1): print("FOUND OLD TRIGGER object, don't execute anything")
+				# this command has only used to trigger the queue block release
+				return
+			
 			command_to_execute = self.tidy_middleware_queue_and_return_newest_item_with_same_id(command_to_execute)
-			if command_to_execute: # can be None if MERGE_PROCRASTINATE has defered current item
+			if command_to_execute: # can be None if merge_procrastinate() has defered current item
 				self.execute(command_to_execute)
 		
 	def execute(self, async_command):
+		if not async_command.can_be_executed_now():
+			if(Debug > 1): print("MOVED to end of queue, debouncing")
+			self.append_to_middlewarequeue(async_command, set_timer=False) # reappend to end
+			return
+	
 		async_command.time_execute = time.time()
 		self.stdin.write(encode(async_command.command))
 		self.stdin.flush()
 		# causes result callback to be called async
 		async_command.on_result(self.stdout.readline().decode('UTF-8'))
 
-	def middleware_queue_is_empty(self):
-		return len(self.middleware_queue) == 0
+	def middleware_queue_is_finished(self):
+		for cmd in self.middleware_queue:
+			if cmd.can_be_executed_now():
+				return False
+		return True
+		
+
+	def trigger_queue_block_release_in(self, seconds):
+		if(Debug > 1): print("TRIGGER QUEUE in %fs" % seconds)
+		sublime.set_timeout(lambda: self.queue.put(AsyncCommand("!trigger!", _id="trigger")), int(seconds*1000) + 5)
+
+	def trigger_queue_block_release_for(self, async_command):
+		self.trigger_queue_block_release_in(async_command.time_until_execution())
+
+	def append_to_middlewarequeue(self, async_command, set_timer=True):
+		self.middleware_queue.append(async_command)
+		if(Debug > 1): print("APPEND to middleware (in %fs): %s" % (async_command.time_until_execution(), async_command.id))
+		if set_timer and async_command.time_until_execution() > 0:
+			self.trigger_queue_block_release_for(async_command)
+			
 
 	def run(self):
 		# use a middleware queue for implementation of the
@@ -308,10 +360,10 @@ class AsyncProcess(Thread):
 		# block until queue is not empty anymore
 		for async_command in iter(self.queue.get, "stop!"): 
 			if(Debug > 1): print("CONTINUTE execution queue")
-			self.middleware_queue.append(async_command)
+			self.append_to_middlewarequeue(async_command)
 			self.add_pending_items_in_queue_to_middleware_queue()	
 			
-			while not self.middleware_queue_is_empty():
+			while not self.middleware_queue_is_finished():
 				self.pop_and_execute_from_middleware_queue()
 				# stay up-to-date (but without entering the thread block,
 				# otherwise the middleware_queue can not be worked on)

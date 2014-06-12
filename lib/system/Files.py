@@ -29,8 +29,8 @@ class Files(object):
 			 )
 
 
-	def remove_by(self,root):
-		LISTE.remove_by(root)
+	def remove_by_root(self,root):
+		LISTE.remove_by_root(root)
 
 
 	def update(self,view,unused=False):

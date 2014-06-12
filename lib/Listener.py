@@ -57,7 +57,7 @@ def on_init(root):
 
 def on_kill(root):
 	TSS.removeEventListener('kill', root, on_kill)
-	FILES.remove_by(root)
+	FILES.remove_by_root(root)
 	# ERRORS.remove(root) TODO: clean error window
 
 

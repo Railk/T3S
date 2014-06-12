@@ -161,4 +161,11 @@ def hash_file(filename, blocksize=65536):
 	f.close()
 	return hasher.hexdigest()
 
-	
+def filename2key(filename):
+	""" returns the unified version of filename which can be used as dict key """
+	return filename.replace('\\','/').lower()
+
+def fn2k(filename):
+	""" shortcut for filename2key """
+	return filename2key(filename)
+

@@ -19,7 +19,7 @@ def catch_CancelCommand(func):
 		try:
 			func(*kargs, **kwargs)
 		except CancelCommand:
-			print("CANCELED")
+			if (Debug > 1):print("A COMMAND WAS CANCELED")
 			pass
 	return catcher
 

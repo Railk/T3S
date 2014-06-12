@@ -166,7 +166,7 @@ class Tss(object):
 			def kill_and_remove(_async_command=None):
 				# Dont execute this twice (this fct will be called 3 times)
 				if self.is_killed: 
-					print("ALREADY closed ts project")
+					if(Debug > 1): print("ALREADY closed ts project")
 					return
 				self.is_killed = True
 				
@@ -182,9 +182,9 @@ class Tss(object):
 						continue
 					for f in files:
 						if v.file_name().replace('\\','/').lower() == f.lower() and not is_dts(v):
-							print("STILL MORE TS FILES open -> do nothing")
+							if(Debug > 1): print("KILL? STILL MORE TS FILES open -> do nothing")
 							return True
-				print("NO MORE TS FILES -> kill TSS process")
+				if(Debug > 1): print("NO MORE TS FILES -> kill TSS process")
 				return False
 
 			if not files: # TODO: why?

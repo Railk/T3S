@@ -28,9 +28,12 @@ class ProjectSettings(object):
 		else:
 			ts = view.settings().get('typescript')
 			if 'settings' in ts:
-				return ts['settings'][token]
-			else:
-				return self._default(token)
+				if token in ts['settings']:
+					return ts['settings'][token]
+				print('Missing setting ["typescript"]["settings"]["%s"] in your config. Using Default: %s' 
+						% (token, str(self._default(token)) ) )
+				
+			return self._default(token)
 
 	def _default(self,token):
 		return sublime.load_settings('T3S.sublime-settings').get(token)

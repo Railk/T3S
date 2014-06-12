@@ -15,9 +15,9 @@ import uuid
 from .Settings import SETTINGS
 from .Liste import LISTE
 from ..display.Message import MESSAGE
-from ..Utils import get_tss, get_kwargs, encode, ST3
+from ..Utils import get_tss, get_kwargs, encode, ST3, Debug
 
-Debug = 2
+
 
 # ----------------------------------------- PROCESS (tss and adapter starter) ------------------------ #
 
@@ -53,7 +53,6 @@ class Process(Thread):
 
 	def send_async_command(self, async_command):
 		self.tss_queue.put(async_command);
-		if(Debug > 1): print("CMD queued (put in async queue): %s" % async_command.id)
 
 	def kill_queue_and_adapter(self):
 		self.tss_queue.put("stop!") # setinel value to stop queue
@@ -231,12 +230,12 @@ class AsyncCommand(object):
 
 	# shortcut function	
 	def append_to_fast_queue(self, filename):
-		print("FAST: ", sep='')
+		if(Debug > 1): print("CMD queued @FAST: %s" % async_command.id)
 		return self.append_to_queue(filename, Processes.FAST)
 
 	# shortcut function	
 	def append_to_slow_queue(self, filename):
-		print("SLOW: ", sep='')	
+		if(Debug > 1): print("CMD queued @FAST: %s" % async_command.id)
 		return self.append_to_queue(filename, Processes.SLOW)
 
 	# shortcut function	

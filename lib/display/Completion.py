@@ -3,7 +3,7 @@
 import re
 import json
 import sublime
-from ..Utils import get_prefix, is_member_completion, get_file_infos
+from ..Utils import get_prefix, is_member_completion, get_file_infos, Debug
 
 
 class Completion(object):

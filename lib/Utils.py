@@ -30,7 +30,7 @@ dirname = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
 # VERSIONS
 version = int(sublime.version())
 ST3 = int(sublime.version()) >= 3000
-
+Debug = 0
 
 # MEMBER PREFIX
 PREFIXES = {

@@ -40,7 +40,6 @@ class Errors(object):
 			sublime.set_timeout(lambda: self.show(sublime.active_window().active_view(), errors), 1)
 
 	def show(self,view,errors):
-		print("SHOW ERRORS -> %s" % ( ["%s" % errors][0][0:100] ) )
 		try:
 			errors = json.loads(errors)
 			self.highlight(view, errors)

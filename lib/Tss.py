@@ -8,7 +8,7 @@ from .display.Completion import COMPLETION
 from .display.Message import MESSAGE
 from .system.Processes import PROCESSES, AsyncCommand
 from .system.Liste import LISTE
-from .Utils import is_dts, encode, CancelCommand
+from .Utils import is_dts, encode, CancelCommand, Debug
 
 
 # --------------------------------------- TSS -------------------------------------- #
@@ -121,10 +121,10 @@ class Tss(object):
 		newhash = self.make_hash(filename, unsaved_content)
 		oldhash = self.added_files[filename] if filename in self.added_files else "wre"
 		if newhash == oldhash:
-			print("NO UPDATE needed for file : %s" % filename)
+			if(Debug > 1): print("NO UPDATE needed for file : %s" % filename)
 			return False
 		else:
-			print("UPDATE needed for file %s : %s" % (newhash, filename) )
+			if(Debug > 1): print("UPDATE needed for file %s : %s" % (newhash, filename) )
 			self.added_files[filename] = newhash
 			return True
 

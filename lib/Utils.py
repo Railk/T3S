@@ -9,6 +9,19 @@ import json
 import codecs
 import hashlib
 
+# CANCEL COMMAND EXCEPTION
+class CancelCommand(Exception):
+	pass
+	
+# CANCEL COMMAND EXCEPTION CATCHER DECORATOR
+def catch_CancelCommand(func):
+	def catcher(*kargs, **kwargs):
+		try:
+			func(*kargs, **kwargs)
+		except CancelCommand:
+			print("CANCELED")
+			pass
+	return catcher
 
 # PACKAGE PATH
 dirname = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))

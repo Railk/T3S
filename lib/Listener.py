@@ -25,42 +25,40 @@ def init(view):
 	root = SETTINGS.get_root(view)
 	if root == 'no_ts' or root == None: return
 
-	process = PROCESSES.get(root)
 	filename = view.file_name()
-	if process != None:
-		if not process.is_alive():
-			args = get_file_infos(view)
-			if LISTE.has(filename):
-				TSS.update(*args)
-			else:
-				args = (root,)+args
-				FILES.add(root,filename)
-				TSS.add(*args)
+	if PROCESSES.is_initialized(root):
+		args = get_file_infos(view)
+		if LISTE.has(filename):
+			TSS.update(*args)
+		else:
+			args = (root,)+args
+			FILES.add(root,filename)
+			TSS.add(*args)
 
-			VIEWS.update()
-			#TSS.errors(filename)
-			#debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), view.file_name())
+		VIEWS.update()
+		#TSS.errors(filename)
+		#debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), view.file_name())
 	else:
 		FILES.add(root,filename)
 		if filename != root: FILES.add(root,root)
-		TSS.addEventListener('init',root,on_init)
-		TSS.addEventListener('kill',root,on_kill)
+		TSS.addEventListener('init', root, on_init)
+		TSS.addEventListener('kill', root, on_kill)
 		TSS.init(root)
 		view.settings().set('auto_complete',SETTINGS.get("auto_complete"))
 		view.settings().set('extensions',['ts'])
 		
 
-def on_init(process):
-	TSS.removeEventListener('init',process.root,on_init)
-	FILES.init(process.root)
-	ERRORS.init(process.root)
+def on_init(root):
+	TSS.removeEventListener('init', root, on_init)
+	FILES.init(root)
+	ERRORS.init(root)
 	TSS.set_default_errors_callback(ERRORS.on_results)
 	VIEWS.init()
 
-def on_kill(process):
-	TSS.removeEventListener('kill',process.root,on_kill)
-	FILES.remove_by(process.root)
-	ERRORS.remove(process.root)
+def on_kill(root):
+	TSS.removeEventListener('kill', root, on_kill)
+	FILES.remove_by(root)
+	# ERRORS.remove(root) TODO: clean error window
 
 
 # ----------------------------------------- LISTENERS ---------------------------------------- #

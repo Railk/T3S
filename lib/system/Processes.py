@@ -17,9 +17,9 @@ from .Liste import LISTE
 from ..display.Message import MESSAGE
 from ..Utils import get_tss, get_kwargs, encode, ST3
 
-Debug = True
+Debug = 1
 
-# ----------------------------------------- THREADS ---------------------------------------- #
+# ----------------------------------------- PROCESS (tss and adapter starter) ------------------------ #
 
 # Process class. Starts the TSS process for rootfile <root> and starts another
 # thread as adapter for async communicating with the TSS process. 
@@ -29,8 +29,8 @@ class Process(Thread):
 
 	def __init__(self,root):
 		self.root = root
+		self.started = False;
 		Thread.__init__(self)
-
 	
 	def run(self):
 		node = SETTINGS.get_node()
@@ -47,20 +47,95 @@ class Process(Thread):
 											  self.tss_queue)
 		self.async_tss_adapter.daemon = True
 		self.async_tss_adapter.start()
+		
+		self.started = True
 
-
-	def send(self,message):
-		if(Debug): print("DEPRECIATED: sync: " + message[0:50])
-		return ""
 
 	def send_async_command(self, async_command):
 		self.tss_queue.put(async_command);
 		if(Debug): print("CMD queued (send): %s" % async_command.id)
 
-	def kill(self):
+	def kill_queue_and_adapter(self):
 		self.tss_queue.put("stop!") # setinel value to stop queue
 		self.tss_process.kill()
 
+
+# ----------------------------------------- PROCESSES ---------------------------------------- #
+ 
+class Processes(object):
+
+	SLOW = 0
+	FAST = 1
+
+	liste = {} # { 'rootfilename' : (p_slow, p_fast) }
+
+	def __init__(self):
+		super(Processes, self).__init__()
+
+	def get(self, root, type=SLOW):
+		if root in self.liste:
+			return self.liste[root][type]
+		return None
+
+	def is_initialized(self, root):
+		return root in self.liste \
+		   and self.liste[root] is not None \
+		   and self.liste[root][Processes.SLOW].started \
+		   and self.liste[root][Processes.FAST].started
+		
+	def add(self, root, tss_notify_callback):
+		if root in self.liste:
+			return
+			
+		print('Typescript initializing ' + root)
+
+		process_slow = Process(root)
+		process_slow.start()
+		
+		process_fast = Process(root)
+		process_fast.start()
+		
+		self.liste[root] = ( process_slow, process_fast )
+		
+		self._handle(root, tss_notify_callback)
+
+	def kill_and_remove(self, root):
+		if root in self.liste:
+			self.liste[root][Processes.SLOW].kill_queue_and_adapter()
+			self.liste[root][Processes.FAST].kill_queue_and_adapter()
+			del self.liste[root]
+
+
+	# display animated Message as long as TSS is initing
+	def _handle(self, root, tss_notify_callback, i=0, dir=1):
+		# process does only start the TSS Process
+		if not self.is_initialized(root):
+			before = i % 8
+			after = (7) - before
+			if not after:
+				dir = -1
+			if not before:
+				dir = 1
+			i += dir
+
+			if not ST3:
+				MESSAGE.repeat('Typescript project is initializing')
+				sublime.status_message(' Typescript project is initializing [%s=%s]' % \
+					(' ' * before, ' ' * after))
+			else:
+				MESSAGE.repeat(' Typescript project is initializing [%s=%s]' % \
+					(' ' * before, ' ' * after))
+
+			#recursive
+			sublime.set_timeout(lambda: self._handle(root, tss_notify_callback, i, dir), 100)
+			
+		else:
+			# starting finished ->
+			(head,tail) = os.path.split(root)
+			MESSAGE.show('Typescript project intialized for root file : ' + tail, True)
+			tss_notify_callback("init", root)
+
+# ----------------------------------------- ASYNC COMMAND ---------------------------------- #
 
 class AsyncCommand(object):
 	MERGE_PROCRASTINATE = 1
@@ -94,7 +169,7 @@ class AsyncCommand(object):
 		if self.replaced_callback is not None:
 			sublime.set_timeout(lambda:self.replaced_callback(self),000)
 			
-		if(Debug): print("CMD replaced after %f s [ %s" % (time.time() - self.time_queue, self.id))
+		if(Debug > 1): print("CMD replaced after %f s [ %s" % (time.time() - self.time_queue, self.id))
 		
 	def on_result(self, result):
 		self.result = result
@@ -120,17 +195,33 @@ class AsyncCommand(object):
 		return self
 		
 	# shortcut function	
-	def append_to_global_queue(self, filename):
+	def append_to_queue(self, filename, process_type):
 		root = LISTE.get_root(filename)
-		process = PROCESSES.get(root)
-		if process == None:
+		if not PROCESSES.is_initialized(root):
 			return False
 			
 		self.time_queue = time.time()
 			
+		process = PROCESSES.get(root, process_type)
 		process.send_async_command(self)
 		return True
 
+	# shortcut function	
+	def append_to_fast_queue(self, filename):
+		print("FAST: ", sep='')
+		return self.append_to_queue(filename, Processes.FAST)
+
+	# shortcut function	
+	def append_to_slow_queue(self, filename):
+		print("SLOW: ", sep='')	
+		return self.append_to_queue(filename, Processes.SLOW)
+
+	# shortcut function	
+	def append_to_both_queues(self, filename):
+		return self.append_to_slow_queue(filename) \
+		   and self.append_to_fast_queue(filename)
+
+# ----------------------------------------- ASYNC PROCESS (adapter) -------------------------- #
 
 class AsyncProcess(Thread):
 
@@ -167,7 +258,7 @@ class AsyncProcess(Thread):
 				commands_to_remove.append(possible_replacement)
 
 		if len(commands_to_remove) > 0:
-			if(Debug): print("MERGED with %i (immediate): %s" % (len(commands_to_remove), command.id) )
+			if(Debug > 1): print("MERGED with %i (immediate): %s" % (len(commands_to_remove), command.id) )
 			
 		for c in commands_to_remove:
 			self.middleware_queue.remove(c)
@@ -187,7 +278,7 @@ class AsyncProcess(Thread):
 			commands_to_remove.pop() # don't delete newest duplicate command. 
 			for c in commands_to_remove:
 				self.middleware_queue.remove(c)	
-			if(Debug): print("MERGED with %i (procr->defer): %s" % (len(commands_to_remove), command.id) )	
+			if(Debug > 1): print("MERGED with %i (procr->defer): %s" % (len(commands_to_remove), command.id) )	
 			return None # defer, no execution in this round
 		else:
 			return command # no defer, execute now, command has already been poped
@@ -195,7 +286,7 @@ class AsyncProcess(Thread):
 	def pop_and_execute_from_middleware_queue(self):
 		if not self.middleware_queue_is_empty():
 			command_to_execute = self.middleware_queue.pop(0)
-			if(Debug): print("POPED from middleware: %s" % command_to_execute.id)
+			if(Debug > 1): print("POPED from middleware: %s" % command_to_execute.id)
 			command_to_execute = self.tidy_middleware_queue_and_return_newest_item_with_same_id(command_to_execute)
 			if command_to_execute: # can be None if MERGE_PROCRASTINATE has defered current item
 				self.execute(command_to_execute)
@@ -216,7 +307,7 @@ class AsyncProcess(Thread):
 	
 		# block until queue is not empty anymore
 		for async_command in iter(self.queue.get, "stop!"): 
-			if(Debug): print("CONTINUTE execution queue")
+			if(Debug > 1): print("CONTINUTE execution queue")
 			self.middleware_queue.append(async_command)
 			self.add_pending_items_in_queue_to_middleware_queue()	
 			
@@ -228,92 +319,11 @@ class AsyncProcess(Thread):
 
 			# queue and middleware_queue are empty
 			# => enter thread block
-			if(Debug): print("WAIT for new work")
+			if(Debug > 1): print("WAIT for new work")
 			
+		if(Debug): print("QUIT async adapter to tss process and close queue") # TODO Debug > 1
 		self.stdin.close()
 		self.stdout.close()
-
-
-#class AsyncReader(Thread):
-##
-#	def __init__(self,stdout,queue):
-#		self.stdout = stdout
-#		self.queue = queue
-#
-#		Thread.__init__(self)
-#
-#	def run(self):
-#		for line in iter(self.stdout.readline, b''):
-#			line = line.decode('UTF-8')
-#			if line.startswith('"updated'):
-#				continue
-#			if line.startswith('"added'):
-#				continue
-#			if line.startswith('"reloaded'):
-#				if not silent: MESSAGE.show('Project reloaded',True)
-#				continue
-#			else:
-#				self.queue.put(line)
-#
-#		self.stdout.close()
-
-
-# ----------------------------------------- PROCESSES ---------------------------------------- #
-
-class Processes(object):
-
-	threads = []
-	liste = {}
-
-	def __init__(self):
-		super(Processes, self).__init__()
-
-	def get(self,root):
-		if root in self.liste: return self.liste[root]
-		return None
-
-		
-	def add(self, root, tss_notify_callback):
-		if root in self.liste: return
-		print('Typescript initializing '+root)
-
-		process = Process(root)
-		process.start()
-		self.liste[root] = process
-		self._handle(process, tss_notify_callback)
-
-
-	def remove(self,root):
-		del self.liste[root]
-
-	# display animated Message as long as TSS is initing
-	def _handle(self,process, tss_notify_callback, i=0, dir=1):
-		# process does only start the TSS Process
-		if process.is_alive():
-			before = i % 8
-			after = (7) - before
-			if not after:
-				dir = -1
-			if not before:
-				dir = 1
-			i += dir
-
-			if not ST3:
-				MESSAGE.repeat('Typescript project is initializing')
-				sublime.status_message(' Typescript project is initializing [%s=%s]' % \
-					(' ' * before, ' ' * after))
-			else:
-				MESSAGE.repeat(' Typescript project is initializing [%s=%s]' % \
-					(' ' * before, ' ' * after))
-
-			#recursive
-			sublime.set_timeout(lambda: self._handle(process, tss_notify_callback, i, dir), 100)
-			return
-
-		# started ->
-		(head,tail) = os.path.split(process.root)
-		MESSAGE.show('Typescript project intialized for root file : ' + tail, True)
-		tss_notify_callback("init", process)
 
 
 # -------------------------------------------- INIT ------------------------------------------ #

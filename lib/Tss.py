@@ -8,19 +8,18 @@ from .display.Completion import COMPLETION
 from .display.Message import MESSAGE
 from .system.Processes import PROCESSES, AsyncCommand
 from .system.Liste import LISTE
-from .Utils import is_dts, encode
+from .Utils import is_dts, encode, CancelCommand
 
 
 # --------------------------------------- TSS -------------------------------------- #
 
 class Tss(object):
 
-
-
-
-	# GET PROCESS
-	def get_process(self,filename):
-		return PROCESSES.get(LISTE.get_root(filename))
+	# INITIALISATION FINISHED
+	def assert_initialisation_finished(self, filename):
+		if not PROCESSES.is_initialized(LISTE.get_root( filename )):
+			sublime.status_message('You must wait for the initialisation to finish')
+			raise CancelCommand()
 
 
 	# INIT ROOT FILE
@@ -28,24 +27,25 @@ class Tss(object):
 		PROCESSES.add(root, self.notify)
 		self.added_files = {}
 		self.executed_with_most_recent_file_contents = []
+		self.is_killed = False
 
 
 	# RELOAD PROCESS
 	def reload(self,filename):
-		AsyncCommand('reload\n', None, 'reload').append_to_global_queue(filename)
+		AsyncCommand('reload\n', None, 'reload').append_to_both_queues(filename)
 		self.errors(filename)	
 
 	# GET INDEXED FILES
 	def files(self, filename, callback):
 		AsyncCommand('files\n', lambda async_command: callback(json.loads(async_command.result)) ) \
-			.append_to_global_queue(filename)
+			.append_to_fast_queue(filename)
 		
 
 	# DUMP FILE (untested)
 	def dump(self, filename, output, callback):
 		dump_command = 'dump {0} {1}\n'.format( output, filename.replace('\\','/') )
 		AsyncCommand(dump_command, lambda async_command: callback(async_command.result) ) \
-			.append_to_global_queue(filename)
+			.append_to_fast_queue(filename)
 
 	# TYPE
 	def type(self, filename, line, col, callback):
@@ -54,7 +54,7 @@ class Tss(object):
 			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
 			_id="type_command" \
 			).add_payload(filename=filename, line=line, col=col) \
-			.append_to_global_queue(filename)
+			.append_to_fast_queue(filename)
 
 	# DEFINITION
 	def definition(self, filename, line, col, callback):
@@ -63,7 +63,7 @@ class Tss(object):
 			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
 			_id="definition_command" \
 			).add_payload(filename=filename, line=line, col=col) \
-			.append_to_global_queue(filename)
+			.append_to_fast_queue(filename)
 
 
 	# REFERENCES
@@ -73,7 +73,7 @@ class Tss(object):
 			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
 			_id="references_command" \
 			).add_payload(filename=filename, line=line, col=col) \
-			.append_to_global_queue(filename)
+			.append_to_fast_queue(filename)
 
 
 	# STRUCTURE
@@ -83,7 +83,7 @@ class Tss(object):
 			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
 			_id="structure_command" \
 			).add_payload(filename=filename) \
-			.append_to_global_queue(filename)
+			.append_to_fast_queue(filename)
 
 
 
@@ -94,13 +94,13 @@ class Tss(object):
 			lambda async_command: callback( async_command.result, **async_command.payload ),
 			_id="completions_command" \
 			).add_payload() \
-			.append_to_global_queue(filename)
+			.append_to_fast_queue(filename)
 
 
 	# UPDATE FILE
 	def update(self, filename, lines, content):
 		update_cmdline = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
-		AsyncCommand(update_cmdline, None, 'update %s' % filename).append_to_global_queue(filename)
+		AsyncCommand(update_cmdline, None, 'update %s' % filename).append_to_both_queues(filename)
 		# Always update because it's almost no overhead, but remember if anything has changed
 		if self.need_update(filename, content):
 			self.on_file_contents_have_changed()
@@ -109,7 +109,7 @@ class Tss(object):
 	# ADD FILE
 	def add(self, root, filename, lines, content):
 		update_cmdline = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
-		AsyncCommand(update_cmdline, None, 'add %s' % filename).append_to_global_queue(root) ## root here makes the difference to update
+		AsyncCommand(update_cmdline, None, 'add %s' % filename).append_to_both_queues(root) ## root here makes the difference to update
 		# Always update because it's almost no overhead, but remember if anything has changed
 		self.on_file_contents_have_changed()
 	
@@ -148,40 +148,57 @@ class Tss(object):
 			_id="showErrors" \
 			).add_payload(filename=filename) \
 			.procrastinate() \
-			.append_to_global_queue(filename)	
+			.append_to_slow_queue(filename)	
 			
 
-	# KILL PROCESS
-	def kill(self,filename):
-		process = self.get_process(filename)
-		if process == None:
+	
+
+	# KILL PROCESS (if no more files in editor)
+	def kill(self, filename):
+		if not PROCESSES.is_initialized(LISTE.get_root(filename)) \
+			or self.is_killed:
 			return
 
+		self.is_killed = False
 
 		def async_react_files(files):
+			def kill_and_remove(_async_command=None):
+				# Dont execute this twice (this fct will be called 3 times)
+				if self.is_killed: 
+					print("ALREADY closed ts project")
+					return
+				self.is_killed = True
+				
+				root = LISTE.get_root(filename)
+				PROCESSES.kill_and_remove(root)
+				MESSAGE.show('TypeScript project will close',True)
+				self.notify('kill', root)
+				
+			def still_used_ts_files_open_in_window(files):
+				views = sublime.active_window().views()
+				for v in views:
+					if v.file_name() == None:
+						continue
+					for f in files:
+						if v.file_name().replace('\\','/').lower() == f.lower() and not is_dts(v):
+							print("STILL MORE TS FILES open -> do nothing")
+							return True
+				print("NO MORE TS FILES -> kill TSS process")
+				return False
+
 			if not files: # TODO: why?
 				return
 				
 			# don't quit tss if an added *.ts file is still open in an editor view
-			views = sublime.active_window().views()
-			for v in views:
-				if v.file_name() == None:
-					continue
-				for f in files:
-					if v.file_name().replace('\\','/').lower() == f.lower() and not is_dts(v):
-						return
+			if still_used_ts_files_open_in_window(files):
+				return
 
-			def killAndRemove():
-				process.kill()
-				PROCESSES.remove(LISTE.get_root(filename))
-				MESSAGE.show('TypeScript project close',True)
-				self.notify('kill', process)
 
 			# send quit and kill process afterwards
-			AsyncCommand('quit\n', killAndRemove, 'quit').append_to_global_queue(filename)	
+			AsyncCommand('quit\n', kill_and_remove, 'quit').append_to_both_queues(filename)	
 			# if the tss process has hang up (previous lambda will not be executed)
 			# , force kill after 5 sek
-			sublime.set_timeout(killAndRemove,5000)
+			sublime.set_timeout(kill_and_remove,10000) 
 			
 
 		sublime.active_window().run_command('save_all')
@@ -196,10 +213,10 @@ class Tss(object):
 	# kill
 
 	# NOTIFY LISTENERS
-	def notify(self, event_type, process):
-		if process.root not in self.listeners: return
-		for f in self.listeners[process.root][event_type]:
-			f(process)
+	def notify(self, event_type, root):
+		if root not in self.listeners: return
+		for f in self.listeners[root][event_type]:
+			f(root)
 
 
 	# ADD EVENT LISTENER

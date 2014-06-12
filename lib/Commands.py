@@ -15,7 +15,7 @@ from .display.Completion import COMPLETION
 from .system.Liste import LISTE
 from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import get_data, get_file_infos, get_prefix, debounce, ST3
+from .Utils import get_data, get_file_infos, get_prefix, debounce, ST3, catch_CancelCommand, CancelCommand
 
 
 # AUTO COMPLETION
@@ -37,10 +37,9 @@ class TypescriptReloadProject(sublime_plugin.TextCommand):
 # SHOW INFOS
 class TypescriptType(sublime_plugin.TextCommand):
 
+	@catch_CancelCommand
 	def run(self, edit):
-		if TSS.get_process(self.view.file_name()) == None:
-			sublime.status_message('You must wait for the initialisation to finish')
-			return
+		TSS.assert_initialisation_finished(self.view.file_name())
 
 		if not ST3: return
 		
@@ -75,11 +74,10 @@ class TypescriptType(sublime_plugin.TextCommand):
 # GO TO DEFINITION
 class TypescriptDefinition(sublime_plugin.TextCommand):
 
+	@catch_CancelCommand
 	def run(self, edit):
-		if TSS.get_process(self.view.file_name()) == None:
-			sublime.status_message('You must wait for the initialisation to finish')
-			return
-
+		TSS.assert_initialisation_finished(self.view.file_name())
+		
 		pos = self.view.sel()[0].begin()
 		(_line, _col) = self.view.rowcol(pos)
 		_view = self.view
@@ -124,11 +122,10 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 # BASIC REFACTORING
 class TypescriptReferences(sublime_plugin.TextCommand):
 
+	@catch_CancelCommand
 	def run(self, edit):
-		if TSS.get_process(self.view.file_name()) == None:
-			sublime.status_message('You must wait for the initialisation to finish')
-			return
-
+		TSS.assert_initialisation_finished(self.view.file_name())
+		
 		pos = self.view.sel()[0].begin()
 		(line, col) = self.view.rowcol(pos)
 		_view = self.view
@@ -178,10 +175,9 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 class TypescriptStructure(sublime_plugin.TextCommand):
 	outline_buffer = {}
 
+	@catch_CancelCommand
 	def run(self, edit):
-		if TSS.get_process(self.view.file_name()) == None:
-			sublime.status_message('You must wait for the initialisation to finish')
-			return
+		TSS.assert_initialisation_finished(self.view.file_name())
 
 		ts_view = self.view
 		regions = {}
@@ -259,10 +255,9 @@ class TypescriptUpdateOutlineView(sublime_plugin.TextCommand):
 # OPEN ERROR PANEL
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
+	@catch_CancelCommand
 	def run(self, edit):
-		if TSS.get_process(self.view.file_name()) == None:
-			sublime.status_message('You must wait for the initialisation to finish')
-			return
+		TSS.assert_initialisation_finished(self.view.file_name())
 
 		VIEWS.has_error = True
 		TSS.update(*get_file_infos(self.view))
@@ -332,14 +327,13 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 # COMPILE VIEW
 class TypescriptBuild(sublime_plugin.TextCommand):
 
+	@catch_CancelCommand
 	def run(self, edit, characters):
 		if not SETTINGS.get('activate_build_system'):
 			print("build_system_disabled")
 			return;
-		if TSS.get_process(self.view.file_name()) == None:
-			sublime.status_message('You must wait for the initialisation to finish')
-			return
-
+		TSS.assert_initialisation_finished(self.view.file_name())
+		
 		self.window = sublime.active_window()
 		if characters != False: self.window.run_command('save')
 

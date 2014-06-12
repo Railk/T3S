@@ -55,19 +55,31 @@ class TypescriptType(sublime_plugin.TextCommand):
 		if not ST3: return
 		
 		pos = self.view.sel()[0].begin()
-		(line, col) = self.view.rowcol(pos)
-		types = TSS.type(self.view.file_name(),line,col)
+		(_line, _col) = self.view.rowcol(pos)
+		_view = self.view
+		
+		def async_react(types, filename, line, col):
+			if types == None: return
+			if 'kind' not in types: return
 
-		if types == None: return
-		if 'kind' not in types: return
+			# Only display type if cursor has not moved
+			view = sublime.active_window().active_view()
+			pos = view.sel()[0].begin()
+			(_line, _col) = view.rowcol(pos)
+			if col != _col or line != _line: return
+			if view != _view: return
 
-		kind = get_prefix(types['kind'])
-		if types['docComment'] != '':
-			liste = types['docComment'].split('\n')+[kind+' '+types['fullSymbolName']+' '+types['type']]
-		else :
-			liste = [kind+' '+types['fullSymbolName']+' '+types['type']]
+			kind = get_prefix(types['kind'])
+			if types['docComment'] != '':
+				liste = types['docComment'].split('\n')+[kind+' '+types['fullSymbolName']+' '+types['type']]
+			else:
+				liste = [kind+' '+types['fullSymbolName']+' '+types['type']]
 
-		self.view.show_popup_menu(liste,None)
+			view.show_popup_menu(liste, None)
+			
+		# start async request
+		TSS.type(self.view.file_name(), _line, _col, callback=async_react)
+
 
 
 # GO TO DEFINITION
@@ -79,14 +91,24 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 			return
 
 		pos = self.view.sel()[0].begin()
-		(line, col) = self.view.rowcol(pos)
-		definition = TSS.definition(self.view.file_name(),line,col)
+		(_line, _col) = self.view.rowcol(pos)
+		_view = self.view
 
-		if definition == None: return
-		if 'file' not in definition: return
+		def async_react(definition, filename, line, col):
+			if definition == None: return
+			if 'file' not in definition: return
 
-		view = sublime.active_window().open_file(definition['file'])
-		self.open_view(view,definition)
+			# Only display type if cursor has not moved
+			view = sublime.active_window().active_view()
+			pos = view.sel()[0].begin()
+			(_line, _col) = view.rowcol(pos)
+			if col != _col or line != _line: return
+			if view != _view: return
+
+			view = sublime.active_window().open_file(definition['file'])
+			self.open_view(view, definition)
+			
+		TSS.definition(self.view.file_name(), _line, _col, callback=async_react)
 
 	def open_view(self,view,definition):
 		if view.is_loading():
@@ -119,20 +141,31 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 
 		pos = self.view.sel()[0].begin()
 		(line, col) = self.view.rowcol(pos)
-		self.refs = refs = TSS.references(self.view.file_name(),line,col)
-		self.window = sublime.active_window()
+		_view = self.view
+		
+		def async_react(refs, filename, line, col):
+			self.refs = refs
+			self.window = sublime.active_window()
 
-		if refs == None: return
+			if refs == None: return
 
-		refactor_member = ""
-		try :
-			for ref in refs:
-				if ref['file'].replace('/',os.sep).lower() == self.view.file_name().lower():
-					refactor_member = self.view.substr(self.get_region(self.view,ref['min'],ref['lim']))
-			
-			self.window.show_input_panel('Refactoring',refactor_member,self.on_done,None,None)
-		except (Exception) as ref:
-			sublime.status_message("error panel : plugin not yet intialize please retry after initialisation")
+			view = sublime.active_window().active_view()
+			pos = view.sel()[0].begin()
+			(_line, _col) = view.rowcol(pos)
+			if col != _col or line != _line: return
+			if view != _view: return
+
+			refactor_member = ""
+			try :
+				for ref in refs:
+					if ref['file'].replace('/',os.sep).lower() == self.view.file_name().lower():
+						refactor_member = self.view.substr(self.get_region(self.view, ref['min'], ref['lim']))
+				if(refactor_member):
+					self.window.show_input_panel('Refactoring', refactor_member, self.on_done, None, None)
+			except (Exception) as ref:
+				sublime.status_message("error panel : plugin not yet intialize please retry after initialisation")
+
+		TSS.references(self.view.file_name(), line, col, callback=async_react)
 
 	def get_region(self,view,min,lim):
 		start_line = min['line']

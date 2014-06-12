@@ -30,17 +30,7 @@ class Tss(object):
 	# RELOAD PROCESS
 	def reload(self,filename):
 		AsyncCommand('reload\n', None, 'reload').append_to_global_queue(filename)
-		self.errors(filename)
-		#AsyncCommand('showErrors\n', None).append_to_global_queue(filename)	
-		#process = self.get_process(filename)
-		#if process == None:
-		#	return
-
-		#process.send_async('reload\n')
-		#process.send_async('showErrors\n')
-		#process.send('reload\n')
-		#process.send('showErrors\n')
-		
+		self.errors(filename)	
 
 	# GET INDEXED FILES
 	def files(self,filename):
@@ -63,40 +53,32 @@ class Tss(object):
 
 
 	# TYPE
-	def type(self,filename,line,col):
-		return { type: "todo: implement", docComment: "TODO: implement async type" }
-
-		process = self.get_process(filename)
-		if process == None:
-			return
-
-		return json.loads(process.send('type {0} {1} {2}\n'.format(str(line+1),str(col+1),filename.replace('\\','/'))))
-
+	def type(self, filename, line, col, callback):
+		type_command = 'type {0} {1} {2}\n'.format( str(line+1), str(col+1), filename.replace('\\','/') )
+		AsyncCommand(type_command, \
+			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
+			_id="type_command" \
+			).add_payload(filename=filename, line=line, col=col) \
+			.append_to_global_queue(filename)
 
 	# DEFINITION
-	def definition(self,filename,line,col):
-		return { file: "TODO: implement async definition"
-			, min:  { line: 5, character: 0 }
-			, lim:  { line: 5, character: 0 }
-			} 
-		process = self.get_process(filename)
-		if process == None:
-			return
-
-		return json.loads(process.send('definition {0} {1} {2}\n'.format(str(line+1),str(col+1),filename.replace('\\','/'))))
+	def definition(self, filename, line, col, callback):
+		definition_command = 'definition {0} {1} {2}\n'.format( str(line+1), str(col+1), filename.replace('\\','/') )
+		AsyncCommand(definition_command, \
+			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
+			_id="definition_command" \
+			).add_payload(filename=filename, line=line, col=col) \
+			.append_to_global_queue(filename)
 
 
 	# REFERENCES
-	def references(self,filename,line,col):
-		return  [{ file: "TODO: implement async references"
-			, min:  { line: 5, character: 0 }
-			, lim:  { line: 5, character: 0 }
-			}]
-		process = self.get_process(filename)
-		if process == None:
-			return
-
-		return json.loads(process.send('references {0} {1} {2}\n'.format(str(line+1),str(col+1),filename.replace('\\','/'))))
+	def references(self, filename, line, col, callback):
+		references_command = 'references {0} {1} {2}\n'.format( str(line+1), str(col+1), filename.replace('\\','/') )
+		AsyncCommand(references_command, \
+			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
+			_id="references_command" \
+			).add_payload(filename=filename, line=line, col=col) \
+			.append_to_global_queue(filename)
 
 
 	# STRUCTURE

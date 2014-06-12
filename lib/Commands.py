@@ -15,7 +15,7 @@ from .display.Completion import COMPLETION
 from .system.Liste import LISTE
 from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import get_data, get_file_infos, get_prefix, debounce, ST3, catch_CancelCommand, CancelCommand
+from .Utils import read_file, get_file_infos, get_prefix, debounce, ST3, catch_CancelCommand, CancelCommand
 
 
 # AUTO COMPLETION
@@ -351,7 +351,7 @@ class TypescriptBuildView(sublime_plugin.TextCommand):
 		if filename != 'error':
 			if SETTINGS.get('show_build_file'):
 				if os.path.exists(filename):
-					data = get_data(filename)
+					data = read_file(filename)
 					view = VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',data)
 				else:
 					view = VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',filename)

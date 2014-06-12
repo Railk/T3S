@@ -11,7 +11,7 @@ from .system.Liste import LISTE
 from .system.Processes import PROCESSES
 from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import debounce, is_ts, is_dts, get_data, get_file_infos, ST3
+from .Utils import debounce, is_ts, is_dts, read_file, get_file_infos, ST3
 
 
 # ------------------------------------------- INIT ------------------------------------------ #
@@ -20,7 +20,7 @@ def init(view):
 	if VIEWS.is_open_view(view.name()): VIEWS.on_view(view)
 	if not is_ts(view): return
 	if is_dts(view): return
-	if get_data(view.file_name()) == None: return
+	if read_file(view.file_name()) == None: return
 
 	root = SETTINGS.get_root(view)
 	if root == 'no_ts' or root == None: return
@@ -113,7 +113,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 			return
 
 		filename = view.file_name()
-		if not LISTE.has(filename) and get_data(filename) != None and not is_dts(view):
+		if not LISTE.has(filename) and read_file(filename) != None and not is_dts(view):
 			root = SETTINGS.get_root(view)
 			if root == None or root == 'no_ts': return
 			args = (root,)+get_file_infos(view)

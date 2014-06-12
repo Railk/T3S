@@ -12,7 +12,7 @@ import json
 from ..Tss import TSS
 from ..display.Panel import PANEL
 from ..system.Settings import SETTINGS
-from ..Utils import debounce, dirname, get_data, get_kwargs, ST3
+from ..Utils import debounce, dirname, read_file, get_kwargs, ST3
 
 
 # ----------------------------------------- UTILS --------------------------------------- #
@@ -65,7 +65,7 @@ class RefactorReader(Thread):
 				else: sublime.set_timeout(lambda:show_output(self.window,line),0)
 			elif 'file' in line:
 				filename = line['file']
-				content = get_data(filename)
+				content = read_file(filename)
 				lines = len(content.split('\n'))-1
 				if previous != filename:
 					self.send(filename,lines,content,delay)

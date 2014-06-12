@@ -121,18 +121,23 @@ def thread_safe(fn,args=None):
 	else: sublime.set_timeout(lambda:fn(),0)
 
 
-# GET FILE DATA
-def get_data(file,decode=False):
-	if os.path.isfile(file): 
+def read_file(filename):
+	""" returns None or file contents if available """
+	if os.path.isfile(filename):
 		try:
-			if os.name == 'nt': f = open(file,'r', encoding='utf8').read()
-			else: f = codecs.open(file,'r','utf-8').read()
-			if decode: return json.loads(f)
-			else: return f
+			if os.name == 'nt':
+				return open(filename, 'r', encoding='utf8').read()
+			else:
+				return codecs.open(filename, 'r', 'utf-8').read()
 		except IOError:
 			pass
-
 	return None
+
+
+def read_and_decode_json_file(filename):
+	""" returns None or json-decoded file contents as object,list,... """
+	f = read_file(f)
+	return json.loads(f) if f is not None else None
 
 
 # GET VIEW CONTENT
@@ -161,11 +166,19 @@ def hash_file(filename, blocksize=65536):
 	f.close()
 	return hasher.hexdigest()
 
+def filename2linux(filename):
+	""" returns filename with linux slashes """
+	return filename.replace('\\','/')
+
 def filename2key(filename):
 	""" returns the unified version of filename which can be used as dict key """
-	return filename.replace('\\','/').lower()
+	return filename2linux(filename).lower()
 
 def fn2k(filename):
 	""" shortcut for filename2key """
 	return filename2key(filename)
+
+def fn2l(filename):
+	""" shortcut for filename2linux """
+	return filename2linux(filename)
 

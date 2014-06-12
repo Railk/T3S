@@ -1,3 +1,4 @@
+# coding=utf8
 
 from ..Utils import fn2k
 

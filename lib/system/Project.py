@@ -6,7 +6,7 @@ import sublime
 import os
 import json
 
-from ..Utils import dirname, get_data, get_kwargs, ST3
+from ..Utils import dirname, read_and_decode_json_file, get_kwargs, ST3
 
 
 # ------------------------------------- PROJECT SETTINGS ---------------------------------------- #
@@ -20,7 +20,7 @@ class ProjectSettings(object):
 
 	def get(self,view,token):
 		if self.file != None:
-			config_data = get_data(self.file,True)
+			config_data = read_and_decode_json_file(self.file)
 			if 'settings' in config_data:
 				return config_data['settings'][token]
 			else:

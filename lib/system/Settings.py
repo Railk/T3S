@@ -6,7 +6,7 @@ import os
 
 from .Liste import LISTE
 from .Project import ProjectSettings, ProjectError
-from ..Utils import get_data
+from ..Utils import read_and_decode_json_file, read_file
 
 # ----------------------------------------- CONSTANT ---------------------------------------- #
 
@@ -68,10 +68,10 @@ class Settings(object):
 		for index in segment_range:
 			folder = os.sep.join(segments[:index])
 			config_file = os.path.join(folder,'.sublimets')
-			config_data = get_data(config_file,True)
+			config_data = read_and_decode_json_file(config_file)
 			if config_data != None:
 				root_path = os.path.join(folder,config_data['root'])
-				data = get_data(root_path) 
+				data = read_file(root_path) 
 				if data != None:
 					if root_path not in self.projects_type: 
 						self.projects_type[root_path] = ProjectSettings(SUBLIME_TS,config_file)

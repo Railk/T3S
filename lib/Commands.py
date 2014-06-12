@@ -5,6 +5,7 @@ import sublime
 import sublime_plugin
 import os
 import re
+import traceback
 
 from .commands.Compiler import Compiler
 from .commands.Refactor import Refactor
@@ -30,18 +31,7 @@ class TypescriptReloadProject(sublime_plugin.TextCommand):
 	def run(self, edit):
 		sublime.active_window().run_command('save_all')
 		MESSAGE.show('Reloading project')
-		reload = ReloadThread(self.view.file_name())
-		reload.daemon = True
-		reload.start()
-
-class ReloadThread(Thread):
-
-	def __init__(self,filename):
-		self.filename = filename
-		Thread.__init__(self)
-	
-	def run(self):
-		TSS.reload(self.filename)
+		TSS.reload(self.view.file_name())
 
 
 # SHOW INFOS
@@ -183,8 +173,10 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 		refactor.start()
 
 
+
 # NAVIGATE IN FILE
 class TypescriptStructure(sublime_plugin.TextCommand):
+	outline_buffer = {}
 
 	def run(self, edit):
 		if TSS.get_process(self.view.file_name()) == None:
@@ -193,56 +185,76 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 
 		ts_view = self.view
 		regions = {}
-		members = TSS.structure(ts_view.file_name())
 
-		if len(members) == 0:
-			view = VIEWS.create_view(ts_view,'outline',edit,'Typescript : Outline View','')
-			view.setup(None,None)
-			return
 
-		try:
-			characters = ""
-			lines = 0
-			for member in members:
-				start_line = member['min']['line']
-				end_line = member['lim']['line']
-				left = member['min']['character']
-				right = member['lim']['character']
+		def async_react(members, filename):
 
-				a = ts_view.text_point(start_line-1,left-1)
-				b = ts_view.text_point(end_line-1,right-1)
-				region = sublime.Region(a,b)
-				kind = get_prefix(member['loc']['kind'])
-				container_kind = get_prefix(member['loc']['containerKind'])
+			if len(members) == 0:
+				TypescriptStructure.outline_buffer = {"ts_view" : ts_view, "characters": "---", "regions":None}
+				ts_view.run_command('typescript_update_outline_view')
+				return
 
-				if member['loc']['kind'] != 'class' and member['loc']['kind'] != 'interface':
-					line = kind+' '+member['loc']['kindModifiers']+' '+member['loc']['kind']+' '+member['loc']['name']
-					characters = characters+'\n\t'+line.strip()
-					lines += 1
-					regions[lines] = region
-				else:
-					line = container_kind+' '+member['loc']['kindModifiers']+' '+member['loc']['kind']+' '+member['loc']['name']+' {'
-					if characters == "":
-						characters = '\n'+characters+line.strip()+'\n'
-						lines+=1
+			try:
+				characters = ""
+				lines = 0
+				for member in members:
+					start_line = member['min']['line']
+					end_line = member['lim']['line']
+					left = member['min']['character']
+					right = member['lim']['character']
+
+					a = ts_view.text_point(start_line-1,left-1)
+					b = ts_view.text_point(end_line-1,right-1)
+					region = sublime.Region(a,b)
+					kind = get_prefix(member['loc']['kind'])
+					container_kind = get_prefix(member['loc']['containerKind'])
+
+					if member['loc']['kind'] != 'class' and member['loc']['kind'] != 'interface':
+						line = kind+' '+member['loc']['kindModifiers']+' '+member['loc']['kind']+' '+member['loc']['name']
+						characters = characters+'\n\t'+line.strip()
+						lines += 1
 						regions[lines] = region
-						lines+=1
 					else:
-						characters = characters+'\n\n}'+'\n\n'+line.strip()+'\n'
-						lines+=4
-						regions[lines] = region
-						lines+=1
+						line = container_kind+' '+member['loc']['kindModifiers']+' '+member['loc']['kind']+' '+member['loc']['name']+' {'
+						if characters == "":
+							characters = '\n'+characters+line.strip()+'\n'
+							lines+=1
+							regions[lines] = region
+							lines+=1
+						else:
+							characters = characters+'\n\n}'+'\n\n'+line.strip()+'\n'
+							lines+=4
+							regions[lines] = region
+							lines+=1
+
+				if characters != "": characters += '\n\n}'
+				# use new command because current edit instance is invalid in this defered async state
+				TypescriptStructure.outline_buffer = {"ts_view" : ts_view, "characters":characters, "regions":regions}
+				ts_view.run_command("typescript_update_outline_view")
+
+			except (Exception) as e:
+				e = str(e)
+				sublime.status_message("File navigation : "+e)
+				print("File navigation : "+e)
+				print(traceback.format_exc())
+
+		
+		TSS.structure(self.view.file_name(), async_react)
 
 
-			if characters != "": characters += '\n\n}'
-			view = VIEWS.create_view(ts_view,'outline',edit,'Typescript : Outline View',characters)
-			view.setup(ts_view,regions)
 
-		except (Exception) as e:
-			e = str(e)
-			sublime.status_message("File navigation : "+e)
-			print("File navigation : "+e)
 
+# OPEN and WRITE TEXT TO OUTLINE VIEW
+class TypescriptUpdateOutlineView(sublime_plugin.TextCommand):
+	def run(self, edit_token):
+		args = TypescriptStructure.outline_buffer
+		if 'ts_view' in args and 'characters'  in args and 'regions' in args:
+			view = VIEWS.create_view(args['ts_view'], 
+					 'outline',
+					 edit_token,
+					 'Typescript : Outline View', 
+					 args['characters'])
+			view.setup(args['ts_view'], args['regions'])
 
 # OPEN ERROR PANEL
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
@@ -254,7 +266,8 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
 		VIEWS.has_error = True
 		TSS.update(*get_file_infos(self.view))
-		debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), self.view.file_name())
+		TSS.errors(self.view.file_name())
+		# debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), self.view.file_name())
 
 
 class TypescriptErrorPanelView(sublime_plugin.TextCommand):
@@ -312,6 +325,7 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 		characters += '\n'			
 
 		view = VIEWS.create_view(self.view,'error',self.edit,'Typescript : Errors List',characters)
+		
 		view.setup(self.view,files,points)
 
 

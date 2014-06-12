@@ -7,6 +7,7 @@ import os
 import re
 import json
 import codecs
+import hashlib
 
 
 # PACKAGE PATH
@@ -133,3 +134,16 @@ def get_lines(view):
 # GET FILE INFO
 def get_file_infos(view):
 	return (view.file_name(),get_lines(view),get_content(view))
+	
+# MAKE MD5 of disk contents of file
+def hash_file(filename, blocksize=65536):
+	f = open(filename)
+	buf = f.read(blocksize)
+	hasher = hashlib.md5()
+	while len(buf) > 0:
+		hasher.update(encode(buf))
+		buf = f.read(blocksize)
+	f.close()
+	return hasher.hexdigest()
+
+	

@@ -72,7 +72,9 @@ def is_dts(view):
 	return view.file_name() and view.file_name().endswith('.d.ts')
 
 
-# IS AN OBJECT MEMBER
+# IS AN OBJECT MEMBER 
+# TRUE: line=Instance. or line=Instance.fooba or line=Instance.foobar.alic
+# FALSE: line=Inst
 js_id_re = re.compile(u'^[_$a-zA-Z\u00FF-\uFFFF][_$a-zA-Z0-9\u00FF-\uFFFF]*')
 def is_member_completion(line):
 	def partial_completion():

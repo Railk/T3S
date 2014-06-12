@@ -2,7 +2,8 @@
 
 import re
 import json
-from ..Utils import get_prefix
+import sublime
+from ..Utils import get_prefix, is_member_completion, get_file_infos
 
 
 class Completion(object):
@@ -13,11 +14,11 @@ class Completion(object):
 	enabled = False
 
 	# PREPARE LISTE
-	def prepare_list(self,data):
+	def prepare_list(self, tss_result_json):
 		del self.completion_list[:]
 
 		try:
-			entries = json.loads(data)['entries']
+			entries = json.loads(tss_result_json)['entries']
 		except:
 			print('completion json error : ',data)
 			return
@@ -37,17 +38,39 @@ class Completion(object):
 
 
 	# TYPESCRIPT COMPLETION ?
-	def show(self,view,enable=False):
-		char  = view.substr(view.sel()[0].begin()-1)
-		self.enabled = enable if enable else char in self.completion_chars
-		self.interface = char == ':'
+	def trigger(self, view, TSS, force_enable=False):
+		pos = view.sel()[0].begin()
+		(line, col) = view.rowcol(pos)
+		char = view.substr(pos-1)
+		
+		self.enabled = force_enable or char in self.completion_chars
+		self.interface = char is ':'
 
-		if self.enabled: 
-			view.run_command('auto_complete',{
-				'disable_auto_insert': True,
-				'api_completions_only': True,
-				'next_completion_if_showing': True
-			})
+		if self.enabled:
+
+			def get_content_of_line_at(view, pos):
+				return view.substr(sublime.Region(view.line(pos-1).a, pos))
+	
+			is_member = is_member_completion( get_content_of_line_at(view, pos) )
+			is_member = str( is_member ).lower()
+			
+			TSS.update(*get_file_infos(view))
+			
+			def async_react_completions_available(tss_result_json):
+				COMPLETION.prepare_list(tss_result_json)
+			
+				# this will trigger Listener.on_query_completions 
+				# but on_query_completions needs to have the completion list
+				# already available
+				view.run_command('auto_complete',{
+					'disable_auto_insert': True,
+					'api_completions_only': True,
+					'next_completion_if_showing': True
+				})
+			
+			TSS.complete(view.file_name(), line, col, is_member, async_react_completions_available)
+
+			
 
 
 	# ENTRY KEY

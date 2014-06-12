@@ -36,24 +36,16 @@ class Tss(object):
 		self.errors(filename)	
 
 	# GET INDEXED FILES
-	def files(self,filename):
-		return "TODO: implement async files"
-		process = self.get_process(filename)
-		if process == None:
-			return
+	def files(self, filename, callback):
+		AsyncCommand('files\n', lambda async_command: callback(json.loads(async_command.result)) ) \
+			.append_to_global_queue(filename)
 		
-		return json.loads(process.send('files\n'))
 
-
-	# DUMP FILE
-	def dump(self,filename,output):
-		return "TODO: implement async dump"
-		process = self.get_process(filename)
-		if process == None:
-			return
-
-		print(process.send('dump {0} {1}\n'.format(output,filename.replace('\\','/'))))
-
+	# DUMP FILE (untested)
+	def dump(self, filename, output, callback):
+		dump_command = 'dump {0} {1}\n'.format( output, filename.replace('\\','/') )
+		AsyncCommand(dump_command, lambda async_command: callback(async_command.result) ) \
+			.append_to_global_queue(filename)
 
 	# TYPE
 	def type(self, filename, line, col, callback):
@@ -96,18 +88,17 @@ class Tss(object):
 
 
 	# ASK FOR COMPLETIONS
-	def complete(self,filename,line,col,member):
-		return  COMPLETION.prepare_list('{ entries: [{name: "TODO: implement async Completions", type: "todo", docComment: "todo"}]   }')
-		
-		process = self.get_process(filename)
-		if process == None:
-			return
-
-		COMPLETION.prepare_list(process.send('completions {0} {1} {2} {3}\n'.format(member,str(line+1),str(col+1),filename.replace('\\','/'))))
+	def complete(self, filename, line, col, member, callback):
+		completions_command = 'completions {0} {1} {2} {3}\n'.format(member, str(line+1), str(col+1), filename.replace('\\','/'))
+		AsyncCommand(completions_command,
+			lambda async_command: callback( async_command.result, **async_command.payload ),
+			_id="completions_command" \
+			).add_payload() \
+			.append_to_global_queue(filename)
 
 
 	# UPDATE FILE
-	def update(self,filename,lines,content):
+	def update(self, filename, lines, content):
 		update_cmdline = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
 		AsyncCommand(update_cmdline, None, 'update %s' % filename).append_to_global_queue(filename)
 		# Always update because it's almost no overhead, but remember if anything has changed
@@ -166,32 +157,37 @@ class Tss(object):
 		if process == None:
 			return
 
+
+		def async_react_files(files):
+			if not files: # TODO: why?
+				return
+				
+			# don't quit tss if an added *.ts file is still open in an editor view
+			views = sublime.active_window().views()
+			for v in views:
+				if v.file_name() == None:
+					continue
+				for f in files:
+					if v.file_name().replace('\\','/').lower() == f.lower() and not is_dts(v):
+						return
+
+			def killAndRemove():
+				process.kill()
+				PROCESSES.remove(LISTE.get_root(filename))
+				MESSAGE.show('TypeScript project close',True)
+				self.notify('kill', process)
+
+			# send quit and kill process afterwards
+			AsyncCommand('quit\n', killAndRemove, 'quit').append_to_global_queue(filename)	
+			# if the tss process has hang up (previous lambda will not be executed)
+			# , force kill after 5 sek
+			sublime.set_timeout(killAndRemove,5000)
+			
+
 		sublime.active_window().run_command('save_all')
-		files = self.files(filename)
-		# TODO: why?
-		if not files:
-			return
+		self.files(filename, async_react_files)
+		
 
-		# don't quit tss if an added *.ts file is still open in an editor view
-		views = sublime.active_window().views()
-		for v in views:
-			if v.file_name() == None:
-				continue
-			for f in files:
-				if v.file_name().replace('\\','/').lower() == f.lower() and not is_dts(v):
-					return
-
-		def killAndRemove():
-			process.kill()
-			PROCESSES.remove(LISTE.get_root(filename))
-			MESSAGE.show('TypeScript project close',True)
-			self.notify('kill', process)
-
-		# send quit and kill process afterwards
-		AsyncCommand('quit\n', killAndRemove, 'quit').append_to_global_queue(filename)	
-		# if the tss process has hang up (previous lambda will not be executed)
-		# , force kill after 5 sek
-		sublime.set_timeout(killAndRemove,5000)
 		
 		
 		

@@ -10,6 +10,7 @@ except ImportError:
 import sublime
 import os
 import time
+import uuid
 
 from .Settings import SETTINGS
 from .Liste import LISTE
@@ -75,7 +76,7 @@ class AsyncCommand(object):
 	def __init__(self, command, result_callback=None, _id = "", replaced_callback=None, payload={}, merge_behaviour=MERGE_IMMEDIATE):
 		self.command = command
 		self.result_callback = result_callback
-		self.id = _id
+		self.id = _id if _id else uuid.uuid4().hex
 		self.is_executed = False
 		self.replaced_by = None
 		self.replaced_callback = replaced_callback

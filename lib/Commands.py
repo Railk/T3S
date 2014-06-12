@@ -22,7 +22,7 @@ from .Utils import get_data, get_file_infos, get_prefix, debounce, ST3
 class TypescriptCompletion(sublime_plugin.TextCommand):
 	
 	def run(self, edit):
-		COMPLETION.show(self.view,True)
+		COMPLETION.trigger(self.view, TSS, force_enable=True)
 
 
 # RELOAD PROJECT

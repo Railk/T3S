@@ -83,4 +83,7 @@ class RefactorReader(Thread):
 
 	def update(self,filename,lines,content):
 		TSS.update(filename,lines,content)
-		debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), filename)
+		TSS.errors(filename)
+		
+		
+		

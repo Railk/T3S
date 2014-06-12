@@ -14,14 +14,19 @@ from .Liste import LISTE
 
 class Files(object):
 
-	def init(self,root):
-		files = TSS.files(root)
-		for f in files:
-			self.add(root,f)
+	def init(self, root):
+		def async_react(files):
+			for f in files:
+				self.add(root,f)
+		TSS.files(root, async_react)
 
 
 	def add(self,root,filename):
-		LISTE.add(filename.replace('\\','/').lower(),{'root':root,'file':filename,'refs':self._get_references(get_data(filename))})
+		LISTE.add(filename.replace('\\','/').lower(),
+			{'root':root,
+			 'file':filename,
+			 'refs':self._get_references(get_data(filename))}
+			 )
 
 
 	def remove_by(self,root):
@@ -81,20 +86,9 @@ class Files(object):
 
 
 	def _reload(self,filename):
-		reload = ReloadReference(filename)
-		reload.daemon = True
-		reload.start()
-
-# -------------------------------------- RELOAD REF ---------------------------------- #
-
-class ReloadReference(Thread):
-
-	def __init__(self,filename):
-		self.filename = filename
-		Thread.__init__(self)
-	
-	def run(self):
-		TSS.reload(self.filename)
+		## reload will be async anyway, removed code for thread creation
+		TSS.reload(self.filename) 
+		
 
 
 # ----------------------------------- INITIALISATION --------------------------------- #

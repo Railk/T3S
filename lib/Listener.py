@@ -11,7 +11,7 @@ from .system.Liste import LISTE
 from .system.Processes import PROCESSES
 from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import debounce, is_ts, is_dts, is_member_completion, get_data, get_file_infos, ST3
+from .Utils import debounce, is_ts, is_dts, get_data, get_file_infos, ST3
 
 
 # ------------------------------------------- INIT ------------------------------------------ #
@@ -38,7 +38,8 @@ def init(view):
 				TSS.add(*args)
 
 			VIEWS.update()
-			debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), view.file_name())
+			#TSS.errors(filename)
+			#debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), view.file_name())
 	else:
 		FILES.add(root,filename)
 		if filename != root: FILES.add(root,root)
@@ -99,7 +100,8 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		TSS.update(*args)
 		VIEWS.update()
 		FILES.update(view,True)
-		debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
+		TSS.errors(view.file_name())
+		#debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
 
 		if SETTINGS.get('build_on_save'):
@@ -134,28 +136,24 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		TSS.update(*args)
 		FILES.update(view)
 		VIEWS.update()
-		COMPLETION.show(view)
+		COMPLETION.trigger(view, TSS)
 
 		if not SETTINGS.get('error_on_save_only'):
-			debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
+			TSS.errors(view.file_name)
+			#debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
 
 	# ON QUERY COMPLETION
 	def on_query_completions(self,view,prefix,locations):
 		if is_ts(view):
 			if COMPLETION.enabled:
-				pos = locations[0]
-				is_member = str(is_member_completion(view.substr(sublime.Region(view.line(pos-1).a, pos)))).lower()
-				(line, col) = view.rowcol(pos)
-
-				TSS.update(*get_file_infos(view))
-				TSS.complete(view.file_name(),line,col,is_member)
-
 				return (COMPLETION.get_list(), sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
 
 
-	# ON QUERY CONTEXT
+	# ON QUERY CONTEXT (execute commandy only on .ts files)
 	def on_query_context(self, view, key, operator, operand, match_all):
 		if key == "T3S":
 			view = sublime.active_window().active_view()
 			return is_ts(view)
+			
+			

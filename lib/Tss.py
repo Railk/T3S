@@ -96,14 +96,14 @@ class Tss(object):
 			.append_to_fast_queue()
 
 	# STRUCTURE
-	def structure(self, filename, callback):
-		""" callback({ tss type answer }, filename=) """
+	def structure(self, filename, sender_view_id, callback):
+		""" callback({ tss type answer }, filename=, sender_view_id=) """
 
 		structure_command = 'structure {0}'.format(fn2l(filename))
 
 		AsyncCommand(structure_command, get_root(filename)) \
-			.set_id("structure_command") \
-			.set_callback_kwargs(filename=filename) \
+			.set_id("structure_command for view %i" % sender_view_id) \
+			.set_callback_kwargs(filename=filename, sender_view_id=sender_view_id) \
 			.do_json_decode_tss_answer() \
 			.set_result_callback(callback) \
 			.append_to_fast_queue()

@@ -15,7 +15,7 @@ from .display.Completion import COMPLETION
 from .system.Liste import LISTE, get_root
 from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import read_file, get_file_infos, get_prefix, debounce, ST3, catch_CancelCommand, CancelCommand
+from .Utils import read_file, get_file_infos, get_prefix, debounce, ST3, catch_CancelCommand, CancelCommand, Debug
 
 
 # AUTO COMPLETION
@@ -179,15 +179,19 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 	def run(self, edit):
 		TSS.assert_initialisation_finished(self.view.file_name())
 
-		ts_view = self.view
-		regions = {}
+		def async_react(members, filename, sender_view_id):
 
+			Debug('structure', 'STRUCTURE async_react for %s in start view %s, now view %s' % (filename, self.view.id(), sublime.active_window().active_view().id()) )
 
-		def async_react(members, filename):
+			if sublime.active_window().active_view().id() != sender_view_id or self.view.id() != sender_view_id:
+				Debug('structure', 'STRUCTURE async_react canceled because of view change')
+				return
+
+			regions = {}
 
 			if len(members) == 0:
-				TypescriptStructure.outline_buffer = {"ts_view" : ts_view, "characters": "---", "regions":None}
-				ts_view.run_command('typescript_update_outline_view')
+				TypescriptStructure.outline_buffer = {"ts_view" : self.view(), "characters": "---", "regions":None}
+				self.view.run_command('typescript_update_outline_view')
 				return
 
 			try:
@@ -199,8 +203,8 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 					left = member['min']['character']
 					right = member['lim']['character']
 
-					a = ts_view.text_point(start_line-1,left-1)
-					b = ts_view.text_point(end_line-1,right-1)
+					a = self.view.text_point(start_line-1,left-1)
+					b = self.view.text_point(end_line-1,right-1)
 					region = sublime.Region(a,b)
 					kind = get_prefix(member['loc']['kind'])
 					container_kind = get_prefix(member['loc']['containerKind'])
@@ -225,8 +229,9 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 
 				if characters != "": characters += '\n\n}'
 				# use new command because current edit instance is invalid in this defered async state
-				TypescriptStructure.outline_buffer = {"ts_view" : ts_view, "characters":characters, "regions":regions}
-				ts_view.run_command("typescript_update_outline_view")
+				Debug('structure', 'STRUCTURE async_react set outline_buffer')
+				TypescriptStructure.outline_buffer = {"ts_view" : self.view, "characters":characters, "regions":regions}
+				self.view.run_command("typescript_update_outline_view")
 
 			except (Exception) as e:
 				e = str(e)
@@ -234,8 +239,9 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 				print("File navigation : "+e)
 				print(traceback.format_exc())
 
-		
-		TSS.structure(self.view.file_name(), async_react)
+		Debug('structure', 'STRUCTURE for %s in view %s' % (self.view.file_name(), self.view.id()))
+
+		TSS.structure(self.view.file_name(), self.view.id(), async_react)
 
 
 
@@ -243,8 +249,14 @@ class TypescriptStructure(sublime_plugin.TextCommand):
 # OPEN and WRITE TEXT TO OUTLINE VIEW
 class TypescriptUpdateOutlineView(sublime_plugin.TextCommand):
 	def run(self, edit_token):
+		Debug('structure', 'STRUCTURE update outline view')
 		args = TypescriptStructure.outline_buffer
 		if 'ts_view' in args and 'characters'  in args and 'regions' in args:
+
+			if sublime.active_window().active_view().id() != args['ts_view'].id():
+				Debug('structure', 'STRUCTURE update canceled because of view change')
+				return
+
 			view = VIEWS.create_view(args['ts_view'], 
 					 'outline',
 					 edit_token,

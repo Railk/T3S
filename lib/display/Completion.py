@@ -20,7 +20,7 @@ class Completion(object):
 		try:
 			entries = json.loads(tss_result_json)['entries']
 		except:
-			print('completion json error : ',data)
+			print('completion json error : ', tss_result_json)
 			return
 		
 		for entry in entries:

@@ -17,7 +17,8 @@ possible_classifications = [ 'all',
 	'command', 'command+',
 	'adapter', 'adapter+',
 	'files',
-	'build', 'build+']
+	'build', 'build+',
+	'structure']
 
 # DEBUG
 def Debug(classification, text):

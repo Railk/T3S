@@ -31,7 +31,7 @@ class TypescriptReloadProject(sublime_plugin.TextCommand):
 	def run(self, edit):
 		sublime.active_window().run_command('save_all')
 		MESSAGE.show('Reloading project')
-		TSS.reload(self.view.file_name())
+		TSS.reload(self.view.file_name(), lambda: MESSAGE.show('Reloading finished', True))
 
 
 # SHOW INFOS

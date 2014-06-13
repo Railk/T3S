@@ -33,9 +33,10 @@ class Tss(object):
 
 
 	# RELOAD PROCESS
-	def reload(self, filename_or_root):
+	def reload(self, filename_or_root, callback=None):
 		AsyncCommand('reload', get_root(filename_or_root)) \
 			.set_id('reload') \
+			.set_result_callback(lambda r: callback()) \
 			.append_to_both_queues()
 		self.errors(filename_or_root)
 
@@ -220,7 +221,7 @@ class Tss(object):
 				
 				root = get_root(filename)
 				PROCESSES.kill_and_remove(root)
-				MESSAGE.show('TypeScript project will close',True)
+				MESSAGE.show('TypeScript project will close', True)
 				self.notify('kill', root)
 				
 			def still_used_ts_files_open_in_window(files):

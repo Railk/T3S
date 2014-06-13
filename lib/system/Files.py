@@ -5,7 +5,7 @@ import sublime
 import re
 import os
 
-from ..Utils import read_file, fn2l
+from ..Utils import read_file, file_exists, fn2l, Debug
 from ..Tss import TSS
 from .Liste import LISTE
 
@@ -13,7 +13,11 @@ from .Liste import LISTE
 # --------------------------------------- FILES -------------------------------------- #
 
 class Files(object):
-""" TODO What does this class? """
+	"""
+		Keeps track of the files TSS uses (currently?).
+		Keeps references like this /// <reference path="lib/mocha/mocha.d.ts" />
+		up to date. For this it parses unsaved views after each keystroke.
+	"""
 
 	def init(self, root):
 		""" add the files in current project (=root) determined by tss>files command to LISTE """
@@ -21,15 +25,18 @@ class Files(object):
 			""" callback for async tss>files response. Add files"""
 			for f in files:
 				self.add(root, f)
+		Debug('files', "GETTING FILE LIST from TSS")
 		TSS.files(root, async_react)
 
 
 	def add(self, root, filename):
 		""" Adds/updates filename in LISTE, keeping track of belonging project (=root) and references """
+		Debug('files', "ADD FILE to LISTE, parse references: %s" % filename)
+
 		LISTE.add(filename,
 			{'root' : root,
 			 'file' : filename,
-			 'refs' : self._get_references(read_file(filename))}
+			 'refs' : self._get_references( read_file(filename) ) }
 			 )
 
 
@@ -38,62 +45,84 @@ class Files(object):
 		LISTE.remove_by_root(root)
 
 
-	def update(self, view, unused=False):
-		""" """
-		filename = fn2l(view.file_name())
-		current_refs = LISTE.get(filename)['refs']
-		refs =  self._get_references(view.substr(sublime.Region(0, view.size())))
+	def update(self, view, remove_unused=False):
+		""" 
+			updates the references list in LISTE with the used references in the unsaved source file
+			Also removes not existing files from LISTE	
+		"""
+		self.need_reload = False
+		filename = view.file_name()
 
-		#UNUSED REF ?
-		if unused: self._remove_unused_ref(view,filename)
+		Debug('files', "UPDATE(remove_unused=%s) refs from %s" % (remove_unused, filename) )
 
-		# REF CHANGE
-		for ref in refs:
-			if ref not in current_refs:
-				self._add_ref(ref,filename,unused)
+		tracked_refs = LISTE.get(filename)['refs']
+		used_refs = self._get_references(view.substr(sublime.Region(0, view.size())))
 
-		# A FILE HAS BEEN REMOVED ?
-		to_delete = []
-		for f in LISTE.liste:
-			if read_file(LISTE.get(f)['file']) == None:
-				to_delete.append(f)
-		
-		if len(to_delete)>0:
+
+		if remove_unused:
+			self._remove_unused_ref(tracked_refs, used_refs)
+
+		self._add_missing_refs(tracked_refs, used_refs, filename, remove_unused)
+
+		self._remove_non_existing_files()
+
+		if self.need_reload:
 			self._reload(filename)
+
+
+	# TODO: should this one remove non existing REFs?
+	def _remove_non_existing_files(self):
+		to_delete = [f for f in LISTE.liste if not file_exists(LISTE.get(f)['file'])]
+		if len(to_delete) > 0:
+			self.need_reload = True
 			for f in to_delete:
+				Debug('files', "REMOVE file from LISTE: %s" % (str(f)[0:80], ))
 				LISTE.remove(f)
 
+	def _remove_unused_ref(self, tracked_refs, used_refs):
+		for t_ref in list(tracked_refs):
+			if t_ref not in used_refs:
+				Debug('files', "REMOVED UNUSED reference %s from file xyz" % t_ref)
+				tracked_refs.remove(t_ref)
 
-	def _add_ref(self, ref, filename, unused=False):
-		(path,name) = os.path.split(filename)
-		ref_path = os.path.abspath(path+'/'+ref)
-		content = read_file(ref_path)
-		if content != None:
+	def _add_missing_refs(self, tracked_refs, used_refs, filename, remove_unused):
+		for u_ref in used_refs:
+			if u_ref not in tracked_refs:
+				self._add_ref(u_ref, filename, remove_unused)
+
+	def _add_ref(self, ref, filename, remove_unused=False):
+		""" checks for existence of ref file before adding it to LISTE[file][refs] """
+		directory = os.path.dirname(filename)
+		ref_absolute_path = os.path.abspath(os.path.join(directory, ref))
+		if file_exists(ref_absolute_path):
+			Debug('files', "ADDED NEW reference %s (file %s), save_all files" % (ref, filename))
 			LISTE.get(filename)['refs'].append(ref)
-			sublime.active_window().run_command('save_all')
-			self._reload(filename)
+
+			# TODO: why saving? tss>reload will work anyway because of the automatic tss>updates
+			# Should this trigger restructuration?
+			sublime.active_window().run_command('save_all') 
+
+			self.need_reload = True
 		else:
-			if unused: self._reload(filename)
+			Debug('files', "DID NOT ADDED NEW reference %s because it does not exists (file %s)" % (ref, filename))
+			if remove_unused:
+				self.need_reload = True
 
 
-	def _remove_unused_ref(self,view,filename):
-		refs = LISTE.get(filename)['refs']
-		file_refs =  self._get_references(view.substr(sublime.Region(0, view.size())))
-		for ref in refs:
-			if ref not in file_refs:
-				LISTE.get(filename)['refs'].remove(ref)
-
-
-
-	def _get_references(self,content):
+	def _get_references(self, content):
+		"""
+		parses the typescript /// <reference path='' /> statements and 
+		returns a list with all referenced filenames
+		"""
 		if content == None: return
 		refs = [ref[1:-1] for ref in re.findall("/// *<reference path *\=('.*?'|\".*?\")", content)]
 		return refs
 
 
-	def _reload(self,filename):
-		## reload will be async anyway, removed code for thread creation
-		TSS.reload(self.filename) 
+	def _reload(self, filename):
+		""" reloads and trigger showErrors """
+		Debug('files', "TRIGGER TSS RELOAD")
+		TSS.reload(filename)
 		
 
 

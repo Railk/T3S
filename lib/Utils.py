@@ -9,6 +9,24 @@ import json
 import codecs
 import hashlib
 
+
+print_classifications = ['files']
+# possible classifications:
+possible_classifications = [ 'all',
+	'tss', 'tss+', 'tss++',
+	'command', 'command+',
+	'adapter', 'adapter+',
+	'files' ]
+
+# DEBUG
+def Debug(classification, text):
+	if 'all' in print_classifications or classification in print_classifications:
+		print("T3S: %s: %s" % (classification.ljust(8), text))
+	if classification not in possible_classifications:
+		print("T3S: debug: got unknown debug message classification: %s. " \
+			"Consider adding this to possible_classifications" % classification)
+
+
 # CANCEL COMMAND EXCEPTION
 class CancelCommand(Exception):
 	pass
@@ -30,7 +48,6 @@ dirname = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
 # VERSIONS
 version = int(sublime.version())
 ST3 = int(sublime.version()) >= 3000
-Debug = 0
 
 # MEMBER PREFIX
 PREFIXES = {
@@ -120,9 +137,10 @@ def thread_safe(fn,args=None):
 	if args!= None: sublime.set_timeout(lambda:fn(args),0)
 	else: sublime.set_timeout(lambda:fn(),0)
 
-
+# READ FILE
 def read_file(filename):
 	""" returns None or file contents if available """
+	filename = os.path.normcase(filename) # back to \\ in nt
 	if os.path.isfile(filename):
 		try:
 			if os.name == 'nt':
@@ -139,6 +157,10 @@ def read_and_decode_json_file(filename):
 	f = read_file(f)
 	return json.loads(f) if f is not None else None
 
+# FILE EXISTS
+def file_exists(filename):
+	""" returns weather the file exists """
+	return os.path.isfile(os.path.normcase(filename))
 
 # GET VIEW CONTENT
 def get_content(view):
@@ -166,6 +188,7 @@ def hash_file(filename, blocksize=65536):
 	f.close()
 	return hasher.hexdigest()
 
+# FILENAME transformations
 def filename2linux(filename):
 	""" returns filename with linux slashes """
 	return filename.replace('\\','/')
@@ -181,4 +204,5 @@ def fn2k(filename):
 def fn2l(filename):
 	""" shortcut for filename2linux """
 	return filename2linux(filename)
+
 

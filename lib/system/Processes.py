@@ -150,7 +150,7 @@ class AsyncCommand(object):
 	def __init__(self, command, result_callback=None, _id = "", replaced_callback=None, payload={}, merge_behaviour=MERGE_IMMEDIATE):
 		self.command = command
 		self.result_callback = result_callback
-		self.id = _id if _id else uuid.uuid4().hex
+		self.id = _id if _id else "%s-rnd%s" % (command[0:5], uuid.uuid4().hex)
 		self.is_executed = False
 		self.replaced_by = None
 		self.replaced_callback = replaced_callback
@@ -171,7 +171,7 @@ class AsyncCommand(object):
 		if self.replaced_callback is not None:
 			sublime.set_timeout(lambda:self.replaced_callback(self),000)
 			
-		if(Debug > 1): print("CMD replaced after %f s [ %s" % (time.time() - self.time_queue, self.id))
+		Debug('command+', "CMD replaced after %f s [ %s" % (time.time() - self.time_queue, self.id))
 		
 	def on_result(self, result):
 		self.result = result
@@ -180,7 +180,7 @@ class AsyncCommand(object):
 			sublime.set_timeout(lambda:self.result_callback(self),000)
 			
 		self.time_finish = time.time()
-		if(Debug): print("CMD %fs = %fs + %fs to execute %s" % (
+		Debug('command', "CMD %fs = %fs + %fs to execute %s" % (
 			self.time_finish - self.time_queue,
 			self.time_execute - self.time_queue,
 			self.time_finish - self.time_execute,
@@ -230,12 +230,12 @@ class AsyncCommand(object):
 
 	# shortcut function	
 	def append_to_fast_queue(self, filename):
-		if(Debug > 1): print("CMD queued @FAST: %s" % async_command.id)
+		Debug('command', "CMD queued @FAST: %s" % self.id)
 		return self.append_to_queue(filename, Processes.FAST)
 
 	# shortcut function	
 	def append_to_slow_queue(self, filename):
-		if(Debug > 1): print("CMD queued @FAST: %s" % async_command.id)
+		Debug('command', "CMD queued @FAST: %s" % self.id)
 		return self.append_to_queue(filename, Processes.SLOW)
 
 	# shortcut function	
@@ -280,7 +280,7 @@ class AsyncProcess(Thread):
 				commands_to_remove.append(possible_replacement)
 
 		if len(commands_to_remove) > 0:
-			if(Debug > 1): print("MERGED with %i (immediate): %s" % (len(commands_to_remove), command.id) )
+			Debug('adapter+', "MERGED with %i (immediate): %s" % (len(commands_to_remove), command.id) )
 			
 		for c in commands_to_remove:
 			self.middleware_queue.remove(c)
@@ -300,7 +300,7 @@ class AsyncProcess(Thread):
 			commands_to_remove.pop() # don't delete newest duplicate command. 
 			for c in commands_to_remove:
 				self.middleware_queue.remove(c)	
-			if(Debug > 1): print("MERGED with %i (procr->defer): %s" % (len(commands_to_remove), command.id) )	
+			Debug('adapter+', "MERGED with %i (procr->defer): %s" % (len(commands_to_remove), command.id) )	
 			return None # defer, no execution in this round
 		else:
 			return command # no defer, execute now, command has already been poped
@@ -308,10 +308,10 @@ class AsyncProcess(Thread):
 	def pop_and_execute_from_middleware_queue(self):
 		if not self.middleware_queue_is_finished():
 			command_to_execute = self.middleware_queue.pop(0)
-			if(Debug > 1): print("POPPED from middleware: %s" % command_to_execute.id)
+			Debug('adapter', "POPPED from middleware: %s" % command_to_execute.id)
 			
 			if command_to_execute.id is "trigger":
-				if(Debug > 1): print("FOUND OLD TRIGGER object, don't execute anything")
+				Debug('adapter+', "FOUND OLD TRIGGER object, don't execute anything")
 				# this command has only used to trigger the queue block release
 				return
 			
@@ -321,7 +321,7 @@ class AsyncProcess(Thread):
 		
 	def execute(self, async_command):
 		if not async_command.can_be_executed_now():
-			if(Debug > 1): print("MOVED to end of queue, debouncing")
+			Debug('adapter+', "MOVED to end of queue, debouncing")
 			self.append_to_middlewarequeue(async_command, set_timer=False) # reappend to end
 			return
 	
@@ -339,7 +339,7 @@ class AsyncProcess(Thread):
 		
 
 	def trigger_queue_block_release_in(self, seconds):
-		if(Debug > 1): print("TRIGGER QUEUE in %fs" % seconds)
+		Debug('adapter+', "TRIGGER QUEUE in %fs" % seconds)
 		sublime.set_timeout(lambda: self.queue.put(AsyncCommand("!trigger!", _id="trigger")), int(seconds*1000) + 5)
 
 	def trigger_queue_block_release_for(self, async_command):
@@ -347,7 +347,7 @@ class AsyncProcess(Thread):
 
 	def append_to_middlewarequeue(self, async_command, set_timer=True):
 		self.middleware_queue.append(async_command)
-		if(Debug > 1): print("APPEND to middleware (in %fs): %s" % (async_command.time_until_execution(), async_command.id))
+		Debug('adapter+', "APPEND to middleware (in %fs): %s" % (async_command.time_until_execution(), async_command.id))
 		if set_timer and async_command.time_until_execution() > 0:
 			self.trigger_queue_block_release_for(async_command)
 			
@@ -358,7 +358,7 @@ class AsyncProcess(Thread):
 	
 		# block until queue is not empty anymore
 		for async_command in iter(self.queue.get, "stop!"): 
-			if(Debug > 1): print("CONTINUTE execution queue")
+			Debug('adapter', "CONTINUTE execution queue")
 			self.append_to_middlewarequeue(async_command)
 			self.add_pending_items_in_queue_to_middleware_queue()	
 			
@@ -370,9 +370,9 @@ class AsyncProcess(Thread):
 
 			# queue and middleware_queue are empty
 			# => enter thread block
-			if(Debug > 1): print("WAIT for new work")
+			Debug('adapter+', "WAIT for new work")
 			
-		if(Debug): print("QUIT async adapter to tss process and close queue") # TODO Debug > 1
+		Debug('adapter', "QUIT async adapter to tss process and close queue")
 		self.stdin.close()
 		self.stdout.close()
 

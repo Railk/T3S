@@ -23,17 +23,17 @@ class Tss(object):
 
 
 	# INIT ROOT FILE
-	def init(self,root):
+	def init(self, root):
 		PROCESSES.add(root, self.notify)
-		self.added_files = {}
+		self.added_files = {} # added_files[filename] = hash # TODO remove to FILES
 		self.executed_with_most_recent_file_contents = []
 		self.is_killed = False
 
 
 	# RELOAD PROCESS
-	def reload(self,filename):
-		AsyncCommand('reload\n', None, 'reload').append_to_both_queues(filename)
-		self.errors(filename)	
+	def reload(self, filename_or_root):
+		AsyncCommand('reload\n', None, 'reload').append_to_both_queues(filename_or_root)
+		self.errors(filename_or_root)
 
 	# GET INDEXED FILES
 	def files(self, filename, callback):
@@ -121,10 +121,10 @@ class Tss(object):
 		newhash = self.make_hash(filename, unsaved_content)
 		oldhash = self.added_files[filename] if filename in self.added_files else "wre"
 		if newhash == oldhash:
-			if(Debug > 1): print("NO UPDATE needed for file : %s" % filename)
+			Debug('tss+', "NO UPDATE needed for file : %s" % filename)
 			return False
 		else:
-			if(Debug > 1): print("UPDATE needed for file %s : %s" % (newhash, filename) )
+			Debug('tss+', "UPDATE needed for file %s : %s" % (newhash, filename) )
 			self.added_files[filename] = newhash
 			return True
 
@@ -166,7 +166,7 @@ class Tss(object):
 			def kill_and_remove(_async_command=None):
 				# Dont execute this twice (this fct will be called 3 times)
 				if self.is_killed: 
-					if(Debug > 1): print("ALREADY closed ts project")
+					Debug('tss+', "ALREADY closed ts project")
 					return
 				self.is_killed = True
 				
@@ -182,9 +182,9 @@ class Tss(object):
 						continue
 					for f in files:
 						if v.file_name().replace('\\','/').lower() == f.lower() and not is_dts(v):
-							if(Debug > 1): print("KILL? STILL MORE TS FILES open -> do nothing")
+							Debug('tss+', "KILL? STILL MORE TS FILES open -> do nothing")
 							return True
-				if(Debug > 1): print("NO MORE TS FILES -> kill TSS process")
+				Debug('tss', "NO MORE TS FILES -> kill TSS process")
 				return False
 
 			if not files: # TODO: why?

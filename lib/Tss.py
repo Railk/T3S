@@ -138,7 +138,7 @@ class Tss(object):
 	# ADD FILE
 	def add(self, root, filename, lines, content):
 
-		update_cmdline = 'update nocheck {0} {1}\n{2}'.format(str(lines+1), fn2l(filename), content)
+		update_command = 'update nocheck {0} {1}\n{2}'.format(str(lines+1), fn2l(filename), content)
 
 		AsyncCommand(update_command, root) \
 			.set_id('add %s' % filename) \

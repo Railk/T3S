@@ -46,6 +46,12 @@ var default_values = {
 };
 
 
+var non_cmdline_options = [
+	'pre_processing_commands',
+	'post_processing_commands',
+	'tsc_command'
+];
+
 ////////////////////////////////////////////////////////////////////////////////////////
 process.chdir(directory);
 
@@ -54,7 +60,7 @@ function build_commands(){
 	var commands = [];
 
 	for (var option in config){
-		if(default_values[option] != config[option] && option!=='pre_processing_commands' && option!=='post_processing_commands') {
+		if(default_values[option] != config[option] && non_cmdline_options.indexOf(option) == -1) {
 			tsc += ' '+commands_map[option]+(default_values[option]!==false?config[option]:'');
 		}
 	}
@@ -63,6 +69,7 @@ function build_commands(){
 	var i,
 		pre_processing_commands = config['pre_processing_commands'],
 		post_processing_commands = config['post_processing_commands'];
+		tsc_command = (config['tsc_command'] != undefined) ? config['tsc_command'] : 'tsc';
 
 	for (i = 0; i < pre_processing_commands.length; i++) {
 		commands[commands.length] = pre_processing_commands[i];
@@ -73,10 +80,10 @@ function build_commands(){
 			process.env.PATH += ':/usr/local/bin';
 		}
 	}
-	commands[commands.length] = 'tsc '+'"'+filename+'"'+tsc;
+	commands[commands.length] = tsc_command + ' ' + '"' + filename + '"' + tsc;
 
 	for (i = 0; i < post_processing_commands.length; i++) {
-		commands[commands.length] =post_processing_commands[i];
+		commands[commands.length] = post_processing_commands[i];
 	}
 
 	return commands;

@@ -12,7 +12,7 @@ from .commands.Refactor import Refactor
 from .display.Views import VIEWS
 from .display.Message import MESSAGE
 from .display.Completion import COMPLETION
-from .system.Liste import LISTE
+from .system.Liste import LISTE, get_root
 from .system.Settings import SETTINGS
 from .Tss import TSS
 from .Utils import read_file, get_file_infos, get_prefix, debounce, ST3, catch_CancelCommand, CancelCommand
@@ -330,19 +330,20 @@ class TypescriptBuild(sublime_plugin.TextCommand):
 	@catch_CancelCommand
 	def run(self, edit, characters):
 		if not SETTINGS.get('activate_build_system'):
-			print("build_system_disabled")
-			return;
-		TSS.assert_initialisation_finished(self.view.file_name())
+			print("T3S: build_system_disabled")
+			return
+		filename = self.view.file_name()
+		TSS.assert_initialisation_finished(filename)
 		
 		self.window = sublime.active_window()
-		if characters != False: self.window.run_command('save')
+		if characters != False:
+			self.window.run_command('save')
 
-		filename = self.view.file_name()
-		compiler = Compiler(self.window,LISTE.get_root(filename),filename)
+		compiler = Compiler(self.window, get_root(filename), filename)
 		compiler.daemon = True
 		compiler.start()
 		
-		sublime.status_message('Compiling : '+filename)
+		sublime.status_message('Compiling : ' + filename)
 			
 
 class TypescriptBuildView(sublime_plugin.TextCommand):

@@ -16,7 +16,8 @@ possible_classifications = [ 'all',
 	'tss', 'tss+', 'tss++',
 	'command', 'command+',
 	'adapter', 'adapter+',
-	'files' ]
+	'files',
+	'build', 'build+']
 
 # DEBUG
 def Debug(classification, text):
@@ -37,7 +38,7 @@ def catch_CancelCommand(func):
 		try:
 			func(*kargs, **kwargs)
 		except CancelCommand:
-			if (Debug > 1):print("A COMMAND WAS CANCELED")
+			Debug('command', "A COMMAND WAS CANCELED")
 			pass
 	return catcher
 

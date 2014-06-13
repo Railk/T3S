@@ -18,21 +18,41 @@ from ..display.Message import MESSAGE
 from ..Utils import get_tss, get_kwargs, encode, ST3, Debug
 
 
+#    PROCESSES = global Processes() instance
+#         -> has 2 TssJsStarterProcess (1 for slow and 1 for fast commands)
+#			     for each project root
+#
+#    TssJsStarterProcess()------>starts>         tss.js
+#           |               |                      | | stdin stdout pipes
+#           |               ---->starts>         TssAdapterProcess (does debouncing and command reordering)
+#           |                                      | |
+#           --sending AsyncCommand() instances---->| |----> sublime.set_timeout(async_command.callback)
+#               via synchronized Queue.Queue
+
+
 
 # ----------------------------------------- PROCESS (tss and adapter starter) ------------------------ #
 
-# Process class. Starts the TSS process for rootfile <root> and starts another
-# thread as adapter for async communicating with the TSS process. 
-# This Thread finishes afterwards and can only be used to access the Queue object
-# that is used for communication with the adapter and therewith with the TSS process
-class Process(Thread):
+class TssJsStarterProcess(Thread):
+	"""
+		After starting, this class provides the methods and fields
+			* send_async_command(...)
+			* kill_tssjs_queue_and_adapter()
+			* started
+		for communication with the started Adapter and therewith the tss.js script.
 
+		tss.js from: https://github.com/clausreinke/typescript-tools
+	"""
 	def __init__(self,root):
+		""" init for project <root> """
 		self.root = root
 		self.started = False;
 		Thread.__init__(self)
 	
 	def run(self):
+		"""
+			Starts the tss.js typescript services server process and the adapter thread.
+		"""
 		node = SETTINGS.get_node()
 		tss = get_tss()
 		kwargs = get_kwargs()
@@ -42,7 +62,7 @@ class Process(Thread):
 		self.tss_process.stdout.readline()
 
 		self.tss_queue = Queue()
-		self.async_tss_adapter = AsyncProcess(self.tss_process.stdin,
+		self.async_tss_adapter = TssAdapterProcess(self.tss_process.stdin,
 											  self.tss_process.stdout, 
 											  self.tss_queue)
 		self.async_tss_adapter.daemon = True
@@ -52,9 +72,14 @@ class Process(Thread):
 
 
 	def send_async_command(self, async_command):
+		""" send a AsyncCommand() instance to the adapter thread """
 		self.tss_queue.put(async_command);
 
-	def kill_queue_and_adapter(self):
+	def kill_tssjs_queue_and_adapter(self):
+		"""
+			Tells adapter to leave syncronized queue and to finish 
+			and kills the tss.js process
+		"""
 		self.tss_queue.put("stop!") # setinel value to stop queue
 		self.tss_process.kill()
 
@@ -62,77 +87,83 @@ class Process(Thread):
 # ----------------------------------------- PROCESSES ---------------------------------------- #
  
 class Processes(object):
+	"""
+		Keeps two tss.js Processes and adapters for each project root.
+		Process SLOW is for slow commands like tss>errors which can last more than 5s easily.
+        Process FAST is for fast reacting commands eg. for autocompletion or type.
+	"""
 
 	SLOW = 0
 	FAST = 1
 
-	liste = {} # { 'rootfilename' : (p_slow, p_fast) }
-
-	def __init__(self):
-		super(Processes, self).__init__()
+	roots = {} # { 'rootfilename aka project' : (p_slow, p_fast) }
 
 	def get(self, root, type=SLOW):
-		if root in self.liste:
-			return self.liste[root][type]
+		""" Returns corresponding process for project root and type=SLOW or FAST. """
+		if root in self.roots:
+			return self.roots[root][type]
 		return None
 
 	def is_initialized(self, root):
-		return root in self.liste \
-		   and self.liste[root] is not None \
-		   and self.liste[root][Processes.SLOW].started \
-		   and self.liste[root][Processes.FAST].started
+		""" Returns True if both processes (SLOW and FAST) have been started. """
+		return root in self.roots \
+		   and self.roots[root] is not None \
+		   and self.roots[root][Processes.SLOW].started \
+		   and self.roots[root][Processes.FAST].started
 		
-	def add(self, root, tss_notify_callback):
-		if root in self.liste:
+	def start_tss_processes_for(self, root, init_finished_callback):
+		"""
+			If not allready started, start tss.js (2 times) for project root.
+			Displays message to user while starting and calls tss_notify_callback('init', root) afterwards
+		"""
+		if root in self.roots:
 			return
 			
 		print('Typescript initializing ' + root)
 
-		process_slow = Process(root)
+		process_slow = TssJsStarterProcess(root)
 		process_slow.start()
 		
-		process_fast = Process(root)
+		process_fast = TssJsStarterProcess(root)
 		process_fast.start()
 		
-		self.liste[root] = ( process_slow, process_fast )
+		self.roots[root] = ( process_slow, process_fast )
 		
-		self._handle(root, tss_notify_callback)
+		self._wait_for_finish_and_notify_user(root, init_finished_callback)
 
 	def kill_and_remove(self, root):
-		if root in self.liste:
-			self.liste[root][Processes.SLOW].kill_queue_and_adapter()
-			self.liste[root][Processes.FAST].kill_queue_and_adapter()
-			del self.liste[root]
+		""" Trigger killing of adapter, tss.js and queue. """
+		if root in self.roots:
+			self.get(root, SLOW).kill_tssjs_queue_and_adapter()
+			self.get(root, FAST).kill_tssjs_queue_and_adapter()
+			del self.roots[root]
 
 
-	# display animated Message as long as TSS is initing
-	def _handle(self, root, tss_notify_callback, i=0, dir=1):
-		# process does only start the TSS Process
+	def _wait_for_finish_and_notify_user(self, root, init_finished_callback, i=1, dir=-1):
+		""" Displays animated Message as long as TSS is initing. Is recoursive function. """
 		if not self.is_initialized(root):
-			before = i % 8
-			after = (7) - before
-			if not after:
-				dir = -1
-			if not before:
-				dir = 1
-			i += dir
-
-			if not ST3:
-				MESSAGE.repeat('Typescript project is initializing')
-				sublime.status_message(' Typescript project is initializing [%s=%s]' % \
-					(' ' * before, ' ' * after))
-			else:
-				MESSAGE.repeat(' Typescript project is initializing [%s=%s]' % \
-					(' ' * before, ' ' * after))
-
-			#recursive
-			sublime.set_timeout(lambda: self._handle(root, tss_notify_callback, i, dir), 100)
-			
+			(i, dir) = self._display_animated_init_message(i, dir)
+			# recoursive:
+			sublime.set_timeout(lambda: self._wait_for_finish_and_notify_user(root, init_finished_callback, i, dir), 100)
 		else:
 			# starting finished ->
-			(head,tail) = os.path.split(root)
-			MESSAGE.show('Typescript project intialized for root file : ' + tail, True)
-			tss_notify_callback("init", root)
+			MESSAGE.show('Typescript project intialized for root file : %s' % os.path.basename(root), True)
+			init_finished_callback()
+
+	def _display_animated_init_message(self, i, dir):
+		if i in [1, 8]:
+			dir *= -1
+		i += dir
+		anim_message = ' Typescript project is initializing [%s]' % '='.rjust(i).ljust(8)
+
+		if not ST3:
+			MESSAGE.repeat('Typescript project is initializing')
+			sublime.status_message(anim_message)
+		else:
+			MESSAGE.repeat(anim_message)
+
+		return (i, dir)
+
 
 # ----------------------------------------- ASYNC COMMAND ---------------------------------- #
 
@@ -245,7 +276,7 @@ class AsyncCommand(object):
 
 # ----------------------------------------- ASYNC PROCESS (adapter) -------------------------- #
 
-class AsyncProcess(Thread):
+class TssAdapterProcess(Thread):
 
 	def __init__(self,stdin,stdout,queue):
 		self.stdin = stdin

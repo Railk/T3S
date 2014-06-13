@@ -10,7 +10,7 @@ import codecs
 import hashlib
 
 
-print_classifications = ['files']
+print_classifications = []
 # possible classifications:
 possible_classifications = [ 'all',
 	'tss', 'tss+', 'tss++',

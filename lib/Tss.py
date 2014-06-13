@@ -24,7 +24,8 @@ class Tss(object):
 
 	# INIT ROOT FILE
 	def init(self, root):
-		PROCESSES.add(root, self.notify)
+		PROCESSES.start_tss_processes_for(root,
+				  init_finished_callback=lambda: self.notify('init', root) )
 		self.added_files = {} # added_files[filename] = hash # TODO remove to FILES
 		self.executed_with_most_recent_file_contents = []
 		self.is_killed = False

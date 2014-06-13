@@ -6,8 +6,9 @@ import hashlib
 
 from .display.Completion import COMPLETION
 from .display.Message import MESSAGE
-from .system.Processes import PROCESSES, AsyncCommand
-from .system.Liste import LISTE
+from .system.Processes import PROCESSES
+from .system.AsyncCommand import AsyncCommand
+from .system.Liste import get_root
 from .Utils import is_dts, encode, CancelCommand, Debug
 
 
@@ -17,7 +18,7 @@ class Tss(object):
 
 	# INITIALISATION FINISHED
 	def assert_initialisation_finished(self, filename):
-		if not PROCESSES.is_initialized(LISTE.get_root( filename )):
+		if not PROCESSES.is_initialized(get_root( filename )):
 			sublime.status_message('You must wait for the initialisation to finish')
 			raise CancelCommand()
 
@@ -33,85 +34,116 @@ class Tss(object):
 
 	# RELOAD PROCESS
 	def reload(self, filename_or_root):
-		AsyncCommand('reload\n', None, 'reload').append_to_both_queues(filename_or_root)
+		AsyncCommand('reload', get_root(filename_or_root)) \
+			.set_id('reload') \
+			.append_to_both_queues()
 		self.errors(filename_or_root)
 
 	# GET INDEXED FILES
 	def files(self, filename, callback):
-		AsyncCommand('files\n', lambda async_command: callback(json.loads(async_command.result)) ) \
-			.append_to_fast_queue(filename)
-		
+		AsyncCommand('files', get_root(filename)) \
+			.do_json_decode_tss_answer() \
+			.set_result_callback(callback) \
+			.append_to_fast_queue()
 
 	# DUMP FILE (untested)
 	def dump(self, filename, output, callback):
-		dump_command = 'dump {0} {1}\n'.format( output, filename.replace('\\','/') )
-		AsyncCommand(dump_command, lambda async_command: callback(async_command.result) ) \
-			.append_to_fast_queue(filename)
+		dump_command = 'dump {0} {1}'.format( output, filename.replace('\\','/') )
+		AsyncCommand(dump_command, get_root(filename)) \
+			.set_result_callback(callback) \
+			.append_to_fast_queue()
 
 	# TYPE
 	def type(self, filename, line, col, callback):
-		type_command = 'type {0} {1} {2}\n'.format( str(line+1), str(col+1), filename.replace('\\','/') )
-		AsyncCommand(type_command, \
-			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
-			_id="type_command" \
-			).add_payload(filename=filename, line=line, col=col) \
-			.append_to_fast_queue(filename)
+		""" callback({ tss type answer }, filename=, line=, col=) """
+
+		type_command = 'type {0} {1} {2}'.format( str(line+1), str(col+1), filename.replace('\\','/') )
+
+		AsyncCommand(type_command, get_root(filename)) \
+			.set_id("type_command") \
+			.set_callback_kwargs(filename=filename, line=line, col=col) \
+			.do_json_decode_tss_answer() \
+			.set_result_callback(callback) \
+			.append_to_fast_queue()
+
 
 	# DEFINITION
 	def definition(self, filename, line, col, callback):
-		definition_command = 'definition {0} {1} {2}\n'.format( str(line+1), str(col+1), filename.replace('\\','/') )
-		AsyncCommand(definition_command, \
-			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
-			_id="definition_command" \
-			).add_payload(filename=filename, line=line, col=col) \
-			.append_to_fast_queue(filename)
+		""" callback({ tss type answer }, filename=, line=, col=) """
+
+		definition_command = 'definition {0} {1} {2}'.format( str(line+1), str(col+1), filename.replace('\\','/') )
+
+		AsyncCommand(definition_command, get_root(filename)) \
+			.set_id("definition_command") \
+			.set_callback_kwargs(filename=filename, line=line, col=col) \
+			.do_json_decode_tss_answer() \
+			.set_result_callback(callback) \
+			.append_to_fast_queue()
 
 
 	# REFERENCES
 	def references(self, filename, line, col, callback):
-		references_command = 'references {0} {1} {2}\n'.format( str(line+1), str(col+1), filename.replace('\\','/') )
-		AsyncCommand(references_command, \
-			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
-			_id="references_command" \
-			).add_payload(filename=filename, line=line, col=col) \
-			.append_to_fast_queue(filename)
+		""" callback({ tss type answer }, filename=, line=, col=) """
 
+		references_command = 'references {0} {1} {2}'.format( str(line+1), str(col+1), filename.replace('\\','/') )
+
+		AsyncCommand(references_command, get_root(filename)) \
+			.set_id("references_command") \
+			.set_callback_kwargs(filename=filename, line=line, col=col) \
+			.do_json_decode_tss_answer() \
+			.set_result_callback(callback) \
+			.append_to_fast_queue()
 
 	# STRUCTURE
 	def structure(self, filename, callback):
-		structure_command = 'structure {0}\n'.format(filename.replace('\\','/'))
-		AsyncCommand(structure_command, \
-			lambda async_command: callback(json.loads(async_command.result), **async_command.payload ),
-			_id="structure_command" \
-			).add_payload(filename=filename) \
-			.append_to_fast_queue(filename)
+		""" callback({ tss type answer }, filename=) """
 
+		structure_command = 'structure {0}'.format(filename.replace('\\','/'))
+
+		AsyncCommand(structure_command, get_root(filename)) \
+			.set_id("structure_command") \
+			.set_callback_kwargs(filename=filename) \
+			.do_json_decode_tss_answer() \
+			.set_result_callback(callback) \
+			.append_to_fast_queue()
 
 
 	# ASK FOR COMPLETIONS
 	def complete(self, filename, line, col, member, callback):
-		completions_command = 'completions {0} {1} {2} {3}\n'.format(member, str(line+1), str(col+1), filename.replace('\\','/'))
-		AsyncCommand(completions_command,
-			lambda async_command: callback( async_command.result, **async_command.payload ),
-			_id="completions_command" \
-			).add_payload() \
-			.append_to_fast_queue(filename)
+		""" callback("tss type answer as string") """
+
+		completions_command = 'completions {0} {1} {2} {3}'.format(member, str(line+1), str(col+1), filename.replace('\\','/'))
+
+		AsyncCommand(completions_command, get_root(filename)) \
+			.set_id("completions_command") \
+			.set_result_callback(callback) \
+			.append_to_fast_queue()
 
 
 	# UPDATE FILE
 	def update(self, filename, lines, content):
-		update_cmdline = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
-		AsyncCommand(update_cmdline, None, 'update %s' % filename).append_to_both_queues(filename)
-		# Always update because it's almost no overhead, but remember if anything has changed
+
+		update_command = 'update nocheck {0} {1}\n{2}'.format(str(lines+1), filename.replace('\\','/'), content)
+
+		AsyncCommand(update_command, get_root(filename)) \
+			.set_id('update %s' % filename) \
+			.append_to_both_queues()
+
+		# Always execute tss->update because it's almost no overhead, but remember if anything has changed
 		if self.need_update(filename, content):
 			self.on_file_contents_have_changed()
-			
+
 
 	# ADD FILE
 	def add(self, root, filename, lines, content):
-		update_cmdline = 'update nocheck {0} {1}\n{2}\n'.format(str(lines+1),filename.replace('\\','/'),content)
-		AsyncCommand(update_cmdline, None, 'add %s' % filename).append_to_both_queues(root) ## root here makes the difference to update
-		# Always update because it's almost no overhead, but remember if anything has changed
+
+		update_cmdline = 'update nocheck {0} {1}\n{2}'.format(str(lines+1),filename.replace('\\','/'),content)
+
+		AsyncCommand(update_command, root) \
+			.set_id('add %s' % filename) \
+			.append_to_both_queues()
+
+		# Always execute tss>update when adding
 		self.on_file_contents_have_changed()
 	
 
@@ -133,31 +165,30 @@ class Tss(object):
 		return hashlib.md5(encode(unsaved_content)).hexdigest()
 
 	# ERRORS
-	# callback format: def x(result, filename)
+	# callback format: def x(result, filename=)
 	def set_default_errors_callback(self, callback):
 		self.default_errors_callback = callback
 		
 	def errors(self, filename, callback=None):
 		if not callback:
 			callback = self.default_errors_callback
-		# only update if something in the files has changed since last execution
+		# only update if something in the files had changed since last execution
 		if 'errors' in self.executed_with_most_recent_file_contents:
 			return
 		self.executed_with_most_recent_file_contents.append('errors')
-		AsyncCommand('showErrors\n', \
-			lambda async_command: callback(async_command.result, async_command.payload['filename'] ),
-			_id="showErrors" \
-			).add_payload(filename=filename) \
+
+		AsyncCommand('showErrors', get_root(filename)) \
+			.set_id('showErrors') \
 			.procrastinate() \
 			.activate_debounce() \
-			.append_to_slow_queue(filename)	
-			
-
+			.set_callback_kwargs(filename=filename) \
+			.set_result_callback(callback) \
+			.append_to_slow_queue()
 	
 
 	# KILL PROCESS (if no more files in editor)
 	def kill(self, filename):
-		if not PROCESSES.is_initialized(LISTE.get_root(filename)) \
+		if not PROCESSES.is_initialized(get_root(filename)) \
 			or self.is_killed:
 			return
 
@@ -171,7 +202,7 @@ class Tss(object):
 					return
 				self.is_killed = True
 				
-				root = LISTE.get_root(filename)
+				root = get_root(filename)
 				PROCESSES.kill_and_remove(root)
 				MESSAGE.show('TypeScript project will close',True)
 				self.notify('kill', root)
@@ -197,7 +228,12 @@ class Tss(object):
 
 
 			# send quit and kill process afterwards
-			AsyncCommand('quit\n', kill_and_remove, 'quit').append_to_both_queues(filename)	
+			AsyncCommand('quit', get_root(filename)) \
+				.set_id('quit') \
+				.set_result_callback(kill_and_remove) \
+				.append_to_both_queues()
+
+
 			# if the tss process has hang up (previous lambda will not be executed)
 			# , force kill after 5 sek
 			sublime.set_timeout(kill_and_remove,10000) 

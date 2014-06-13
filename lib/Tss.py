@@ -9,7 +9,7 @@ from .display.Message import MESSAGE
 from .system.Processes import PROCESSES
 from .system.AsyncCommand import AsyncCommand
 from .system.Liste import get_root
-from .Utils import is_dts, encode, CancelCommand, Debug
+from .Utils import is_dts, encode, CancelCommand, Debug, fn2l
 
 
 # --------------------------------------- TSS -------------------------------------- #
@@ -48,7 +48,7 @@ class Tss(object):
 
 	# DUMP FILE (untested)
 	def dump(self, filename, output, callback):
-		dump_command = 'dump {0} {1}'.format( output, filename.replace('\\','/') )
+		dump_command = 'dump {0} {1}'.format( output, fn2l(filename) )
 		AsyncCommand(dump_command, get_root(filename)) \
 			.set_result_callback(callback) \
 			.append_to_fast_queue()
@@ -57,7 +57,7 @@ class Tss(object):
 	def type(self, filename, line, col, callback):
 		""" callback({ tss type answer }, filename=, line=, col=) """
 
-		type_command = 'type {0} {1} {2}'.format( str(line+1), str(col+1), filename.replace('\\','/') )
+		type_command = 'type {0} {1} {2}'.format( str(line+1), str(col+1), fn2l(filename) )
 
 		AsyncCommand(type_command, get_root(filename)) \
 			.set_id("type_command") \
@@ -71,7 +71,7 @@ class Tss(object):
 	def definition(self, filename, line, col, callback):
 		""" callback({ tss type answer }, filename=, line=, col=) """
 
-		definition_command = 'definition {0} {1} {2}'.format( str(line+1), str(col+1), filename.replace('\\','/') )
+		definition_command = 'definition {0} {1} {2}'.format( str(line+1), str(col+1), fn2l(filename) )
 
 		AsyncCommand(definition_command, get_root(filename)) \
 			.set_id("definition_command") \
@@ -85,7 +85,7 @@ class Tss(object):
 	def references(self, filename, line, col, callback):
 		""" callback({ tss type answer }, filename=, line=, col=) """
 
-		references_command = 'references {0} {1} {2}'.format( str(line+1), str(col+1), filename.replace('\\','/') )
+		references_command = 'references {0} {1} {2}'.format( str(line+1), str(col+1), fn2l(filename) )
 
 		AsyncCommand(references_command, get_root(filename)) \
 			.set_id("references_command") \
@@ -98,7 +98,7 @@ class Tss(object):
 	def structure(self, filename, callback):
 		""" callback({ tss type answer }, filename=) """
 
-		structure_command = 'structure {0}'.format(filename.replace('\\','/'))
+		structure_command = 'structure {0}'.format(fn2l(filename))
 
 		AsyncCommand(structure_command, get_root(filename)) \
 			.set_id("structure_command") \
@@ -112,7 +112,7 @@ class Tss(object):
 	def complete(self, filename, line, col, member, callback):
 		""" callback("tss type answer as string") """
 
-		completions_command = 'completions {0} {1} {2} {3}'.format(member, str(line+1), str(col+1), filename.replace('\\','/'))
+		completions_command = 'completions {0} {1} {2} {3}'.format(member, str(line+1), str(col+1), fn2l(filename))
 
 		AsyncCommand(completions_command, get_root(filename)) \
 			.set_id("completions_command") \
@@ -123,35 +123,33 @@ class Tss(object):
 	# UPDATE FILE
 	def update(self, filename, lines, content):
 
-		update_command = 'update nocheck {0} {1}\n{2}'.format(str(lines+1), filename.replace('\\','/'), content)
-
-		AsyncCommand(update_command, get_root(filename)) \
-			.set_id('update %s' % filename) \
-			.append_to_both_queues()
-
-		# Always execute tss->update because it's almost no overhead, but remember if anything has changed
+		# only update if the file contents have changed since last update call on this file
 		if self.need_update(filename, content):
+			update_command = 'update nocheck {0} {1}\n{2}'.format(str(lines+1), fn2l(filename), content)
+
+			AsyncCommand(update_command, get_root(filename)) \
+				.set_id('update %s' % filename) \
+				.append_to_both_queues()
+
 			self.on_file_contents_have_changed()
 
 
 	# ADD FILE
 	def add(self, root, filename, lines, content):
 
-		update_cmdline = 'update nocheck {0} {1}\n{2}'.format(str(lines+1),filename.replace('\\','/'),content)
+		update_cmdline = 'update nocheck {0} {1}\n{2}'.format(str(lines+1), fn2l(filename), content)
 
 		AsyncCommand(update_command, root) \
 			.set_id('add %s' % filename) \
 			.append_to_both_queues()
 
-		# Always execute tss>update when adding
+		self.need_update(filename, content) # save current state
 		self.on_file_contents_have_changed()
-	
 
-	def on_file_contents_have_changed(self):
-		self.executed_with_most_recent_file_contents = []
 
 	def need_update(self, filename, unsaved_content):
-		newhash = self.make_hash(filename, unsaved_content)
+		""" Returns True if <unsaved_content> has changed since last call to need_update(). """
+		newhash = self.make_hash(unsaved_content)
 		oldhash = self.added_files[filename] if filename in self.added_files else "wre"
 		if newhash == oldhash:
 			Debug('tss+', "NO UPDATE needed for file : %s" % filename)
@@ -161,30 +159,48 @@ class Tss(object):
 			self.added_files[filename] = newhash
 			return True
 
-	def make_hash(self, filename, unsaved_content):
-		return hashlib.md5(encode(unsaved_content)).hexdigest()
+	def make_hash(self, value):
+		""" Returns md5 hash of <value>. """
+		return hashlib.md5(encode(value)).hexdigest()
+
+
+	def on_file_contents_have_changed(self):
+		"""
+			Every command that wants to only be executed when file changes have been made
+			can use self.executed_with_most_recent_file_contents to remember a previous execution. 
+			After any change, this array will be cleared
+		"""
+		self.executed_with_most_recent_file_contents = []
+
+	def files_changed_after_last_call(self, cmd_hint):
+		"""
+			Returns True if there have been any file changes after last call
+			to this function.
+		"""
+		if cmd_hint in self.executed_with_most_recent_file_contents:
+			return False
+		self.executed_with_most_recent_file_contents.append(cmd_hint)
+		return True
+
 
 	# ERRORS
-	# callback format: def x(result, filename=)
-	def set_default_errors_callback(self, callback):
-		self.default_errors_callback = callback
-		
 	def errors(self, filename, callback=None):
-		if not callback:
-			callback = self.default_errors_callback
-		# only update if something in the files had changed since last execution
-		if 'errors' in self.executed_with_most_recent_file_contents:
+		""" callback format: callback(result, filename=) """
+
+		if not self.files_changed_after_last_call('errors'):
 			return
-		self.executed_with_most_recent_file_contents.append('errors')
 
 		AsyncCommand('showErrors', get_root(filename)) \
 			.set_id('showErrors') \
 			.procrastinate() \
 			.activate_debounce() \
 			.set_callback_kwargs(filename=filename) \
-			.set_result_callback(callback) \
+			.set_result_callback(callback if callback else self.default_errors_callback) \
 			.append_to_slow_queue()
 	
+	def set_default_errors_callback(self, callback):
+		self.default_errors_callback = callback
+
 
 	# KILL PROCESS (if no more files in editor)
 	def kill(self, filename):

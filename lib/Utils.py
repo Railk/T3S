@@ -18,7 +18,8 @@ possible_classifications = [ 'all',
 	'adapter', 'adapter+',
 	'files',
 	'build', 'build+',
-	'structure']
+	'structure',
+	'autocomplete']
 
 # DEBUG
 def Debug(classification, text):
@@ -108,13 +109,16 @@ def is_dts(view):
 # TRUE: line=Instance. or line=Instance.fooba or line=Instance.foobar.alic
 # FALSE: line=Inst
 js_id_re = re.compile(u'^[_$a-zA-Z\u00FF-\uFFFF][_$a-zA-Z0-9\u00FF-\uFFFF]*')
-def is_member_completion(line):
+def is_member_completion(line_text):
 	def partial_completion():
-		sp = line.split(".")
+		sp = line_text.split(".")
 		if len(sp) > 1:
 			return js_id_re.match(sp[-1]) is not None
 		return False
-	return line.endswith(".") or partial_completion()
+	return line_text.endswith(".") or partial_completion()
+
+def get_col_after_last_dot(line_text):
+	return line_text.rfind(".") + 1
 
 
 # DEBOUNCE CALL
@@ -168,6 +172,9 @@ def file_exists(filename):
 def get_content(view):
 	return view.substr(sublime.Region(0, view.size()))
 
+def get_content_of_line_at(view, pos):
+	return view.substr(sublime.Region(view.line(pos-1).a, pos))
+
 
 # GET LINES
 def get_lines(view):
@@ -177,7 +184,7 @@ def get_lines(view):
 
 # GET FILE INFO
 def get_file_infos(view):
-	return (view.file_name(),get_lines(view),get_content(view))
+	return (view.file_name(), get_lines(view), get_content(view))
 	
 # MAKE MD5 of disk contents of file
 def hash_file(filename, blocksize=65536):

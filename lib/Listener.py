@@ -11,7 +11,7 @@ from .system.Liste import LISTE
 from .system.Processes import PROCESSES
 from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import debounce, is_ts, is_dts, read_file, get_file_infos, ST3
+from .Utils import debounce, is_ts, is_dts, read_file, get_file_infos, ST3, Debug
 
 
 # ------------------------------------------- INIT ------------------------------------------ #
@@ -142,9 +142,13 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 
 	# ON QUERY COMPLETION
-	def on_query_completions(self,view,prefix,locations):
+	def on_query_completions(self, view, prefix, locations):
+		pos = view.sel()[0].begin()
+		(line, col) = view.rowcol(pos)
+		Debug('autocomplete', "on_query_completions(), sublime wants to see the results, cursor currently at %i , %i (enabled: %s, items: %i)" % (line+1, col+1, COMPLETION.enabled_for['viewid'], len(COMPLETION.get_list()) ) )
 		if is_ts(view):
-			if COMPLETION.enabled:
+			if COMPLETION.enabled_for['viewid'] == view.id():
+				COMPLETION.enabled_for['viewid'] = -1 # receive only once
 				return (COMPLETION.get_list(), sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
 
 

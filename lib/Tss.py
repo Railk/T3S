@@ -110,14 +110,18 @@ class Tss(object):
 
 
 	# ASK FOR COMPLETIONS
-	def complete(self, filename, line, col, member, callback):
+	def complete(self, filename, line, col, is_member_str, callback):
 		""" callback("tss type answer as string") """
 
-		completions_command = 'completions {0} {1} {2} {3}'.format(member, str(line+1), str(col+1), fn2l(filename))
+		completions_command = 'completions {0} {1} {2} {3}'.format(is_member_str, str(line+1), str(col+1), fn2l(filename))
+
+		Debug('autocomplete', "Send async completion command for line %i , %i" % (line+1, col+1))
 
 		AsyncCommand(completions_command, get_root(filename)) \
 			.set_id("completions_command") \
+			.procrastinate() \
 			.set_result_callback(callback) \
+			.set_callback_kwargs(filename=filename, line=line, col=col, is_member_str=is_member_str) \
 			.append_to_fast_queue()
 
 

@@ -81,8 +81,9 @@ class Processes(object):
 	def kill_and_remove(self, root):
 		""" Trigger killing of adapter, tss.js and queue. """
 		if root in self.roots:
-			self.get(root, SLOW).kill_tssjs_queue_and_adapter()
-			self.get(root, FAST).kill_tssjs_queue_and_adapter()
+			Debug('tss+', "Killing tss.js process and adapter thread (for slow and fast lane) (Closing project %s)" % root)
+			self.get(root, Processes.SLOW).kill_tssjs_queue_and_adapter()
+			self.get(root, Processes.FAST).kill_tssjs_queue_and_adapter()
 			del self.roots[root]
 
 

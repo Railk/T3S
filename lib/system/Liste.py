@@ -40,7 +40,7 @@ class Liste(object):
 
 	def remove_by_root(self, root_filename):
 		""" remove all files which have this file as root file """
-		to_delete = [file for file in self.file if self.get_root(file) == root_filename]
+		to_delete = [file for file in self.liste if self.get_root(file) == root_filename]
 
 		for file in to_delete:
 			del self.liste[file]

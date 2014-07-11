@@ -26,7 +26,7 @@ class Files(object):
 			for f in files:
 				self.add(root, f)
 		Debug('files', "GETTING FILE LIST from TSS")
-		TSS.files(root, async_react)
+		TSS.get_tss_indexed_files(root, async_react)
 
 
 	def add(self, root, filename):
@@ -42,6 +42,7 @@ class Files(object):
 
 	def remove_by_root(self,root):
 		""" remove all files belonging to project (=root) from LISTE """
+		Debug('tss+', "Deleting the file<->rootfile associations for the just closing project %s" % root)
 		LISTE.remove_by_root(root)
 
 

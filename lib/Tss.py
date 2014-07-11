@@ -41,7 +41,7 @@ class Tss(object):
 		self.errors(filename_or_root)
 
 	# GET INDEXED FILES
-	def files(self, filename, callback):
+	def get_tss_indexed_files(self, filename, callback):
 		AsyncCommand('files', get_root(filename)) \
 			.do_json_decode_tss_answer() \
 			.set_result_callback(callback) \
@@ -243,6 +243,7 @@ class Tss(object):
 			if still_used_ts_files_open_in_window(files):
 				return
 
+			Debug('tss+', "No .ts files for rootfile left open => closing project %s" % get_root(filename))
 
 			# send quit and kill process afterwards
 			AsyncCommand('quit', get_root(filename)) \
@@ -257,7 +258,7 @@ class Tss(object):
 			
 
 		sublime.active_window().run_command('save_all')
-		self.files(filename, async_react_files)
+		self.get_tss_indexed_files(filename, async_react_files)
 		
 
 		

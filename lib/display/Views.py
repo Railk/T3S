@@ -104,10 +104,11 @@ class Views (object):
 	# DELETE VIEW
 	def delete_view(self,name):
 		if name in self.views:
-			if name == 'Typescript : Errors List': self.has_error = False
+			if name == 'Typescript : Errors List':
+				self.has_error = False
 			del self.views[name]
 
-		if not self.views:
+		if not self.views and self.window:
 			sublime.set_timeout(lambda:self.layout.update(self.window,self.group),1)
 
 

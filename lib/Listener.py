@@ -137,7 +137,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		COMPLETION.trigger(view, TSS)
 
 		if not SETTINGS.get('error_on_save_only'):
-			TSS.errors(view.file_name)
+			TSS.errors(view.file_name())
 			#debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
 

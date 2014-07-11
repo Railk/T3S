@@ -156,7 +156,7 @@ def read_file(filename):
 
 def read_and_decode_json_file(filename):
 	""" returns None or json-decoded file contents as object,list,... """
-	f = read_file(f)
+	f = read_file(filename)
 	return json.loads(f) if f is not None else None
 
 # FILE EXISTS

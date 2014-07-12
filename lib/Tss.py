@@ -208,6 +208,7 @@ class Tss(object):
 			.set_replaced_callback(lambda by, filename: VIEWS.on_calculation_replaced()) \
 			.append_to_slow_queue()
 	
+	default_errors_callback = None
 	def set_default_errors_callback(self, callback):
 		self.default_errors_callback = callback
 

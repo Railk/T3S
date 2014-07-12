@@ -267,10 +267,15 @@ class TypescriptUpdateOutlineView(sublime_plugin.TextCommand):
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
 	@catch_CancelCommand
-	def run(self, edit):
+	def run(self, edit_token):
 		TSS.assert_initialisation_finished(self.view.file_name())
 
 		VIEWS.error_view_available = True
+		if not VIEWS.is_open_view('error'):
+			view = VIEWS.create_or_open_view(self.view, 'error', edit_token, '\n\n\n...')
+			view.setup(self.view, None, None)
+			VIEWS.update_message()
+
 		TSS.update(*get_file_infos(self.view))
 		TSS.errors(self.view.file_name())
 

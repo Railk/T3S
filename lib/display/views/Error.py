@@ -32,12 +32,10 @@ class Error(Base):
 			Debug('errorpanel', "focus group %i" % group)
 			view = self.window.open_file(self.files[line])
 			Debug('errorpanel', "open file %s" % self.files[line])
-			self.open_view(view,*self.points[line])
+			self.open_view(view, *self.points[line])
 
-		self.ts_view.window().focus_view(self.ts_view)
-		
 
-	def open_view(self,view,begin,end):
+	def open_view(self, view, begin, end):
 		if view.is_loading():
 			sublime.set_timeout(lambda: self.open_view(view,begin,end), 100)
 			return
@@ -46,11 +44,10 @@ class Error(Base):
 			b = view.text_point(*end) 
 			region = sublime.Region(a,b)
 			Debug('errorpanel', "focus view to view %i" % view.id())
-			self.ts_view.window().focus_view(view)
+			self.view.window().focus_view(view)
 			Debug('errorpanel', "focus region, begin @pos %i, (%s -> %s)" % (region.begin(), begin, end))
-			#view.show(region)
+			view.show_at_center(region)
 			sel = view.sel()
 			sel.clear()
-			sel.add(region)
-			sel.clear()
-			sel.add(region)
+			sel.add(sublime.Region(a,a))
+

@@ -35,6 +35,7 @@ class Errors(object):
 
 	def on_results(self, errors, filename):
 		""" this is the default callback from the async process if new errors have been calculated """
+		VIEWS.on_calculation_finished()
 		if ST3:
 			self.show(errors)
 		else:
@@ -103,6 +104,8 @@ class Errors(object):
 					return e
 
 		return None
+
+
 
 
 # --------------------------------------- INIT -------------------------------------- #

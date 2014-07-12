@@ -1,12 +1,13 @@
 # coding=utf8
 
 import sublime
+import time
 
 from .Layout import Layout
 from .views.Outline import Outline
 from .views.Error import Error
 from .views.Compile import Compile
-
+from ..Utils import Debug
 
 class Views (object):
 	""" This class manages the 3 views:
@@ -149,6 +150,65 @@ class Views (object):
 			return Error(self.viewnames[_type], recycle_view)
 		elif _type == 'compile': return Compile(self.viewnames[_type], recycle_view)
 
+
+	# MANAGING ERROR CALCULATION STATUS MESSAGES
+	last_bounce_time = 0
+
+	is_executing = False
+	execution_started_time = 0
+	finished_time = 0
+	last_execution_duration = 0
+
+	def on_calculation_initiated(self):
+		Debug('errorpanel', "Calc init")
+		self.last_bounce_time = time.time()
+		self.update_message()
+
+	def on_calculation_replaced(self):
+		Debug('errorpanel', "Calc replaced")
+		self.last_bounce_time = time.time()
+		self.update_message()
+
+	def on_calculation_executing(self):
+		Debug('errorpanel', "Calc executing")
+		self.execution_started_time = time.time()
+		self.is_executing = True
+		self.update_message()
+
+	def on_calculation_finished(self):
+		Debug('errorpanel', "Calc finished")
+		self.finished_time = time.time()
+		self.last_execution_duration = self.finished_time - self.execution_started_time
+		self.is_executing = False
+		self.update_message()
+
+	def is_unstarted_calculation_pending(self):
+		return self.last_bounce_time > self.execution_started_time
+
+	def update_message(self):
+		msg = "//   "
+		if self.last_execution_duration > 0: # there was a previous calculation
+			msg += "/".ljust(int(self.last_execution_duration) + 1, "\"") + "\\"
+			# indicate 'oldness' of calculation
+			oldness = int(time.time() - self.finished_time)
+			if oldness < 10:
+				msg += " (%is ago) " % oldness
+			else:
+				msg += " (long ago) "
+
+		if self.is_executing: # calculating
+			calculation_time = time.time() - self.execution_started_time
+			msg += "/".ljust(int(calculation_time) + 1, "\"")
+		#else:	# calculation finished
+
+		if self.is_unstarted_calculation_pending():
+			msg += " ..."
+
+		sublime.active_window().run_command('typescript_error_calculation_status',
+			{"message": msg})
+
+		#if self.is_executing:
+		sublime.set_timeout(lambda: self.update_message(), 1000)
 
 
 # --------------------------------------- INITIALISATION -------------------------------------- #

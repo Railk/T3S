@@ -283,8 +283,9 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 
 		try:
 			if len(errors) == 0: 
-				view = VIEWS.create_or_open_view(self.view, 'error', self.edit_token, 'no errors')
+				view = VIEWS.create_or_open_view(self.view, 'error', self.edit_token, '\n\n\nno errors')
 				view.setup(self.view, None, None)
+				VIEWS.update_message()
 			else:
 				self.open_panel(errors)
 		except (Exception) as e:
@@ -300,6 +301,11 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 		characters = ''
 		previous_file = ''
 		lines = 0
+
+		# 2 empty lines for status messages about current error calculation state
+		lines = 1
+		characters += "\n"
+
 		for e in errors:
 			segments = e['file'].split('/')
 			last = len(segments)-1
@@ -332,6 +338,13 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 
 		view = VIEWS.create_or_open_view(self.view, 'error', self.edit_token, characters)
 		view.setup(self.view, files, points)
+		VIEWS.update_message()
+
+class TypescriptErrorCalculationStatus(sublime_plugin.TextCommand):
+
+	def run(self, edit_token, message):
+		if VIEWS.is_open_view(_type='error'):
+			VIEWS.get_view(_type='error').set_message(edit_token, message)
 
 
 # COMPILE VIEW

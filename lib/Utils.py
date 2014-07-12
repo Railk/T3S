@@ -9,6 +9,7 @@ import json
 import codecs
 import hashlib
 
+DEFAULT_DEBOUNCE_DELAY = 0.8
 
 print_classifications = []
 # possible classifications:
@@ -20,7 +21,7 @@ possible_classifications = [ 'all',
 	'build', 'build+',
 	'structure',
 	'autocomplete',
-	'errorpanel']
+	'errorpanel', 'errorpanel+']
 
 # DEBUG
 def Debug(classification, text):

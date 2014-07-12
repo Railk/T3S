@@ -340,6 +340,7 @@ class TssAdapterThread(Thread):
 		self.stdin.write(encode(async_command.command))
 		self.stdin.write(encode("\n"))
 		self.stdin.flush()
+		async_command.on_execute()
 		# causes result callback to be called async
 		async_command.on_result(self.stdout.readline().decode('UTF-8'))
 

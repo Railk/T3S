@@ -3,7 +3,7 @@ import time
 import sublime
 import json
 
-from ..Utils import Debug
+from ..Utils import Debug, DEFAULT_DEBOUNCE_DELAY
 from .Processes import PROCESSES
 
 # ----------------------------------------- ASYNC COMMAND ---------------------------------- #
@@ -35,6 +35,7 @@ class AsyncCommand(object):
 	MERGE_PROCRASTINATE = 1
 	MERGE_IMMEDIATE = 2
 
+
 	def __init__(self, command, root):
 		self.command = command
 		self.root = root
@@ -42,6 +43,7 @@ class AsyncCommand(object):
 		self.id = "%s-rnd%s" % (command[:6][:-1], uuid.uuid4().hex[0:5])
 		self.result_callback = None
 		self.replaced_callback = None
+		self.executing_callback = None
 		self.callback_kwargs = {}
 		self.merge_behaviour = self.MERGE_IMMEDIATE
 		self.debounce_time = 0
@@ -65,7 +67,7 @@ class AsyncCommand(object):
 		self.merge_behaviour = self.MERGE_PROCRASTINATE
 		return self
 
-	def activate_debounce(self, delay=0.8):
+	def activate_debounce(self, delay=DEFAULT_DEBOUNCE_DELAY):
 		"""
 			Activates debouncing. Command will only be executed when there are no new same-id commands for <delay> seconds.
 			Attention: This is only tested with MERGE_PROCRASTINATE activated.
@@ -93,6 +95,11 @@ class AsyncCommand(object):
 			when this command has been deleted from queue without execution.
 		"""
 		self.replaced_callback = replaced_callback
+		return self
+
+	def set_executing_callback(self, executing_callback=None):
+		""" Will be called as soon as the command is sent to tss.js """
+		self.executing_callback = executing_callback
 		return self
 
 
@@ -146,6 +153,11 @@ class AsyncCommand(object):
 			self.time_execute - self.time_queue,
 			self.time_finish - self.time_execute,
 			self.id))
+
+	def on_execute(self):
+		""" calls executing_callback using sublime.set_timeout """
+		if self.executing_callback is not None:
+			sublime.set_timeout(lambda: self.executing_callback(**self.callback_kwargs))
 
 	# ------------------------- debouncing helpers ---------------------------------- #
 

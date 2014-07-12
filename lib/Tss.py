@@ -6,6 +6,7 @@ import hashlib
 
 from .display.Completion import COMPLETION
 from .display.Message import MESSAGE
+from .display.Views import VIEWS
 from .system.Processes import PROCESSES
 from .system.AsyncCommand import AsyncCommand
 from .system.Liste import get_root
@@ -195,12 +196,16 @@ class Tss(object):
 		if not self.files_changed_after_last_call('errors'):
 			return
 
+		VIEWS.on_calculation_initiated()
+
 		AsyncCommand('showErrors', get_root(filename)) \
 			.set_id('showErrors') \
 			.procrastinate() \
 			.activate_debounce() \
 			.set_callback_kwargs(filename=filename) \
 			.set_result_callback(callback if callback else self.default_errors_callback) \
+			.set_executing_callback(lambda filename: VIEWS.on_calculation_executing()) \
+			.set_replaced_callback(lambda by, filename: VIEWS.on_calculation_replaced()) \
 			.append_to_slow_queue()
 	
 	def set_default_errors_callback(self, callback):

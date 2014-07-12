@@ -29,9 +29,7 @@ class Error(Base):
 		if line in self.points:
 			(group,index) = self.window.get_view_index(self.ts_view)
 			self.window.focus_group(group)
-			Debug('errorpanel', "focus group %i" % group)
 			view = self.window.open_file(self.files[line])
-			Debug('errorpanel', "open file %s" % self.files[line])
 			self.open_view(view, *self.points[line])
 
 
@@ -43,11 +41,18 @@ class Error(Base):
 			a = view.text_point(*begin)
 			b = view.text_point(*end) 
 			region = sublime.Region(a,b)
-			Debug('errorpanel', "focus view to view %i" % view.id())
+			Debug('errorpanel+', "focus view to view %i" % view.id())
 			self.view.window().focus_view(view)
-			Debug('errorpanel', "focus region, begin @pos %i, (%s -> %s)" % (region.begin(), begin, end))
+			Debug('errorpanel+', "focus region, begin @pos %i, (%s -> %s)" % (region.begin(), begin, end))
 			view.show_at_center(region)
 			sel = view.sel()
 			sel.clear()
 			sel.add(sublime.Region(a,a))
+
+	def set_message(self, edit_token, message):
+			Debug('errorpanel+', "first line region %i to %i" % (self.view.full_line(0).begin(), self.view.full_line(0).end()))
+			Debug('errorpanel+', "message: %s" % (message))
+			self.view.set_read_only(False)
+			self.view.replace(edit_token, self.view.full_line(0), message+"\n")
+			self.view.set_read_only(True)
 

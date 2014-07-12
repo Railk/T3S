@@ -8,7 +8,7 @@ import json
 
 from .Views import VIEWS
 from ..Tss import TSS
-from ..Utils import dirname, debounce, ST3
+from ..Utils import dirname, debounce, ST3, fn2k, is_ts
 
 # --------------------------------------- ERRORS -------------------------------------- #
 
@@ -36,44 +36,56 @@ class Errors(object):
 	def on_results(self, errors, filename):
 		""" this is the default callback from the async process if new errors have been calculated """
 		if ST3:
-			self.show(sublime.active_window().active_view(), errors)
+			self.show(errors)
 		else:
-			sublime.set_timeout(lambda: self.show(sublime.active_window().active_view(), errors), 1)
+			sublime.set_timeout(lambda: self.show(errors), 1)
 
-	def show(self,view,errors):
-		try:
+	def show(self, errors):
+		#try:
 			errors = json.loads(errors)
-			self.highlight(view, errors)
+			self.highlight(errors)
 			if VIEWS.error_view_available:
 				sublime.active_window().run_command('typescript_error_panel_view',{"errors":errors})
-		except:
-			print('show_errors json error : ',errors)
+		#except:
+		#		print('show_errors json error : ',errors)
 
 
-	def highlight(self,view,errors) :
-		error_regions = []
-		warning_regions = []
-		filename = view.file_name()
+	def highlight(self, errors):
+		""" update hightlights (red underline) in all files """
 
-		self.errors[filename] = {}
-		for e in errors :
-			if e['file'].replace('/',os.sep).lower() == filename.lower():
-				start_line = e['start']['line']
-				end_line = e['end']['line']
-				left = e['start']['character']
-				right = e['end']['character']
+		self.errors = {}
 
-				a = view.text_point(start_line-1,left-1)
-				b = view.text_point(end_line-1,right-1)
-				self.errors[filename][(a,b)] = e['text']
+		# iterate through all open views, to remove all remaining outdated underlinings
+		for window in sublime.windows():
+			for view in window.views():
+				if is_ts(view):
+					error_regions = []
+					warning_regions = []
 
-				if e['category'] == 'Error': 
-					error_regions.append(sublime.Region(a,b))
-				else:
-					warning_regions.append(sublime.Region(a,b))
+					key = fn2k(view.file_name())
+					self.errors[key] = {}
 
-		view.add_regions('typescript-error' , error_regions , 'invalid' , self.error_icon, self.underline)
-		view.add_regions('typescript-warnings' , warning_regions , 'invalid' , self.warning_icon, self.underline)
+					for e in errors:
+						if fn2k(e['file']) == key:
+							start_line = e['start']['line']
+							end_line = e['end']['line']
+							left = e['start']['character']
+							right = e['end']['character']
+
+							a = view.text_point(start_line-1,left-1)
+							b = view.text_point(end_line-1,right-1)
+
+
+							self.errors[key][(a,b)] = e['text']
+
+							if e['category'] == 'Error': 
+								error_regions.append(sublime.Region(a,b))
+							else:
+								warning_regions.append(sublime.Region(a,b))
+
+					# apply regions, even if empty
+					view.add_regions('typescript-error' , error_regions , 'invalid' , self.error_icon, self.underline)
+					view.add_regions('typescript-warnings' , warning_regions , 'invalid' , self.warning_icon, self.underline)
 
 
 	def set_status(self,view):
@@ -86,24 +98,11 @@ class Errors(object):
 
 	def _get_error_at(self,pos,filename):
 		if filename in self.errors:
-			for (l, h), error in self.errors[filename].items():
+			for (l, h), e in self.errors[filename].items():
 				if pos >= l and pos <= h:
-					return error
+					return e
 
 		return None
-
-# ----------------------------------- ERRORS READER --------------------------------- #
-
-class ErrorsReader(Thread):
-
-	def __init__(self,queue):
-		self.queue = queue
-		Thread.__init__(self)
-
-	def run(self):
-		for line in iter(self.queue.get, None):
-			if ST3: ERRORS.show(sublime.active_window().active_view(),line)
-			else: sublime.set_timeout(lambda: ERRORS.show(sublime.active_window().active_view(),line), 1)
 
 
 # --------------------------------------- INIT -------------------------------------- #

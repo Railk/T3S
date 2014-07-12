@@ -284,7 +284,7 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 		try:
 			if len(errors) == 0: 
 				view = VIEWS.create_or_open_view(self.view, 'error', self.edit_token, 'no errors')
-				view.setup(self.view,None,None)
+				view.setup(self.view, None, None)
 			else:
 				self.open_panel(errors)
 		except (Exception) as e:
@@ -331,8 +331,7 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 		characters += '\n'			
 
 		view = VIEWS.create_or_open_view(self.view, 'error', self.edit_token, characters)
-		
-		view.setup(self.view,files,points)
+		view.setup(self.view, files, points)
 
 
 # COMPILE VIEW

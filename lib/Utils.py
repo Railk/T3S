@@ -19,7 +19,8 @@ possible_classifications = [ 'all',
 	'files',
 	'build', 'build+',
 	'structure',
-	'autocomplete']
+	'autocomplete',
+	'errorpanel']
 
 # DEBUG
 def Debug(classification, text):

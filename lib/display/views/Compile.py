@@ -14,5 +14,5 @@ class Compile(Base):
 
 	def on_click(self,line):
 		if self.ts_view: 
-				if self.ts_view.window():
-					self.ts_view.window().focus_view(self.ts_view)
+			if self.ts_view.window():
+				self.ts_view.window().focus_view(self.ts_view)

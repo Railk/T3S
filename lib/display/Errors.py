@@ -34,6 +34,7 @@ class Errors(object):
 		
 
 	def on_results(self, errors, filename):
+		""" this is the default callback from the async process if new errors have been calculated """
 		if ST3:
 			self.show(sublime.active_window().active_view(), errors)
 		else:
@@ -43,7 +44,7 @@ class Errors(object):
 		try:
 			errors = json.loads(errors)
 			self.highlight(view, errors)
-			if VIEWS.has_error:
+			if VIEWS.error_view_available:
 				sublime.active_window().run_command('typescript_error_panel_view',{"errors":errors})
 		except:
 			print('show_errors json error : ',errors)

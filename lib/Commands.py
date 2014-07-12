@@ -257,10 +257,9 @@ class TypescriptUpdateOutlineView(sublime_plugin.TextCommand):
 				Debug('structure', 'STRUCTURE update canceled because of view change')
 				return
 
-			view = VIEWS.create_view(args['ts_view'], 
+			view = VIEWS.create_or_open_view(args['ts_view'],
 					 'outline',
 					 edit_token,
-					 'Typescript : Outline View', 
 					 args['characters'])
 			view.setup(args['ts_view'], args['regions'])
 
@@ -271,20 +270,20 @@ class TypescriptErrorPanel(sublime_plugin.TextCommand):
 	def run(self, edit):
 		TSS.assert_initialisation_finished(self.view.file_name())
 
-		VIEWS.has_error = True
+		VIEWS.error_view_available = True
 		TSS.update(*get_file_infos(self.view))
 		TSS.errors(self.view.file_name())
-		# debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), self.view.file_name())
+
 
 
 class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 
-	def run(self, edit, errors):
-		self.edit = edit
+	def run(self, edit_token, errors):
+		self.edit_token = edit_token
 
 		try:
 			if len(errors) == 0: 
-				view = VIEWS.create_view(self.view,'error',self.edit,'Typescript : Errors List','no errors')
+				view = VIEWS.create_or_open_view(self.view, 'error', self.edit_token, 'no errors')
 				view.setup(self.view,None,None)
 			else:
 				self.open_panel(errors)
@@ -331,7 +330,7 @@ class TypescriptErrorPanelView(sublime_plugin.TextCommand):
 		
 		characters += '\n'			
 
-		view = VIEWS.create_view(self.view,'error',self.edit,'Typescript : Errors List',characters)
+		view = VIEWS.create_or_open_view(self.view, 'error', self.edit_token, characters)
 		
 		view.setup(self.view,files,points)
 
@@ -360,14 +359,14 @@ class TypescriptBuild(sublime_plugin.TextCommand):
 
 class TypescriptBuildView(sublime_plugin.TextCommand):
 	
-	def run(self, edit, filename):		
+	def run(self, edit_token, filename):		
 		if filename != 'error':
 			if SETTINGS.get('show_build_file'):
 				if os.path.exists(filename):
 					data = read_file(filename)
-					view = VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',data)
+					view = VIEWS.create_or_open_view(self.view, 'compile', edit_token, data)
 				else:
-					view = VIEWS.create_view(self.view,'compile',edit,'Typescript : Built File',filename)
+					view = VIEWS.create_or_open_view(self.view, 'compile', edit_token, filename)
 
 				view.setup(self.view)
 		# else:

@@ -17,7 +17,8 @@ from .Utils import debounce, is_ts, is_dts, read_file, get_file_infos, ST3, Debu
 # ------------------------------------------- INIT ------------------------------------------ #
 
 def init(view):
-	if VIEWS.is_open_view(view.name()): VIEWS.on_view(view)
+	if VIEWS.is_open_view(name=view.name()):
+		VIEWS.on_view_clicked(view)
 	if not is_ts(view): return
 	if is_dts(view): return
 	if read_file(view.file_name()) == None: return
@@ -109,7 +110,8 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 	# ON CLICK
 	def on_selection_modified(self,view):
 		if not is_ts(view):
-			if VIEWS.is_open_view(view.name()): VIEWS.on_view(view)
+			if VIEWS.is_open_view(name=view.name()):
+				VIEWS.on_view_clicked(view)
 			return
 
 		filename = view.file_name()

@@ -15,7 +15,7 @@ class Base(object):
 		self.view.settings().set('word_wrap', True)
 		self.view.settings().set('extensions',['js'])
 
-	def update(self,edit,content):
+	def update(self, edit, content):
 		self.view.set_read_only(False)
 		self.view.erase(edit, sublime.Region(0, self.view.size()))
 		self.view.insert(edit,0,content)

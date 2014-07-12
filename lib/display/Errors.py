@@ -41,13 +41,13 @@ class Errors(object):
 			sublime.set_timeout(lambda: self.show(errors), 1)
 
 	def show(self, errors):
-		#try:
+		try:
 			errors = json.loads(errors)
 			self.highlight(errors)
 			if VIEWS.error_view_available:
 				sublime.active_window().run_command('typescript_error_panel_view',{"errors":errors})
-		#except:
-		#		print('show_errors json error : ',errors)
+		except:
+			print('show_errors json error : ',errors)
 
 
 	def highlight(self, errors):

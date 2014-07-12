@@ -97,8 +97,8 @@ class Errors(object):
 
 
 	def _get_error_at(self,pos,filename):
-		if filename in self.errors:
-			for (l, h), e in self.errors[filename].items():
+		if fn2k(filename) in self.errors:
+			for (l, h), e in self.errors[fn2k(filename)].items():
 				if pos >= l and pos <= h:
 					return e
 

@@ -124,7 +124,7 @@ class Views (object):
 	# DELETE VIEW (from on_close view)
 	def delete_view(self, name):
 		if name in self.open_views:
-			if name == viewnames['error']:
+			if name == self.viewnames['error']:
 				self.error_view_available = False
 			del self.open_views[name]
 

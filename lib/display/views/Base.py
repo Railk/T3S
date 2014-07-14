@@ -25,12 +25,14 @@ class Base(object):
 
 			## add next to existing t3s views
 			## or create layout if not created yet
-			(window, group) = self.t3sviews.get_window_and_group_for_new_views()
-			
-			view = window.new_file()
+			self.t3sviews.get_window_and_group_for_new_views()
+			if not self.t3sviews.has_open_views():
+				self.t3sviews.layout.create(self.t3sviews.window)
+
+			view = self.t3sviews.window.new_file()
 			self._set_up_view(view)
 
-			self.t3sviews.layout.add_view(window, view, group)
+			self.t3sviews.layout.add_view(self.t3sviews.window, view, self.t3sviews.group)
 			self._view_reference = view
 
 		return self._view_reference
@@ -64,8 +66,10 @@ class Base(object):
 		return self.get_view() is not None
 
 	def get_view(self):
-		if self._is_view_still_open():
+		if self._view_reference is not None and self._view_reference.is_valid and self._view_reference.buffer_id() != 0:
 			return self._view_reference
+		if self._view_reference is not None:
+			return None
 		elif self._search_existing_view():
 			return self._view_reference
 		return None
@@ -99,9 +103,21 @@ class Base(object):
 		self._view_reference.set_read_only(True)
 		self.is_updating = False
 
+
+	window = None # remember last group before close, so we can remove that exact group if empty
+	group = None
+	def on_pre_close(self):
+		Debug('layout', 'ON_PRE_CLOSE')
+		if self._is_view_still_open():
+			Debug('layout', '  remember win and gr')
+			self.window = self._view_reference.window()
+			(self.group, index) = self.window.get_view_index(self._view_reference)
+
 	@max_calls()
 	def on_closed(self):
-		self.t3sviews.update_layout()
+		if self.window is not None and self.group is not None:
+			self.t3sviews.update_layout(self.window, self.group)
+		self._view_reference = None
 		pass
 
 	@max_calls()

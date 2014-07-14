@@ -72,6 +72,8 @@ def on_kill(root):
 	TSS.removeEventListener('kill', root, on_kill)
 	FILES.remove_by_root(root)
 	ERRORS.on_close_typescript_project(root)
+	T3SVIEWS.hide_all()
+
 
 
 

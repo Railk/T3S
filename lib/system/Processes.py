@@ -211,6 +211,8 @@ class TssAdapterThread(Thread):
 		for async_command in iter(self.queue.get, "stop!"): 
 			Debug('adapter', "CONTINUTE execution queue")
 
+			if async_command == "stop!":
+				break
 			self.append_to_middlewarequeue(async_command)
 			self.add_pending_items_in_queue_to_middleware_queue()
 
@@ -230,6 +232,7 @@ class TssAdapterThread(Thread):
 	def append_to_middlewarequeue(self, async_command, set_timer=True):
 		""" Append async_command and set timer to release queue if told and needed. """
 		self.middleware_queue.append(async_command)
+
 		Debug('adapter+', "APPEND to middleware (in %fs): %s" % (async_command.time_until_execution(), async_command.id))
 		if set_timer and not async_command.can_be_executed_now():
 			self.trigger_queue_block_release_for(async_command)

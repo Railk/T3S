@@ -24,8 +24,8 @@ class T3SViews (object):
 		self.OUTLINE = Outline(self)
 		
 		# remembers group and window so we can delete the group if all windows are closed
-		self._group = None
-		self._window = None
+		self.group = None
+		self.window = None
 		
 		self.layout = Layout()
 
@@ -37,21 +37,36 @@ class T3SViews (object):
 	# GET WINDOW & VIEW GROUP FOR NEW T3S VIEWS *
 	def get_window_and_group_for_new_views(self):
 		"""
-			returns the sublime window and the sublime group in which the first 
+			determines the sublime window and the sublime group in which the first 
 			open T3S view is located (or should be inserted)
 		"""
+
+		def set_for_new():
+			self.window = sublime.active_window()
+			self.group = self.window.num_groups()
+			Debug('layout', '   -> default gr = %i' % self.group)
+
 		if not self.has_open_views():
-			self._window = sublime.active_window()
-			self.layout.create(self._window)
-			self._group = self._window.num_groups()-1
+			Debug('layout', 'get_window_and_group_for_new_views: no open views')
+			set_for_new()
 		else:
 			tv = self.get_an_open_t3sview()
 			if tv is None:
-				return self.get_window_and_group_for_new_views()
+				set_for_new()
+				return
 			sublime_view = tv.get_view()
-			self._window = sublime_view.window()
-			(self._group, index) = self._window.get_view_index(sublime_view)
-		return (self._window, self._group)
+			if sublime_view is None:
+				set_for_new()
+				return
+			window = sublime_view.window()
+			if window is None:
+				return
+			(group, index) = window.get_view_index(sublime_view)
+			if group is not None:
+				self.window = window
+				self.group = group
+				Debug('layout', 'get_window_and_group_for_new_views   -> got existing = %i' % self.group)
+
 
 	# GET ANY T3SVIEW *
 	def get_an_open_t3sview(self):
@@ -65,12 +80,18 @@ class T3SViews (object):
 		return None
 
 	# UPDATE LAYOUT *
-	def update_layout(self):
-		sublime.set_timeout( lambda:self.layout.update(self._window,self._group), 1)
+	def update_layout(self, window, group):
+		sublime.set_timeout( lambda:self.layout.update(window,group), 1)
+
+	# HIDE ALL *
+	def hide_all(self):
+		self.ERROR.hide()
+		self.OUTLINE.hide()
+		self.COMPILE.hide()
 
 	# FIND T3SVIEW for SUBLIME VIEW*
 	def find_t3sview_for_view(self, sublime_view):
-		if self._window is None:
+		if self.window is None:
 			self.get_window_and_group_for_new_views()
 		if self.ERROR.is_active() and sublime_view.id() == self.ERROR.get_view().id():
 			return self.ERROR
@@ -81,6 +102,13 @@ class T3SViews (object):
 		return None
 
 class TypescriptEventListener2(sublime_plugin.EventListener):
+
+	@max_calls(name='T3SViews.on_pre_close')
+	def on_pre_close(self, view):
+		v = T3SVIEWS.find_t3sview_for_view(view)
+		Debug('layout', 'ON_PRE_CLOSE % s' % v)
+		if v is not None:
+			v.on_pre_close()
 
 	@max_calls(name='T3SViews.on_close')
 	def on_close(self, view):

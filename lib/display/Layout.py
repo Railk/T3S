@@ -16,6 +16,7 @@ class Layout(object):
 	# UPDATE
 	@max_calls(name='Layout.update')
 	def update(self,window,group):
+		Debug('layout', 'UPDATE: group: %i' % group)
 		views = window.views_in_group(group)
 		if len(views) == 0: 
 			self.delete(window,group)
@@ -77,6 +78,7 @@ class Layout(object):
 	# DELETE
 	@max_calls(name='Layout.delete')
 	def delete(self,window,group):
+		Debug('layout', 'DELETE: group: %i' % group)
 		if not self.get_layout(window): return
 		rows, cols, cells = self.get_layout(window)
 		if rows is None:
@@ -84,6 +86,7 @@ class Layout(object):
 			if rows is None:
 				return
 
+		Debug('layout', '  cells: %s' % cells)
 		current = cells[group]
 		choices = {}
 		choices["up"] = self.adjacent_cell(window,"up",group)

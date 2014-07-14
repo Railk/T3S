@@ -12,7 +12,7 @@ import sys
 
 DEFAULT_DEBOUNCE_DELAY = 0.8
 
-print_classifications = []
+print_classifications = ['layout']
 # possible classifications:
 possible_classifications = [ 'all',
 	'tss', 'tss+', 'tss++',
@@ -23,7 +23,8 @@ possible_classifications = [ 'all',
 	'structure',
 	'autocomplete',
 	'errorpanel', 'errorpanel+',
-	'focus', 'max_calls']
+	'focus', 'max_calls',
+	'layout']
 
 # DEBUG
 def Debug(classification, text):

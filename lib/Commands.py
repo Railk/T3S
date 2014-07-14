@@ -9,13 +9,14 @@ import traceback
 
 from .commands.Compiler import Compiler
 from .commands.Refactor import Refactor
-from .display.Views import VIEWS
+from .display.T3SViews import T3SVIEWS
+from .display.Errors import ERRORS
 from .display.Message import MESSAGE
 from .display.Completion import COMPLETION
 from .system.Liste import LISTE, get_root
 from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import read_file, get_file_infos, get_prefix, debounce, ST3, catch_CancelCommand, CancelCommand, Debug
+from .Utils import read_file, get_file_infos, get_prefix, debounce, ST3, catch_CancelCommand, CancelCommand, Debug, max_calls
 
 
 # AUTO COMPLETION
@@ -112,6 +113,7 @@ class TypescriptDefinition(sublime_plugin.TextCommand):
 			b = view.text_point(end_line-1,right-1)
 			region = sublime.Region(a,b)
 
+			Debug('focus', 'Z focus view %i' % view.id())
 			sublime.active_window().focus_view(view)
 			view.show_at_center(region)
 
@@ -170,186 +172,99 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 		refactor.start()
 
 
-
-# NAVIGATE IN FILE
+# OPEN OUTLINE PANEL (via shortkey / public command)
 class TypescriptStructure(sublime_plugin.TextCommand):
-	outline_buffer = {}
-
+	""" this command opens and focus the structure/outline view """
 	@catch_CancelCommand
-	def run(self, edit):
+	@max_calls(name='TypescriptStructure')
+	def run(self, edit_token):
+		Debug('structure', 'open view if not already open')
+		TSS.assert_initialisation_finished(self.view.file_name())
+
+		T3SVIEWS.OUTLINE.enable()
+		T3SVIEWS.OUTLINE.bring_to_top(back_to=self.view)
+
+		self.view.run_command('typescript_update_structure', {"force": True})
+	
+
+# REFRESH OUTLINE VIEW to match CURRENT VIEW
+class TypescriptUpdateStructure(sublime_plugin.TextCommand):
+	@catch_CancelCommand
+	@max_calls(name='TypescriptUpdateStructure')
+	def run(self, edit_token, force=False):
 		TSS.assert_initialisation_finished(self.view.file_name())
 
 		def async_react(members, filename, sender_view_id):
-
-			Debug('structure', 'STRUCTURE async_react for %s in start view %s, now view %s' % (filename, self.view.id(), sublime.active_window().active_view().id()) )
+			## members is the already json-decoded tss.js answer
+			Debug('structure', 'STRUCTURE async_react for %s in start view %s, now view %s' 
+					% (filename, self.view.id(), sublime.active_window().active_view().id()) )
 
 			if sublime.active_window().active_view().id() != sender_view_id or self.view.id() != sender_view_id:
 				Debug('structure', 'STRUCTURE async_react canceled because of view change')
 				return
 
-			regions = {}
-
-			if len(members) == 0:
-				TypescriptStructure.outline_buffer = {"ts_view" : self.view(), "characters": "---", "regions":None}
-				self.view.run_command('typescript_update_outline_view')
-				return
-
-			try:
-				characters = ""
-				lines = 0
-				for member in members:
-					start_line = member['min']['line']
-					end_line = member['lim']['line']
-					left = member['min']['character']
-					right = member['lim']['character']
-
-					a = self.view.text_point(start_line-1,left-1)
-					b = self.view.text_point(end_line-1,right-1)
-					region = sublime.Region(a,b)
-					kind = get_prefix(member['loc']['kind'])
-					container_kind = get_prefix(member['loc']['containerKind'])
-
-					if member['loc']['kind'] != 'class' and member['loc']['kind'] != 'interface':
-						line = kind+' '+member['loc']['kindModifiers']+' '+member['loc']['kind']+' '+member['loc']['name']
-						characters = characters+'\n\t'+line.strip()
-						lines += 1
-						regions[lines] = region
-					else:
-						line = container_kind+' '+member['loc']['kindModifiers']+' '+member['loc']['kind']+' '+member['loc']['name']+' {'
-						if characters == "":
-							characters = '\n'+characters+line.strip()+'\n'
-							lines+=1
-							regions[lines] = region
-							lines+=1
-						else:
-							characters = characters+'\n\n}'+'\n\n'+line.strip()+'\n'
-							lines+=4
-							regions[lines] = region
-							lines+=1
-
-				if characters != "": characters += '\n\n}'
-				# use new command because current edit instance is invalid in this defered async state
-				Debug('structure', 'STRUCTURE async_react set outline_buffer')
-				TypescriptStructure.outline_buffer = {"ts_view" : self.view, "characters":characters, "regions":regions}
-				self.view.run_command("typescript_update_outline_view")
-
-			except (Exception) as e:
-				e = str(e)
-				sublime.status_message("File navigation : "+e)
-				print("File navigation : "+e)
-				print(traceback.format_exc())
-
-		Debug('structure', 'STRUCTURE for %s in view %s' % (self.view.file_name(), self.view.id()))
-
-		TSS.structure(self.view.file_name(), self.view.id(), async_react)
+			self.view.run_command('typescript_outline_view_set_text', {"members": members} )
 
 
+		if T3SVIEWS.OUTLINE.is_active() and (force or not T3SVIEWS.OUTLINE.is_current_ts(self.view)):
+			Debug('structure', 'STRUCTURE for %s in view %s, active view is %s' 
+				% (self.view.file_name(), self.view.id(), sublime.active_window().active_view().id()))
+			TSS.structure(self.view.file_name(), self.view.id(), async_react)
 
 
 # OPEN and WRITE TEXT TO OUTLINE VIEW
-class TypescriptUpdateOutlineView(sublime_plugin.TextCommand):
-	def run(self, edit_token):
-		Debug('structure', 'STRUCTURE update outline view')
-		args = TypescriptStructure.outline_buffer
-		if 'ts_view' in args and 'characters'  in args and 'regions' in args:
+class TypescriptOutlineViewSetText(sublime_plugin.TextCommand):
+	@max_calls(name='TypescriptOutlineViewSetText')
+	def run(self, edit_token, members):
+		#try: # for debugging ok, but TODO: reinsert try
+			Debug('structure', 'STRUCTURE update outline view panel')
+			T3SVIEWS.OUTLINE.set_text(edit_token, members, self.view)
+		#except (Exception) as e:
+		#	sublime.status_message("Outline panel : %s" % e)
+		#	print("Outline panel: %s" % e)
 
-			if sublime.active_window().active_view().id() != args['ts_view'].id():
-				Debug('structure', 'STRUCTURE update canceled because of view change')
-				return
 
-			view = VIEWS.create_or_open_view(args['ts_view'],
-					 'outline',
-					 edit_token,
-					 args['characters'])
-			view.setup(args['ts_view'], args['regions'])
-
-# OPEN ERROR PANEL
+# OPEN ERROR PANEL (via shortkey / public command)
 class TypescriptErrorPanel(sublime_plugin.TextCommand):
 
 	@catch_CancelCommand
+	@max_calls(name='TypescriptErrorPanel')
 	def run(self, edit_token):
 		TSS.assert_initialisation_finished(self.view.file_name())
 
-		VIEWS.error_view_available = True
-		if not VIEWS.is_open_view('error'):
-			view = VIEWS.create_or_open_view(self.view, 'error', edit_token, '\n\n\n...')
-			view.setup(self.view, None, None)
-			VIEWS.update_message()
+		T3SVIEWS.ERROR.enable(edit_token)
+		T3SVIEWS.ERROR.bring_to_top(back_to=self.view)
 
+		self.view.run_command('typescript_recalculate_errors')
+
+
+
+
+# REFRESH ERRORS (eg after typing characters, if not automatically done)
+class TypescriptRecalculateErrors(sublime_plugin.TextCommand):
+
+	@catch_CancelCommand
+	@max_calls(name='TypescriptRecalculateErrors')
+	def run(self, edit_token):
+		TSS.assert_initialisation_finished(self.view.file_name())
 		TSS.update(*get_file_infos(self.view))
-		TSS.errors(self.view.file_name())
+		ERRORS.start_recalculation(self.view.file_name())
 
 
-
-class TypescriptErrorPanelView(sublime_plugin.TextCommand):
-
+class TypescriptErrorPanelSetText(sublime_plugin.TextCommand):
+	@max_calls(name='TypescriptErrorPanelSetText')
 	def run(self, edit_token, errors):
-		self.edit_token = edit_token
-
-		try:
-			if len(errors) == 0: 
-				view = VIEWS.create_or_open_view(self.view, 'error', self.edit_token, '\n\n\nno errors')
-				view.setup(self.view, None, None)
-				VIEWS.update_message()
-			else:
-				self.open_panel(errors)
-		except (Exception) as e:
-			e = str(e)
-			sublime.status_message("Error panel : "+e)
-			print("Error panel: "+e)
+		#try: # for debugging ok, but TODO: reinsert try
+			T3SVIEWS.ERROR.set_text(edit_token, errors)
+		#except (Exception) as e:
+		#	sublime.status_message("Error panel : %s" % e)
+		#	print("Error panel: %s" % e)
 
 
-	def open_panel(self,errors):
-		files = {}
-		points = {}
-
-		characters = ''
-		previous_file = ''
-		lines = 0
-
-		# 2 empty lines for status messages about current error calculation state
-		lines = 1
-		characters += "\n"
-
-		for e in errors:
-			segments = e['file'].split('/')
-			last = len(segments)-1
-			filename = segments[last]
-
-			start_line = e['start']['line']
-			end_line = e['end']['line']
-			left = e['start']['character']
-			right = e['end']['character']
-
-			a = (start_line-1,left-1)
-			b = (end_line-1,right-1)
-
-			if previous_file != filename:
-				if characters == "":
-					characters += "On File : " + filename+'\n'
-					lines +=2
-				else:
-					characters += "\n\nOn File : " + filename+'\n'
-					lines +=3
-
-			characters += '\n\t'+"On Line " + str(start_line) +' : '+re.sub(r'^.*?:\s*', '', e['text'].replace('\r',''))
-			points[lines] = (a,b)
-			files[lines] = e['file']
-
-			lines+=1
-			previous_file = filename
-		
-		characters += '\n'			
-
-		view = VIEWS.create_or_open_view(self.view, 'error', self.edit_token, characters)
-		view.setup(self.view, files, points)
-		VIEWS.update_message()
-
-class TypescriptErrorCalculationStatus(sublime_plugin.TextCommand):
-
+class TypescriptSetErrorCalculationStatusMessage(sublime_plugin.TextCommand):
+	@max_calls(name='TypescriptSetErrorCalculationStatusMessage')
 	def run(self, edit_token, message):
-		if VIEWS.is_open_view(_type='error'):
-			VIEWS.get_view(_type='error').set_message(edit_token, message)
+		T3SVIEWS.ERROR.set_error_calculation_status_message(edit_token, message)
 
 
 # COMPILE VIEW
@@ -379,12 +294,15 @@ class TypescriptBuildView(sublime_plugin.TextCommand):
 	def run(self, edit_token, filename):		
 		if filename != 'error':
 			if SETTINGS.get('show_build_file'):
+				T3SVIEWS.COMPILE.enable()
+				T3SVIEWS.COMPILE.bring_to_top(back_to=self.view)
 				if os.path.exists(filename):
 					data = read_file(filename)
-					view = VIEWS.create_or_open_view(self.view, 'compile', edit_token, data)
+					T3SVIEWS.COMPILE.set_text(edit_token, data)
 				else:
-					view = VIEWS.create_or_open_view(self.view, 'compile', edit_token, filename)
+					T3SVIEWS.COMPILE.set_text(edit_token, filename)
 
-				view.setup(self.view)
-		# else:
-		# 	sublime.active_window().run_command("typescript_error_panel")
+
+
+
+

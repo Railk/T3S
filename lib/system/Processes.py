@@ -58,12 +58,16 @@ class Processes(object):
 		   and self.roots[root][Processes.SLOW].started \
 		   and self.roots[root][Processes.FAST].started
 		
+	def initialisation_started(self, root):
+		""" Returns True if start_tss_processes_for() has been called with root """
+		return root in self.roots
+
 	def start_tss_processes_for(self, root, init_finished_callback):
 		"""
 			If not allready started, start tss.js (2 times) for project root.
 			Displays message to user while starting and calls tss_notify_callback('init', root) afterwards
 		"""
-		if root in self.roots:
+		if self.initialisation_started(root):
 			return
 			
 		print('Typescript initializing ' + root)

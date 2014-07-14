@@ -3,25 +3,32 @@
 import sublime
 import sublime_plugin
 
-from .display.Views import VIEWS
+from .display.T3SViews import T3SVIEWS
 from .display.Completion import COMPLETION
 from .display.Errors import ERRORS
+from .display.ErrorsHighlighter import ERRORSHIGHLIGHTER
 from .system.Files import FILES
 from .system.Liste import LISTE
 from .system.Processes import PROCESSES
 from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import debounce, is_ts, is_dts, read_file, get_file_infos, ST3, Debug
+from .Utils import debounce, is_ts, is_dts, read_file, get_file_infos, ST3, Debug, max_calls, run_command_on_any_ts_view
 
 
 # ------------------------------------------- INIT ------------------------------------------ #
+c = [0]
 
+@max_calls(name='main init')
 def init(view):
-	if VIEWS.is_open_view(name=view.name()):
-		VIEWS.on_view_clicked(view)
-	if not is_ts(view): return
-	if is_dts(view): return
-	if read_file(view.file_name()) == None: return
+	c[0] = c[0] + 1
+	if c[0] == 10:
+		pass #import spdb ; spdb.start()
+
+
+	if not is_ts(view) or is_dts(view):
+		return
+	if read_file(view.file_name()) is None:
+		return
 
 	root = SETTINGS.get_root(view)
 	if root == 'no_ts' or root == None: return
@@ -36,43 +43,46 @@ def init(view):
 			FILES.add(root,filename)
 			TSS.add(*args)
 
-		VIEWS.update()
-		#TSS.errors(filename)
-		#debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), view.file_name())
-	else:
+		view.run_command('typescript_update_structure')
+
+	elif not PROCESSES.initialisation_started(root):
 		FILES.add(root,filename)
-		if filename != root: FILES.add(root,root)
+		if filename != root:
+			FILES.add(root,root)
 		TSS.addEventListener('init', root, on_init)
 		TSS.addEventListener('kill', root, on_kill)
 		TSS.init(root)
-		view.settings().set('auto_complete',SETTINGS.get("auto_complete"))
-		view.settings().set('extensions',['ts'])
+		view.settings().set('auto_complete', SETTINGS.get("auto_complete"))
+		view.settings().set('extensions', ['ts'])
 		
-
+@max_calls()
 def on_init(root):
 	TSS.removeEventListener('init', root, on_init)
-	FILES.init(root)
-	ERRORS.init(root)
-	TSS.set_default_errors_callback(ERRORS.on_results)
-	VIEWS.init()
+	FILES.init(root, on_files_loaded)
 
+@max_calls()
+def on_files_loaded():
+	# we don't know if a ts view is activated, start conditions
+	run_command_on_any_ts_view('typescript_update_structure', {"force": True})
+	run_command_on_any_ts_view('typescript_recalculate_errors')
+
+
+@max_calls()
 def on_kill(root):
 	TSS.removeEventListener('kill', root, on_kill)
 	FILES.remove_by_root(root)
-	# ERRORS.remove(root) TODO: clean error window
+	ERRORS.on_close_typescript_project(root)
+
 
 
 # ----------------------------------------- LISTENERS ---------------------------------------- #
 
 class TypescriptEventListener(sublime_plugin.EventListener):
 
-	error_delay = 0.8
-
 
 	# CLOSE FILE
-	def on_close(self,view):
-		if VIEWS.is_view(view.name()):
-			VIEWS.delete_view(view.name())
+	@max_calls(name='Listener.on_close')
+	def on_close(self, view):
 
 		if is_ts(view) and not is_dts(view):
 			filename = view.file_name()
@@ -81,39 +91,47 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 
 	# FILE ACTIVATED
-	def on_activated(self,view):
+	@max_calls()
+	def on_activated(self, view):
 		init(view)
 
 		
 	# ON CLONED FILE
-	def on_clone(self,view):
+	@max_calls()
+	def on_clone(self, view):
 		init(view)
 
 
 	# ON SAVE
-	def on_post_save(self,view):
+	@max_calls()
+	def on_post_save(self, view):
 		if not is_ts(view):
 			return
 
 		args = get_file_infos(view)
 		TSS.update(*args)
-		VIEWS.update()
 		FILES.update(view,True)
-		TSS.errors(view.file_name())
-		#debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
 
+		view.run_command('typescript_update_structure', {"force": True})
+		ERRORS.start_recalculation(view.file_name())
 
 		if SETTINGS.get('build_on_save'):
 			sublime.active_window().run_command('typescript_build',{"characters":False})
 
 
 	# ON CLICK
-	def on_selection_modified(self,view):
-		if not is_ts(view):
-			if VIEWS.is_open_view(name=view.name()):
-				VIEWS.on_view_clicked(view)
+	@max_calls(name='listener.on_selection_modified')
+	def on_selection_modified(self, view):
+		if not is_ts(view) or is_dts(view):
 			return
 
+		ERRORSHIGHLIGHTER.display_error_in_status_if_cursor(view)
+		view.erase_regions('typescript-definition')
+		view.erase_regions('typescript-error-hint')
+
+		return ## test
+
+		## TODO: the next line add the file if not available. call to init() or remove??
 		filename = view.file_name()
 		if not LISTE.has(filename) and read_file(filename) != None and not is_dts(view):
 			root = SETTINGS.get_root(view)
@@ -122,25 +140,26 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 			FILES.add(root,filename)
 			TSS.add(*args)
 
-		view.erase_regions('typescript-definition')
-		ERRORS.set_status(view)
 
 
 	# ON VIEW MODIFIED
-	def on_modified(self,view):
-		if view.is_loading(): return
-		if not is_ts(view):
+	@max_calls()
+	def on_modified(self, view):
+		if view.is_loading():
+			return
+		if not is_ts(view) or is_dts(view):
 			return
 
 		args = get_file_infos(view)
 		TSS.update(*args)
 		FILES.update(view)
-		VIEWS.update()
+
+		view.run_command('typescript_update_structure', {"force": True})
 		COMPLETION.trigger(view, TSS)
 
 		if not SETTINGS.get('error_on_save_only'):
-			TSS.errors(view.file_name())
-			#debounce(TSS.errors, self.error_delay, 'errors' + str(id(TSS)), view.file_name())
+			ERRORS.start_recalculation(view.file_name())
+
 
 
 	# ON QUERY COMPLETION
@@ -148,7 +167,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		pos = view.sel()[0].begin()
 		(line, col) = view.rowcol(pos)
 		Debug('autocomplete', "on_query_completions(), sublime wants to see the results, cursor currently at %i , %i (enabled: %s, items: %i)" % (line+1, col+1, COMPLETION.enabled_for['viewid'], len(COMPLETION.get_list()) ) )
-		if is_ts(view):
+		if is_ts(view) and not is_dts(view):
 			if COMPLETION.enabled_for['viewid'] == view.id():
 				COMPLETION.enabled_for['viewid'] = -1 # receive only once
 				return (COMPLETION.get_list(), sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)

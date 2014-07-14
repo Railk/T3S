@@ -6,11 +6,11 @@ import hashlib
 
 from .display.Completion import COMPLETION
 from .display.Message import MESSAGE
-from .display.Views import VIEWS
+from .display.T3SViews import T3SVIEWS
 from .system.Processes import PROCESSES
 from .system.AsyncCommand import AsyncCommand
 from .system.Liste import get_root
-from .Utils import is_dts, encode, CancelCommand, Debug, fn2l
+from .Utils import is_dts, encode, CancelCommand, Debug, fn2l, max_calls
 
 
 # --------------------------------------- TSS -------------------------------------- #
@@ -20,11 +20,12 @@ class Tss(object):
 	# INITIALISATION FINISHED
 	def assert_initialisation_finished(self, filename):
 		if not PROCESSES.is_initialized(get_root( filename )):
-			sublime.status_message('You must wait for the initialisation to finish')
+			sublime.status_message('You must wait for the initialisation to finish (%s)' % filename)
 			raise CancelCommand()
 
 
 	# INIT ROOT FILE
+	@max_calls(name='Tss.init()')
 	def init(self, root):
 		PROCESSES.start_tss_processes_for(root,
 				  init_finished_callback=lambda: self.notify('init', root) )
@@ -34,14 +35,16 @@ class Tss(object):
 
 
 	# RELOAD PROCESS
+	@max_calls()
 	def reload(self, filename_or_root, callback=None):
 		AsyncCommand('reload', get_root(filename_or_root)) \
 			.set_id('reload') \
 			.set_result_callback(lambda r: callback()) \
 			.append_to_both_queues()
-		self.errors(filename_or_root)
+		sublime.active_window().run_command('typescript_recalculate_errors')
 
 	# GET INDEXED FILES
+	@max_calls()
 	def get_tss_indexed_files(self, filename, callback):
 		AsyncCommand('files', get_root(filename)) \
 			.do_json_decode_tss_answer() \
@@ -49,6 +52,7 @@ class Tss(object):
 			.append_to_fast_queue()
 
 	# DUMP FILE (untested)
+	@max_calls()
 	def dump(self, filename, output, callback):
 		dump_command = 'dump {0} {1}'.format( output, fn2l(filename) )
 		AsyncCommand(dump_command, get_root(filename)) \
@@ -56,6 +60,7 @@ class Tss(object):
 			.append_to_fast_queue()
 
 	# TYPE
+	@max_calls()
 	def type(self, filename, line, col, callback):
 		""" callback({ tss type answer }, filename=, line=, col=) """
 
@@ -70,6 +75,7 @@ class Tss(object):
 
 
 	# DEFINITION
+	@max_calls()
 	def definition(self, filename, line, col, callback):
 		""" callback({ tss type answer }, filename=, line=, col=) """
 
@@ -84,6 +90,7 @@ class Tss(object):
 
 
 	# REFERENCES
+	@max_calls()
 	def references(self, filename, line, col, callback):
 		""" callback({ tss type answer }, filename=, line=, col=) """
 
@@ -97,6 +104,7 @@ class Tss(object):
 			.append_to_fast_queue()
 
 	# STRUCTURE
+	@max_calls()
 	def structure(self, filename, sender_view_id, callback):
 		""" callback({ tss type answer }, filename=, sender_view_id=) """
 
@@ -111,6 +119,7 @@ class Tss(object):
 
 
 	# ASK FOR COMPLETIONS
+	@max_calls()
 	def complete(self, filename, line, col, is_member_str, callback):
 		""" callback("tss type answer as string") """
 
@@ -127,6 +136,7 @@ class Tss(object):
 
 
 	# UPDATE FILE
+	@max_calls()
 	def update(self, filename, lines, content):
 
 		# only update if the file contents have changed since last update call on this file
@@ -141,6 +151,7 @@ class Tss(object):
 
 
 	# ADD FILE
+	@max_calls()
 	def add(self, root, filename, lines, content):
 
 		update_command = 'update nocheck {0} {1}\n{2}'.format(str(lines+1), fn2l(filename), content)
@@ -153,6 +164,7 @@ class Tss(object):
 		self.on_file_contents_have_changed()
 
 
+	@max_calls()
 	def need_update(self, filename, unsaved_content):
 		""" Returns True if <unsaved_content> has changed since last call to need_update(). """
 		newhash = self.make_hash(unsaved_content)
@@ -190,30 +202,28 @@ class Tss(object):
 
 
 	# ERRORS
-	def errors(self, filename, callback=None):
+	@max_calls()
+	def errors(self, filename_or_root, callback=None):
 		""" callback format: callback(result, filename=) """
 
 		if not self.files_changed_after_last_call('errors'):
 			return
 
-		VIEWS.on_calculation_initiated()
+		T3SVIEWS.ERROR.on_calculation_initiated()
 
-		AsyncCommand('showErrors', get_root(filename)) \
+		AsyncCommand('showErrors', get_root(filename_or_root)) \
 			.set_id('showErrors') \
 			.procrastinate() \
 			.activate_debounce() \
-			.set_callback_kwargs(filename=filename) \
-			.set_result_callback(callback if callback else self.default_errors_callback) \
-			.set_executing_callback(lambda filename: VIEWS.on_calculation_executing()) \
-			.set_replaced_callback(lambda by, filename: VIEWS.on_calculation_replaced()) \
+			.set_callback_kwargs(filename=filename_or_root) \
+			.set_result_callback(lambda errors, filename: [callback(errors, filename), T3SVIEWS.ERROR.on_calculation_finished()] ) \
+			.set_executing_callback(lambda filename: T3SVIEWS.ERROR.on_calculation_executing()) \
+			.set_replaced_callback(lambda by, filename: T3SVIEWS.ERROR.on_calculation_replaced()) \
 			.append_to_slow_queue()
 	
-	default_errors_callback = None
-	def set_default_errors_callback(self, callback):
-		self.default_errors_callback = callback
-
 
 	# KILL PROCESS (if no more files in editor)
+	@max_calls()
 	def kill(self, filename):
 		if not PROCESSES.is_initialized(get_root(filename)) \
 			or self.is_killed:

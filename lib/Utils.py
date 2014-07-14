@@ -8,6 +8,7 @@ import re
 import json
 import codecs
 import hashlib
+import sys
 
 DEFAULT_DEBOUNCE_DELAY = 0.8
 
@@ -21,7 +22,8 @@ possible_classifications = [ 'all',
 	'build', 'build+',
 	'structure',
 	'autocomplete',
-	'errorpanel', 'errorpanel+']
+	'errorpanel', 'errorpanel+',
+	'focus', 'max_calls']
 
 # DEBUG
 def Debug(classification, text):
@@ -30,6 +32,34 @@ def Debug(classification, text):
 	if classification not in possible_classifications:
 		print("T3S: debug: got unknown debug message classification: %s. " \
 			"Consider adding this to possible_classifications" % classification)
+	sys.stdout.flush()
+
+# HELPER to hunt down memory leak
+from functools import wraps
+def max_calls(limit = 1500, name=""):
+	"""Decorator which allows its wrapped function to be called `limit` times"""
+	def decorator(func):
+		# Disable limit:
+		return func
+		@wraps(func)
+		def wrapper(*args, **kwargs):
+			calls = getattr(wrapper, 'calls', 0)
+			calls += 1
+			setattr(wrapper, 'calls', calls)
+			fname = name if name != "" else func.__name__
+
+			if calls == limit + 1:
+				Debug('max_calls', "LIMIT !! ## !!: Fkt %s has %i calls, stop" % (fname, calls - 1))
+
+			if calls >= limit + 1:
+				return None
+
+			Debug('max_calls', "CALL: Fkt %s has %i calls -> +1" % (fname, calls - 1))
+
+			return func(*args, **kwargs)
+		setattr(wrapper, 'calls', 0)
+		return wrapper
+	return decorator
 
 
 # CANCEL COMMAND EXCEPTION
@@ -95,11 +125,36 @@ def encode(message):
 	if ST3: return bytes(message,'UTF-8')
 	else: return message.encode('UTF-8')
 
+# TS VIEW
+def get_any_ts_view():
+	v = sublime.active_window().active_view()
+	if is_ts(v) and not is_dts(v):
+		return v
+	for w in sublime.windows():
+		for v in w.views():
+			if is_ts(v) and not is_dts(v):
+				return v
+
+
+# RUN COMMAND
+def run_command_on_any_ts_view(command, args=None):
+	v = get_any_ts_view()
+	if v is not None:
+		v.run_command(command, args)
 
 # IS A TYPESCRIPT FILE
 def is_ts(view):
-	if not view: return False
-	return view.file_name() and view.file_name().endswith('.ts')
+	if view is None:
+		return False
+	fn = view.file_name()
+	fn2 = view.file_name()
+	fn3 = view.file_name()
+	if fn is None or fn2 is None:
+		return False
+	if fn is None or fn2 is None or fn3 is None:
+		pass
+		#import spdb ; spdb.start()
+	return fn.endswith('.ts')
 
 
 # IS A TYPESCRIPT DEFINITION FILE

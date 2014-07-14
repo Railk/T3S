@@ -111,7 +111,7 @@ class AsyncCommand(object):
 		return self._append_to_queue(PROCESSES.FAST)
 
 	def append_to_slow_queue(self):
-		Debug('command', "CMD queued @FAST: %s" % self.id)
+		Debug('command', "CMD queued @SLOW: %s" % self.id)
 		return self._append_to_queue(PROCESSES.SLOW)
 
 	def append_to_both_queues(self):

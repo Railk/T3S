@@ -5,7 +5,7 @@ import sublime
 import re
 import os
 
-from ..Utils import read_file, file_exists, fn2l, Debug
+from ..Utils import read_file, file_exists, fn2l, Debug, max_calls
 from ..Tss import TSS
 from .Liste import LISTE
 
@@ -19,16 +19,20 @@ class Files(object):
 		up to date. For this it parses unsaved views after each keystroke.
 	"""
 
-	def init(self, root):
+	@max_calls(name='Files.init')
+	def init(self, root, callback=None):
 		""" add the files in current project (=root) determined by tss>files command to LISTE """
 		def async_react(files):
 			""" callback for async tss>files response. Add files"""
 			for f in files:
 				self.add(root, f)
+			if callback is not None:
+				callback()
 		Debug('files', "GETTING FILE LIST from TSS")
 		TSS.get_tss_indexed_files(root, async_react)
 
 
+	@max_calls(name='Files.add')
 	def add(self, root, filename):
 		""" Adds/updates filename in LISTE, keeping track of belonging project (=root) and references """
 		Debug('files', "ADD FILE to LISTE, parse references: %s" % filename)
@@ -45,7 +49,7 @@ class Files(object):
 		Debug('tss+', "Deleting the file<->rootfile associations for the just closing project %s" % root)
 		LISTE.remove_by_root(root)
 
-
+	@max_calls(name='Files.update')
 	def update(self, view, remove_unused=False):
 		""" 
 			updates the references list in LISTE with the used references in the unsaved source file

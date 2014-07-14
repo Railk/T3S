@@ -122,6 +122,9 @@ And also add (optionnal) your project settings :
 			}
 		}
 
+- One of "output_dir_path" (for --outDir) and "concatenate_and_emit_output_file_path" (for --out) needs to contain a file path/directory. If you want to insert a relative path, it has to start with a dot: . The relative path is relative to the folder of the root file.
+- For any path related config option: If no path is given, please insert "none". 
+- show_build_file displays the compiled file in an extra view inside of sublime.
 
 ##### You want to create a single root file project and don't want to create a sublime-project
 You can create a .sublimets file in the folder containing the typescript root file :

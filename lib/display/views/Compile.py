@@ -6,8 +6,8 @@ class Compile(Base):
 
 	ts_view = None;
 
-	def __init__(self,name,view):
-		super(Compile, self).__init__(name,view)
+	def __init__(self, t3sviews):
+		super(Compile, self).__init__('Typescript : Built File', t3sviews)
 
 	def setup(self,ts_view):
 		self.ts_view = ts_view

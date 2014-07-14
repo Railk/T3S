@@ -6,7 +6,7 @@ import os
 
 from .Liste import LISTE
 from .Project import ProjectSettings, ProjectError
-from ..Utils import read_and_decode_json_file, read_file
+from ..Utils import read_and_decode_json_file, read_file, get_any_ts_view
 
 # ----------------------------------------- CONSTANT ---------------------------------------- #
 
@@ -26,12 +26,12 @@ class Settings(object):
 
 
 	def get(self,token):
-		view = sublime.active_window().active_view()
+		view = get_any_ts_view()
 		return self.projects_type[LISTE.get_root(view.file_name())].get(view,token)
 
 
 	def get_node(self):
-		view = sublime.active_window().active_view()
+		view = get_any_ts_view()
 		node_path = self.projects_type[LISTE.get_root(view.file_name())].get(view,'node_path')
 		if node_path == 'none':
 			return '/usr/local/bin/node' if sys.platform == "darwin" else 'node'

@@ -42,7 +42,6 @@ class Compiler(Thread):
 		node = SETTINGS.get_node()
 		kwargs = get_kwargs()
 		settings = json.dumps(SETTINGS.get('build_parameters'))
-		(head, tail) = os.path.split(self.filename)
 
 		if ST3:
 			clear_panel(self.window)
@@ -50,7 +49,7 @@ class Compiler(Thread):
 			sublime.set_timeout(lambda: clear_panel(self.window),0)
 
 
-		cmd = [node, os.path.join(dirname,'bin','build.js'), settings, self.root, tail.replace('.ts','.js')]
+		cmd = [node, os.path.join(dirname,'bin','build.js'), settings, self.root, self.filename]
 		Debug('build', 'EXECUTE: %s' % str(cmd))
 		p = Popen(cmd, stdin=PIPE, stdout=PIPE, **kwargs)
 

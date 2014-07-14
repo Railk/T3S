@@ -10,8 +10,10 @@ var EOL = '[end]';
 
 var config = JSON.parse(process.argv[2]);
 var filename = process.argv[3];
-var js_file = process.argv[4];
+var focused_file = process.argv[4];
 var directory = path.dirname(filename);
+var rootfilename = path.basename(filename, '.ts');
+var relative_from_root_to_focused_file = path.relative(directory, focused_file);
 
 var commands_map = {
 	"output_dir_path":"--outDir ",
@@ -59,6 +61,15 @@ function build_commands(){
 	var tsc = "";
 	var commands = [];
 
+	if(config["output_dir_path"][0] == ".") {
+
+		config['output_dir_path'] = path.join(directory,config["output_dir_path"]);
+		console.log(encode({'output':'config["output_dir_path"]: : '+config["output_dir_path"]+EOL}));
+	}
+	if(config["concatenate_and_emit_output_file_path"][0] == ".") {
+		config['concatenate_and_emit_output_file_path'] = path.join(directory,config["concatenate_and_emit_output_file_path"]);
+	}
+
 	for (var option in config){
 		if(default_values[option] != config[option] && non_cmdline_options.indexOf(option) == -1) {
 			tsc += ' '+commands_map[option]+(default_values[option]!==false?config[option]:'');
@@ -101,8 +112,14 @@ function encode(message){
 }
 
 function end(built){
-	var file = path.join(directory,config["output_dir_path"],js_file);
-	
+	var file = ""
+	if(config['output_dir_path'] != default_values['output_dir_path']) {
+		// it's a js file now, the .ts has been cut @ path.basename above
+		rfrtff = relative_from_root_to_focused_file.substr(0, relative_from_root_to_focused_file.lastIndexOf(".")) + ".js";
+		file = path.join(config["output_dir_path"], rfrtff);
+	} else if(config['concatenate_and_emit_output_file_path'] != default_values['concatenate_and_emit_output_file_path']) {
+		file = config["concatenate_and_emit_output_file_path"]
+	}
 	if(error!=="") console.log(encode({'output':EOL+"ERRORS : "+EOL+EOL+error}));
 
 	if(built) console.log(encode({'filename':file}));

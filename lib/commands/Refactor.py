@@ -11,6 +11,7 @@ import json
 
 from ..Tss import TSS
 from ..display.Panel import PANEL
+from ..display.Errors import ERRORS
 from ..system.Settings import SETTINGS
 from ..Utils import debounce, dirname, read_file, get_kwargs, ST3
 
@@ -82,8 +83,8 @@ class RefactorReader(Thread):
 		sublime.set_timeout(lambda:self.update(filename,lines,content),delay)
 
 	def update(self,filename,lines,content):
-		TSS.update(filename,lines,content)
-		TSS.errors(filename)
+		TSS.update(filename, lines, content)
+		ERRORS.start_recalculation(filename_or_root)
 		
 		
 		

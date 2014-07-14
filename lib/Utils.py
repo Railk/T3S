@@ -94,7 +94,9 @@ PREFIXES = {
 	'constructor':u'■',
 	'variable': u'V',
 	'public':u'[pub]',
-	'private':u'[priv]'
+	'private':u'[priv]',
+	'getter':u'<',
+	'setter':u'>'
 }
 
 def get_prefix(token):

@@ -45,6 +45,8 @@ class Outline(Base):
 
 			kind = get_prefix(member['loc']['kind'])
 			container_kind = get_prefix(member['loc']['containerKind'])
+			if member['loc']['kindModifiers'] != "":
+				member['loc']['kindModifiers'] = " " + member['loc']['kindModifiers']
 
 			if member['loc']['kind'] != 'class' and member['loc']['kind'] != 'interface':
 				t = "%s %s %s %s" % (kind, member['loc']['kindModifiers'], member['loc']['kind'], member['loc']['name'])

@@ -131,18 +131,6 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		view.erase_regions('typescript-definition')
 		view.erase_regions('typescript-error-hint')
 
-		return ## test
-
-		## TODO: the next line add the file if not available. call to init() or remove??
-		filename = view.file_name()
-		if not LISTE.has(filename) and read_file(filename) != None and not is_dts(view):
-			root = SETTINGS.get_root(view)
-			if root == None or root == 'no_ts': return
-			args = (root,)+get_file_infos(view)
-			FILES.add(root,filename)
-			TSS.add(*args)
-
-
 
 	# ON VIEW MODIFIED
 	@max_calls()
@@ -161,7 +149,6 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 
 		if not SETTINGS.get('error_on_save_only'):
 			ERRORS.start_recalculation(view.file_name())
-
 
 
 	# ON QUERY COMPLETION

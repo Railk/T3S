@@ -216,12 +216,12 @@ class TypescriptUpdateStructure(sublime_plugin.TextCommand):
 class TypescriptOutlineViewSetText(sublime_plugin.TextCommand):
 	@max_calls(name='TypescriptOutlineViewSetText')
 	def run(self, edit_token, members):
-		#try: # for debugging ok, but TODO: reinsert try
+		try:
 			Debug('structure', 'STRUCTURE update outline view panel')
 			T3SVIEWS.OUTLINE.set_text(edit_token, members, self.view)
-		#except (Exception) as e:
-		#	sublime.status_message("Outline panel : %s" % e)
-		#	print("Outline panel: %s" % e)
+		except (Exception) as e:
+			sublime.status_message("Outline panel : %s" % e)
+			print("Outline panel: %s" % e)
 
 
 # OPEN ERROR PANEL (via shortkey / public command)
@@ -254,11 +254,11 @@ class TypescriptRecalculateErrors(sublime_plugin.TextCommand):
 class TypescriptErrorPanelSetText(sublime_plugin.TextCommand):
 	@max_calls(name='TypescriptErrorPanelSetText')
 	def run(self, edit_token, errors):
-		#try: # for debugging ok, but TODO: reinsert try
+		try:
 			T3SVIEWS.ERROR.set_text(edit_token, errors)
-		#except (Exception) as e:
-		#	sublime.status_message("Error panel : %s" % e)
-		#	print("Error panel: %s" % e)
+		except (Exception) as e:
+			sublime.status_message("Error panel : %s" % e)
+			print("Error panel: %s" % e)
 
 
 class TypescriptSetErrorCalculationStatusMessage(sublime_plugin.TextCommand):

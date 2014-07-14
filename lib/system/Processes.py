@@ -211,8 +211,6 @@ class TssAdapterThread(Thread):
 		for async_command in iter(self.queue.get, "stop!"): 
 			Debug('adapter', "CONTINUTE execution queue")
 
-			if async_command == "stop!":
-				break
 			self.append_to_middlewarequeue(async_command)
 			self.add_pending_items_in_queue_to_middleware_queue()
 
@@ -250,9 +248,22 @@ class TssAdapterThread(Thread):
 		""" Uses the non blocking version of get() to pop from syncronized queue. """
 		try:
 			while(True):
-				self.append_to_middlewarequeue(self.queue.get_nowait())
+				async_command = self.queue.get_nowait()
+				if async_command == "stop!":
+					return self.clear_queues_and_reappend_stop()
+				self.append_to_middlewarequeue(async_command)
 		except Empty:
 			pass
+
+	def clear_queues_and_reappend_stop(self):
+		# forget everything else and reappend "stop!", so the blocking queue won't miss it
+		try:
+			while(True):
+				self.queue.get_nowait()
+		except Empty:
+			pass
+		self.middleware_queue = []
+		self.queue.put("stop!")
 
 
 	def middleware_queue_is_finished(self):
@@ -344,13 +355,16 @@ class TssAdapterThread(Thread):
 			return
 
 		async_command.time_execute = time.time()
-		self.stdin.write(encode(async_command.command))
-		self.stdin.write(encode("\n"))
-		self.stdin.flush()
-		async_command.on_execute()
-		# causes result callback to be called async
-		async_command.on_result(self.stdout.readline().decode('UTF-8'))
+		try:
+			self.stdin.write(encode(async_command.command))
+			self.stdin.write(encode("\n"))
+			self.stdin.flush()
 
+			async_command.on_execute()
+			# causes result callback to be called async
+			async_command.on_result(self.stdout.readline().decode('UTF-8'))
+		except:
+			pass
 
 
 # -------------------------------------------- INIT ------------------------------------------ #

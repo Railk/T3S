@@ -35,13 +35,12 @@ def init(view):
 
 	filename = view.file_name()
 	if PROCESSES.is_initialized(root):
-		args = get_file_infos(view)
+		filename, num_lines, content = get_file_infos(view)
 		if LISTE.has(filename):
-			TSS.update(*args)
+			TSS.update(filename, num_lines, content)
 		else:
-			args = (root,)+args
-			FILES.add(root,filename)
-			TSS.add(*args)
+			FILES.add(root, filename)
+			TSS.add(root, filename, num_lines, content)
 
 		view.run_command('typescript_update_structure')
 

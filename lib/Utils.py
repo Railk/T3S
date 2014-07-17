@@ -12,7 +12,7 @@ import sys
 
 DEFAULT_DEBOUNCE_DELAY = 0.8
 
-print_classifications = ['layout']
+print_classifications = []
 # possible classifications:
 possible_classifications = [ 'all',
 	'tss', 'tss+', 'tss++',

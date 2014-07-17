@@ -12,7 +12,8 @@ from .system.Liste import LISTE
 from .system.Processes import PROCESSES
 from .system.Settings import SETTINGS
 from .Tss import TSS
-from .Utils import debounce, is_ts, is_dts, read_file, get_file_infos, ST3, Debug, max_calls, run_command_on_any_ts_view
+from .Utils import debounce, is_ts, is_dts, read_file, get_file_infos, ST3, \
+				   Debug, max_calls, run_command_on_any_ts_view, file_exists
 
 
 # ------------------------------------------- INIT ------------------------------------------ #
@@ -32,6 +33,11 @@ def init(view):
 
 	root = SETTINGS.get_root(view)
 	if root == 'no_ts' or root == None: return
+
+	if not file_exists(root):
+		sublime.status_message("Typescript root file %s not found!" % root)
+		print("T3S: Typescript root file %s not found! Update your .sublime-project file." % root)
+		return
 
 	filename = view.file_name()
 	if PROCESSES.is_initialized(root):

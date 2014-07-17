@@ -27,10 +27,14 @@ class Errors(object):
 		""" this is the callback from the async process if new errors have been calculated """
 		try:
 			errors = json.loads(errors)
+			if type(errors) is not list:
+				raise Warning("tss.js internal error: %s" % errors)
 			ERRORSHIGHLIGHTER.highlight(errors)
 			sublime.active_window().run_command('typescript_error_panel_set_text', {"errors": errors} )
-		except:
-			print('show_errors json error : ',errors)
+		except BaseException as e:
+			ERRORSHIGHLIGHTER.highlight([])
+			sublime.active_window().run_command('typescript_error_panel_set_text', {"errors": "%s" % e} )
+			print('show_errors json error : %s (Exception Message: %s)' % (errors, "%s" % e))
 		
 
 	@max_calls()

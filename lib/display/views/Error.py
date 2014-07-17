@@ -30,9 +30,13 @@ class Error(Base):
 			This function takes the tss.js errors structure instead of a string.
 		"""
 		# this will process the errors, even if the view is closed
-		self._tssjs_2_errorview_format(errors)
+		if type(errors) == list:
+			self._tssjs_2_errorview_format(errors)
+		else:
+			self.text = "\n\n\n%s" % errors
+			self.points = {}
+			self.files = {}
 		super(Error, self).set_text(edit_token, self.text)
-
 
 	# ON CLICK
 	@max_calls(name='Error.on_click')

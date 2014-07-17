@@ -39,7 +39,7 @@ class Tss(object):
 	def reload(self, filename_or_root, callback=None):
 		AsyncCommand('reload', get_root(filename_or_root)) \
 			.set_id('reload') \
-			.set_result_callback(lambda r: callback()) \
+			.set_result_callback(lambda r: callback is None or callback()) \
 			.append_to_both_queues()
 		sublime.active_window().run_command('typescript_recalculate_errors')
 

@@ -110,9 +110,10 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not is_ts(view):
 			return
 
-		args = get_file_infos(view)
-		TSS.update(*args)
-		FILES.update(view,True)
+		filename, num_lines, content = get_file_infos(view)
+		if LISTE.has(filename):
+			TSS.update(filename, num_lines, content)
+			FILES.update(filename, num_lines, content, True)
 
 		view.run_command('typescript_update_structure', {"force": True})
 		ERRORS.start_recalculation(view.file_name())
@@ -140,9 +141,10 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		if not is_ts(view) or is_dts(view):
 			return
 
-		args = get_file_infos(view)
-		TSS.update(*args)
-		FILES.update(view)
+		filename, num_lines, content = get_file_infos(view)
+		if LISTE.has(filename):
+			TSS.update(filename, num_lines, content)
+			FILES.update(filename, num_lines, content)
 
 		view.run_command('typescript_update_structure', {"force": True})
 		COMPLETION.trigger(view, TSS)

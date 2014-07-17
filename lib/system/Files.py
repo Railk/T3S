@@ -50,19 +50,20 @@ class Files(object):
 		LISTE.remove_by_root(root)
 
 	@max_calls(name='Files.update')
-	def update(self, view, remove_unused=False):
+	def update(self, filename, num_lines, content, remove_unused=False):
 		""" 
 			updates the references list in LISTE with the used references in the unsaved source file
 			Also removes not existing files from LISTE	
 		"""
 		self.need_reload = False
-		filename = view.file_name()
 
 		Debug('files', "UPDATE(remove_unused=%s) refs from %s" % (remove_unused, filename) )
 
-		tracked_refs = LISTE.get(filename)['refs']
-		used_refs = self._get_references(view.substr(sublime.Region(0, view.size())))
+		if not LISTE.has(filename):
+			return
 
+		tracked_refs = LISTE.get(filename)['refs']
+		used_refs = self._get_references(content)
 
 		if remove_unused:
 			self._remove_unused_ref(tracked_refs, used_refs)

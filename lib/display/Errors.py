@@ -34,7 +34,7 @@ class Errors(object):
 		except BaseException as e:
 			ERRORSHIGHLIGHTER.highlight([])
 			sublime.active_window().run_command('typescript_error_panel_set_text', {"errors": "%s" % e} )
-			print('show_errors json error : %s (Exception Message: %s)' % (errors, "%s" % e))
+			print('show_errors error : %s (Exception Message: %s)' % (errors, "%s" % e))
 		
 
 	@max_calls()

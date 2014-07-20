@@ -24,7 +24,8 @@ possible_classifications = [ 'all',
 	'autocomplete',
 	'errorpanel', 'errorpanel+',
 	'focus', 'max_calls',
-	'layout']
+	'layout',
+	'goto']
 
 # DEBUG
 def Debug(classification, text):

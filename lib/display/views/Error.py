@@ -45,7 +45,16 @@ class Error(Base):
 			view = sublime.active_window().open_file(self.files[line])			
 			self._focus_error_in_view(view, self.points[line])
 
-	def _focus_error_in_view(self, view, point):
+
+	def goto_error(self, n):
+		try:
+			line = list(self.files.items())[n][0]
+		except:
+			return
+		view = sublime.active_window().open_file(self.files[line])
+		self._focus_error_in_view(view, self.points[line], set_cursor=True)
+
+	def _focus_error_in_view(self, view, point, set_cursor=False):
 		if view.is_loading():
 			sublime.set_timeout(lambda: self._focus_error_in_view(view, point), 100)
 			return
@@ -63,9 +72,13 @@ class Error(Base):
 			draw = sublime.DRAW_NO_FILL if ST3 else sublime.DRAW_OUTLINED
 			view.add_regions('typescript-error-hint', [region], 'invalid', 'dot')
 
-			#sel = view.sel()
-			#sel.clear()
-			#sel.add(sublime.Region(a,a))
+			# redraw region in 50ms because selection modification will remove it
+			sublime.set_timeout(lambda: view.add_regions('typescript-error-hint', [region], 'invalid', 'dot'), 50)
+
+			if set_cursor:
+				sel = view.sel()
+				sel.clear()
+				sel.add(sublime.Region(a,a))
 
 	def _tssjs_2_errorview_format(self, errors):
 		"""

@@ -251,6 +251,13 @@ class TypescriptRecalculateErrors(sublime_plugin.TextCommand):
 		ERRORS.start_recalculation(self.view.file_name())
 
 
+class TypescriptErrorGoto(sublime_plugin.TextCommand):
+	@max_calls(name='TypescriptErrorGoto')
+	def run(self, edit_token, n):
+		Debug('goto', "%i" % n)
+		T3SVIEWS.ERROR.goto_error(n)
+
+
 class TypescriptErrorPanelSetText(sublime_plugin.TextCommand):
 	@max_calls(name='TypescriptErrorPanelSetText')
 	def run(self, edit_token, errors):

@@ -20,7 +20,11 @@ class Outline(Base):
 		"""
 		# this will process the outline, even if the view is closed
 		self.ts_view = ts_view
-		self._tssjs_2_outline_format(members)
+		if type(members) == list:
+			self._tssjs_2_outline_format(members)
+		elif type(members) == str or (not ST3 and type(members) == unicode):
+			self.text = members
+
 		super(Outline, self).set_text(edit_token, self.text)
 
 	def is_current_ts(self, ts_view):

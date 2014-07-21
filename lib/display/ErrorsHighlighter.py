@@ -70,7 +70,11 @@ class ErrorsHighlighter(object):
 			line if the cursor is above an error (in source code).
 			For the click on the error list, see T3SVIEWS.ERROR.on_click()
 		"""
-		error = self._get_error_at(view.sel()[0].begin(),view.file_name())
+		try:
+			error = self._get_error_at(view.sel()[0].begin(),view.file_name())
+		except:
+			# no selection in view
+			return
 		if error is not None:
 			sublime.status_message(error)
 			self.previously_error_under_cursor = True

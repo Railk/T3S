@@ -62,7 +62,7 @@ class Outline(Base):
 					self.regions[line - 1] = region
 				else:
 					text.append('\n\n}\n\n%s\n' % t.strip())
-					lines += 5
+					line += 5
 					self.regions[line - 1] = region
 
 		if len(members) == 0:

@@ -6,7 +6,7 @@ import os
 
 from .Liste import LISTE
 from .Project import ProjectSettings, ProjectError
-from ..Utils import read_and_decode_json_file, read_file, get_any_ts_view
+from ..Utils import read_and_decode_json_file, read_file, get_any_ts_view, fn2l
 
 # ----------------------------------------- CONSTANT ---------------------------------------- #
 
@@ -51,14 +51,14 @@ class Settings(object):
 		if has_project_settings:
 			roots = project_settings.get('roots')
 			for root in roots:
-				root_path = os.sep.join(top_folder_segments[:len(top_folder_segments)-1]+root.replace('\\','/').split('/'))
+				root_path = os.sep.join(top_folder_segments[:] + fn2l(root).split('/'))
 				root_top_folder = self.get_top_folder(os.path.dirname(root_path))
 				if current_folder.lower().startswith(root_top_folder.lower()):
-					if root_path not in self.projects_type: 
+					if root_path not in self.projects_type:
 						self.projects_type[root_path] = ProjectSettings(SUBLIME_PROJECT)
 
 					return root_path
-				
+
 		# PROJECT SETTINGS BUT NO ROOTS INSIDE > DO WE HAVE A SUBLIMETS FILE ?
 		segments = current_folder.split(os.sep)
 		segments[0] = top_folder.split(os.sep)[0]
@@ -71,9 +71,9 @@ class Settings(object):
 			config_data = read_and_decode_json_file(config_file)
 			if config_data != None:
 				root_path = os.path.join(folder,config_data['root'])
-				data = read_file(root_path) 
+				data = read_file(root_path)
 				if data != None:
-					if root_path not in self.projects_type: 
+					if root_path not in self.projects_type:
 						self.projects_type[root_path] = ProjectSettings(SUBLIME_TS,config_file)
 
 					return root_path
@@ -86,7 +86,7 @@ class Settings(object):
 		message = ['No valid root file for this project inside your project file',path] if has_project_settings else ['You didn\'t create a project file, please create one:','Choose between the three possibilities bellow :']
 		ProjectError(error_type,message,path)
 		return None
-		
+
 
 	def get_top_folder(self,current_folder):
 		top_folder = None
@@ -98,9 +98,9 @@ class Settings(object):
 
 		if top_folder != None:
 			return top_folder
-		
+
 		return current_folder
-		
+
 
 # ------------------------------------------- INIT ------------------------------------------- #
 

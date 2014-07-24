@@ -30,9 +30,9 @@ class ProjectSettings(object):
 			if 'settings' in ts:
 				if token in ts['settings']:
 					return ts['settings'][token]
-				print('Missing setting ["typescript"]["settings"]["%s"] in your config. Using Default: %s' 
+				print('Missing setting ["typescript"]["settings"]["%s"] in your config. Using Default: %s'
 						% (token, str(self._default(token)) ) )
-				
+
 			return self._default(token)
 
 	def _default(self,token):
@@ -79,14 +79,14 @@ class ProjectError(object):
 
 
 	def _on_done(self,index):
-		if index==-1 or index==0: 
+		if index==-1 or index==0:
 			self.window.run_command("hide_overlay")
 			return
 		elif index == 1 :
 			self.window.open_file(self.path)
 		else:
 			if self.kind == 'sublime_ts':
-				self.window.open_file(dirname+'/examples/sublimets/.sublimets')			
+				self.window.open_file(dirname+'/examples/sublimets/.sublimets')
 			elif self.kind == 'sublime_project':
 				self.window.open_file(dirname+'/examples/sublimeproject/project.sublime-project')
 
@@ -119,7 +119,7 @@ class ProjectError(object):
 		self.window.show_input_panel("Enter the first root file path (from top folder to your file)", "", self._set_root_file_name, None, None)
 
 
-	# SET ROOT FILE 
+	# SET ROOT FILE
 	def _set_root_file_name(self,name):
 		self.root_files_name.append(name)
 
@@ -130,7 +130,7 @@ class ProjectError(object):
 				(path, name) =  os.path.split(sublime.active_window().active_view().file_name())
 				self.folder_name = path
 				self.window.show_input_panel("Enter the folder path of your root file", path, self._set_folder_path, None, None)
-		else: 
+		else:
 			self.window.show_input_panel("Enter the next root file path (from top folder to your file)", "", self._set_root_file_name, None, None)
 
 		self.num_root_files = self.num_root_files-1
@@ -155,7 +155,7 @@ class ProjectError(object):
 			self._create_sublime_project(settings)
 		else:
 			self._create_sublimets(settings)
-		
+
 
 	# CREATE SUBLIMETS
 	def _create_sublimets(self,settings):
@@ -198,7 +198,7 @@ class ProjectError(object):
 			os.chdir(self._get_sublime_path())
 			Popen(['sublime_text.exe','--project',path], stdin=PIPE, stdout=PIPE, **kwargs)
 		else:
-			Popen(['"'+self._get_sublime_path()+'"','--project',path], stdin=PIPE, stdout=PIPE, **kwargs)
+			Popen([''+self._get_sublime_path()+'','--project',path], stdin=PIPE, stdout=PIPE, **kwargs)
 
 
 	# GET PROJECT FOLDERS
@@ -224,7 +224,7 @@ class ProjectError(object):
 
 		if top_folder != None:
 			return top_folder
-		
+
 		return current_folder
 
 

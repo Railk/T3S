@@ -232,11 +232,12 @@ class ProjectError(object):
 	def _get_settings(self):
 		settings = sublime.load_settings('T3S.sublime-settings')
 		return {
-			"node_path":settings.get('node_path'),
-			"error_on_save_only":settings.get('error_on_save_only'),
-			"build_on_save":settings.get('build_on_save'),
-			"show_build_file":settings.get('show_build_file'),
-			"build_parameters":settings.get('build_parameters')
+			"auto_complete" : settings.get('auto_complete'),
+			"node_path" : settings.get('node_path'),
+			"error_on_save_only" : settings.get('error_on_save_only'),
+			"build_on_save" : settings.get('build_on_save'),
+			"show_build_file" : settings.get('show_build_file'),
+			"build_parameters" : settings.get('build_parameters')
 		}
 
 

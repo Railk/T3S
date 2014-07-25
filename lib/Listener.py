@@ -8,7 +8,7 @@ from .display.Completion import COMPLETION
 from .display.Errors import ERRORS
 from .display.ErrorsHighlighter import ERRORSHIGHLIGHTER
 from .system.Files import FILES
-from .system.Liste import LISTE
+from .system.Liste import LISTE, get_root
 from .system.Processes import PROCESSES
 from .system.Settings import SETTINGS
 from .Tss import TSS
@@ -57,7 +57,7 @@ def init(view):
 		TSS.addEventListener('init', root, on_init)
 		TSS.addEventListener('kill', root, on_kill)
 		TSS.init(root)
-		view.settings().set('auto_complete', SETTINGS.get("auto_complete"))
+		view.settings().set('auto_complete', SETTINGS.get("auto_complete", root))
 		view.settings().set('extensions', ['ts'])
 		
 @max_calls()
@@ -123,7 +123,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		view.run_command('typescript_update_structure', {"force": True})
 		ERRORS.start_recalculation(view.file_name())
 
-		if SETTINGS.get('build_on_save'):
+		if SETTINGS.get('build_on_save', get_root(filename)):
 			sublime.active_window().run_command('typescript_build',{"characters":False})
 
 
@@ -154,7 +154,7 @@ class TypescriptEventListener(sublime_plugin.EventListener):
 		view.run_command('typescript_update_structure', {"force": True})
 		COMPLETION.trigger(view, TSS)
 
-		if not SETTINGS.get('error_on_save_only'):
+		if not SETTINGS.get('error_on_save_only', get_root(filename)):
 			ERRORS.start_recalculation(view.file_name())
 
 

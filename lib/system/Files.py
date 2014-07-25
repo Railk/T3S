@@ -20,7 +20,11 @@ class Files(object):
 	"""
 
 	@max_calls(name='Files.init')
-	def init(self, root, callback=None):
+	def init(self, root, callback):
+		self.update_indexed_files(root, callback)
+
+	@max_calls(name='Files.update_indexed_files')
+	def update_indexed_files(self, root, callback=None):
 		""" add the files in current project (=root) determined by tss>files command to LISTE """
 		def async_react(files):
 			""" callback for async tss>files response. Add files"""

@@ -39,9 +39,9 @@ class Compiler(Thread):
 
 	def run(self):
 		Debug('build', 'BUILD INITIALIZED')
-		node = SETTINGS.get_node()
+		node = SETTINGS.get_node(self.root)
 		kwargs = get_kwargs()
-		settings = json.dumps(SETTINGS.get('build_parameters'))
+		settings = json.dumps(SETTINGS.get('build_parameters', self.root))
 
 		if ST3:
 			clear_panel(self.window)

@@ -4,9 +4,9 @@ import sublime
 import sys
 import os
 
-from .Liste import LISTE
+from .Liste import get_root
 from .Project import ProjectSettings, ProjectError
-from ..Utils import read_and_decode_json_file, read_file, get_any_ts_view, fn2l
+from ..Utils import read_and_decode_json_file, read_file, get_any_ts_view, fn2l, get_any_view_with_root
 
 # ----------------------------------------- CONSTANT ---------------------------------------- #
 
@@ -25,21 +25,19 @@ class Settings(object):
 		super(Settings, self).__init__()
 
 
-	def get(self,token):
-		view = get_any_ts_view()
-		return self.projects_type[LISTE.get_root(view.file_name())].get(view,token)
+	def get(self, token, root):
+		return self.projects_type[root].get(get_any_view_with_root(root),token)
 
 
-	def get_node(self):
-		view = get_any_ts_view()
-		node_path = self.projects_type[LISTE.get_root(view.file_name())].get(view,'node_path')
+	def get_node(self, root):
+		node_path = self.get('node_path', root)
 		if node_path == 'none':
 			return '/usr/local/bin/node' if sys.platform == "darwin" else 'node'
 		else:
 			return node_path+'/node'
 
 
-	def get_root(self,view):
+	def get_root(self, view):
 		if view.file_name() == None: return 'no_ts'
 		project_settings = view.settings().get('typescript')
 		current_folder = os.path.dirname(view.file_name())

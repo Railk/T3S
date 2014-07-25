@@ -127,7 +127,8 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 	@catch_CancelCommand
 	def run(self, edit):
 		TSS.assert_initialisation_finished(self.view.file_name())
-		
+		self.root = get_root(self.view.file_name())
+
 		pos = self.view.sel()[0].begin()
 		(line, col) = self.view.rowcol(pos)
 		_view = self.view
@@ -167,7 +168,7 @@ class TypescriptReferences(sublime_plugin.TextCommand):
 		return sublime.Region(a,b)
 
 	def on_done(self,name):
-		refactor = Refactor(self.window,name,self.refs)
+		refactor = Refactor(self.window, name, self.refs, self.root)
 		refactor.daemon = True
 		refactor.start()
 
@@ -279,10 +280,12 @@ class TypescriptBuild(sublime_plugin.TextCommand):
 
 	@catch_CancelCommand
 	def run(self, edit, characters):
-		if not SETTINGS.get('activate_build_system'):
+		filename = self.view.file_name()
+
+		if not SETTINGS.get('activate_build_system', get_root(filename)):
 			print("T3S: build_system_disabled")
 			return
-		filename = self.view.file_name()
+
 		TSS.assert_initialisation_finished(filename)
 		
 		self.window = sublime.active_window()
@@ -300,7 +303,8 @@ class TypescriptBuildView(sublime_plugin.TextCommand):
 	
 	def run(self, edit_token, filename):		
 		if filename != 'error':
-			if SETTINGS.get('show_build_file'):
+			ts_filename = self.view.file_name()
+			if SETTINGS.get('show_build_file', get_root(ts_filename)):
 				T3SVIEWS.COMPILE.enable()
 				T3SVIEWS.COMPILE.bring_to_top(back_to=self.view)
 				if os.path.exists(filename):

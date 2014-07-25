@@ -30,17 +30,18 @@ def clear_panel(window):
 
 class Refactor(Thread):
 
-	def __init__(self, window, member, refs):
+	def __init__(self, window, member, refs, root):
 		self.window = window
 		self.member = member
 		self.refs = refs
+		self.root = root
 		Thread.__init__(self)
 
 	def run(self):
 		if ST3:clear_panel(self.window)
 		else: sublime.set_timeout(lambda:clear_panel(self.window),0)
 
-		node = SETTINGS.get_node()
+		node = SETTINGS.get_node(self.root)
 		kwargs = get_kwargs()
 		p = Popen([node, os.path.join(dirname,'bin','refactor.js'), self.member, json.dumps(self.refs)], stdin=PIPE, stdout=PIPE, **kwargs)	 
 		reader = RefactorReader(self.window,p.stdout,Queue())

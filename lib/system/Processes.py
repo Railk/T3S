@@ -139,7 +139,7 @@ class TssJsStarterThread(Thread):
 		"""
 			Starts the tss.js typescript services server process and the adapter thread.
 		"""
-		node = SETTINGS.get_node()
+		node = SETTINGS.get_node(self.root)
 		tss = get_tss()
 		kwargs = get_kwargs()
 

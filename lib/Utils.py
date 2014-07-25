@@ -139,6 +139,17 @@ def get_any_ts_view():
 			if is_ts(v) and not is_dts(v):
 				return v
 
+def get_any_view_with_root(root):
+	from .system.Liste import get_root
+	v = sublime.active_window().active_view()
+	if is_ts(v) and not is_dts(v) and get_root(v.file_name()) == root:
+		return v
+	for w in sublime.windows():
+		for v in w.views():
+			if is_ts(v) and not is_dts(v) and get_root(v.file_name()) == root:
+				return v
+
+
 
 # RUN COMMAND
 def run_command_on_any_ts_view(command, args=None):

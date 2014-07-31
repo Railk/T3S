@@ -28,7 +28,7 @@ A new version of the plugin is currently in developement in the <code>Dev Branch
 Tested on Windows & Ubuntu & OSX
 
 ### Known Problems
-- OSX has currently the path for node hardcoded (default installation directory) du to some environnment <code>PATH</code> for GUI app problem. (OSX path settings added on v0.2.0 <code>dev</code> branch version soon to be released)
+- OSX has currently the path for node hardcoded (default installation directory) due to some environnment <code>PATH</code> for GUI app problem. (OSX path settings added on v0.2.0 <code>dev</code> branch version soon to be released)
 - Adding reference after loading a project doesn't track them correctly (resolved on v0.2.0 <code>dev</code> branch version soon to be released)
 
 ### Installation for Sublime Text 3:
@@ -37,7 +37,7 @@ Tested on Windows & Ubuntu & OSX
 Click the <code>Preferences > Browse Packages…</code> menu
 
 
-##### Without Git: 
+##### Without Git:
 Download the latest source zip from github and extract the files to your Sublime Text <code>Packages</code> directory, into a new directory named <code>T3S</code>.
 
 ##### With Git:
@@ -64,12 +64,12 @@ Click the <code>Preferences > Browse Packages…</code> menu
 To use the plugin correctly you need to setup a project either via a .sublimets file or using the sublime-project file.
 
 When using .sublimets or a .sublime-project file, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code> in Sublime Text.
-	
+
 ##### sublime-project file
 You can setup multiple root files
 You can indicate your typescript root files in your project_name.sublime-project like so :
-			
-		
+
+
 		"settings":
 		{
 			"typescript":
@@ -132,28 +132,28 @@ You have 3 settings available:
 ##### local_tss:
 the plugin use a local version of tss situated in the bin folder :
 
-		
+
 		"local_tss":true
-		
-		
+
+
 
 You can use the tss command line tool (check installation method on the tss page) by setting local_tss to false, but with so the plugin will be perhaps behind TSS in terms of update and it could make the plugin not working is there's some api change.
 
-		
+
 		"local_tss":false
-		
-		
+
+
 
 ##### error_on_save_only:
 Error highlighting while typing (will lag a bit du to calculation and this cannot be changed):
 
-		
+
 		"error_on_save_only":false
-		
+
 
 Error highlighting only shown when saving:
 
-		
+
 		"error_on_save_only":true
 
 
@@ -163,7 +163,7 @@ I've added a build system that take most of the command line parameters of TSC, 
 And you also have two extra parameters that are <code>pre_processing_commands</code> and <code>post_processing_commands</code> that give you the opportunity to do command line things before and after <code>tsc</code> compiling
 
 These are the default values:
-		
+
 
 		"build_parameters":{
 			"pre_processing_commands":[],
@@ -188,7 +188,7 @@ Here's an exemple that do:
 1. One pre processing command : <code>node .settings/.components</code>
 2. The actual compilation with an output dir and amd module : <code>tsc /absolute/path/to/filename.ts --outDir ./.build --module amd</code>
 3. Two post processing commands : <code>node .settings/.silns.js</code> and <code>r.js.cmd -o .settings/.build.js</code>
-	
+
 		"build_parameters":{
 			"pre_processing_commands":[
 				"node .settings/.components"
@@ -244,10 +244,10 @@ you can open a panel by pressing <code>F3</code> on a file to list class variabl
 ##### Auto-completion:
 You can circle through the function variables (if there's some) like with the snippets with the <code>tab</code> key
 
-##### Error highlighting: 
+##### Error highlighting:
 You can click on highlighted part to see the error description in the status bar
 
-##### Error Panel: 
+##### Error Panel:
 You have the possibility to open an <code>error panel</code> that will list all the errors accross all your project file with the command <code>ctrl+shift+e</code>
 You can then click on each row, it'll open or focus the already open file concerned by the error.
 

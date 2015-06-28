@@ -3,7 +3,7 @@ TSS Sublime (T3S)
 
 ### STATUS : Not maintained
 
-Due to a lack of time, the will to continue working on it and the fact that i've changed my code editor, this plugin will no longer be maintained. I've created this plugin mainly so i could code with typescript on sublime text, it served me well and i hope it helped others too, luckily there's other options right now for people using sublimetext :
+Due to a lack of time, the lack of will to continue working on it and the fact that i've changed my code editor, this plugin will no longer be maintained. I've created this plugin mainly so i could code with typescript on sublime text, it served me well and i hope it helped others too, luckily there's other options right now for people using sublimetext :
 
 . ArcticTypescript a fork of TS3 with lots of change and work to tackle performance issues : 
 	https://github.com/Phaiax/ArcticTypescript

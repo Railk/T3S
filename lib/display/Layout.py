@@ -2,7 +2,7 @@
 # delete code taken from sublime origami : https://github.com/SublimeText/Origami
 
 import sublime
-from ..Utils import ST3
+from ..Utils import ST3, max_calls, Debug
 
 XMIN, YMIN, XMAX, YMAX = list(range(4))
 
@@ -14,7 +14,9 @@ class Layout(object):
 
 
 	# UPDATE
+	@max_calls(name='Layout.update')
 	def update(self,window,group):
+		Debug('layout', 'UPDATE: group: %i' % group)
 		views = window.views_in_group(group)
 		if len(views) == 0: 
 			self.delete(window,group)
@@ -26,7 +28,7 @@ class Layout(object):
 	# GET LAYOUT
 	def get_layout(self,window):
 		layout = window.get_layout()
-		if not layout: return
+		if not layout: return None, None, None
 
 		cells = layout["cells"]
 		rows = layout["rows"]
@@ -53,8 +55,14 @@ class Layout(object):
 
 
 	# CREATE PANE
+	@max_calls(name='Layout.create')
 	def create(self,window):
 		rows, cols, cells = self.get_layout(window)
+		if rows is None:
+			rows, cols, cells = self.get_layout(window)
+			if rows is None:
+				return
+			
 
 		MAXROWS = len(rows)-1
 		MAXCOLS = len(cols)-1
@@ -68,10 +76,17 @@ class Layout(object):
 
 
 	# DELETE
+	@max_calls(name='Layout.delete')
 	def delete(self,window,group):
+		Debug('layout', 'DELETE: group: %i' % group)
 		if not self.get_layout(window): return
 		rows, cols, cells = self.get_layout(window)
+		if rows is None:
+			rows, cols, cells = self.get_layout(window)
+			if rows is None:
+				return
 
+		Debug('layout', '  cells: %s' % cells)
 		current = cells[group]
 		choices = {}
 		choices["up"] = self.adjacent_cell(window,"up",group)
@@ -102,9 +117,11 @@ class Layout(object):
 			group_to_remove = cells.index(cell_to_remove)
 			dupe_views = self.duplicated_views(window,current_group,group_to_remove)
 			for d in dupe_views:
+				Debug('focus', 'T focus view %i' % d.id())
 				window.focus_view(d)
 				window.run_command('close')
 			if active_view:
+				Debug('focus', 'U focus view %i' % active_view.id())
 				window.focus_view(active_view)
 			
 			cells.remove(cell_to_remove)

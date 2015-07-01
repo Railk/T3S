@@ -6,7 +6,31 @@
 	},
 	{
 		"command": "typescript_error_panel",
-		"keys": ["ctrl+shift+e"],
+		"keys": ["alt+shift+e"],
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_error_goto",
+		"keys": ["alt+shift+e", "alt+shift+h"],
+		"args": {"n": 0 },
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_error_goto",
+		"keys": ["alt+shift+e", "alt+shift+j"],
+		"args": {"n": 1 },
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_error_goto",
+		"keys": ["alt+shift+e", "alt+shift+k"],
+		"args": {"n": 2 },
+		"context": [ {"key": "T3S"} ]
+	},
+	{
+		"command": "typescript_error_goto",
+		"keys": ["alt+shift+e", "alt+shift+l"],
+		"args": {"n": 3 },
 		"context": [ {"key": "T3S"} ]
 	},
 	{

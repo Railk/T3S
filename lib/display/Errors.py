@@ -1,109 +1,48 @@
 # coding=utf8
 
-from threading import Thread
-
 import sublime
-import os
 import json
 
-from .Views import VIEWS
+from .ErrorsHighlighter import ERRORSHIGHLIGHTER
 from ..Tss import TSS
-from ..Utils import dirname, debounce, ST3
+from ..Utils import max_calls
+from ..system.Liste import get_root
 
 # --------------------------------------- ERRORS -------------------------------------- #
 
 class Errors(object):
-
-	errors = {}
-	errors_reader = {}
-	underline = sublime.DRAW_SQUIGGLY_UNDERLINE | sublime.DRAW_NO_FILL | sublime.DRAW_NO_OUTLINE | sublime.DRAW_EMPTY_AS_OVERWRITE
-
 	def __init__(self):
-		if os.name == 'nt':
-			self.error_icon = ".."+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal')
-			self.warning_icon = ".."+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-warning')
-		else:
-			self.error_icon = "Packages"+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-illegal.png')
-			self.warning_icon = "Packages"+os.path.join(dirname.split('Packages')[1], 'icons', 'bright-warning.png')
+		pass
 
+	@max_calls()
+	def start_recalculation(self, file_name=""):
+		if file_name == "" or file_name is None:
+			file_name = sublime.active_window.active_view().file_name() # guess
+		if get_root(file_name) is not None:
+			# file_name is only needed to find root file
+			TSS.errors(file_name, self.on_results)
 
-	def init(self,root,queue):
-		reader = ErrorsReader(queue)
-		reader.daemon = True
-		reader.start()
-
-		self.errors_reader[root] = reader 
-		debounce(TSS.errors, 0, 'errors' + str(id(TSS)), root)
-
-
-	def remove(self,root):
-		if root in self.errors_reader:
-			del self.errors_reader[root]
-		
-
-	def show(self,view,errors):
+	@max_calls()
+	def on_results(self, errors, filename):
+		""" this is the callback from the async process if new errors have been calculated """
 		try:
 			errors = json.loads(errors)
-			self.highlight(view,errors)
-			if VIEWS.has_error: sublime.active_window().run_command('typescript_error_panel_view',{"errors":errors})
-		except:
-			print('show_errors json error : ',errors)
+			if type(errors) is not list:
+				raise Warning("tss.js internal error: %s" % errors)
+			ERRORSHIGHLIGHTER.highlight(errors)
+			sublime.active_window().run_command('typescript_error_panel_set_text', {"errors": errors} )
+		except BaseException as e:
+			ERRORSHIGHLIGHTER.highlight([])
+			sublime.active_window().run_command('typescript_error_panel_set_text', {"errors": "%s" % e} )
+			print('show_errors error : %s (Exception Message: %s)' % (errors, "%s" % e))
+		
 
-
-	def highlight(self,view,errors) :
-		error_regions = []
-		warning_regions = []
-		filename = view.file_name()
-
-		self.errors[filename] = {}
-		for e in errors :
-			if e['file'].replace('/',os.sep).lower() == filename.lower():
-				start_line = e['start']['line']
-				end_line = e['end']['line']
-				left = e['start']['character']
-				right = e['end']['character']
-
-				a = view.text_point(start_line-1,left-1)
-				b = view.text_point(end_line-1,right-1)
-				self.errors[filename][(a,b)] = e['text']
-
-				if e['category'] == 'Error': 
-					error_regions.append(sublime.Region(a,b))
-				else:
-					warning_regions.append(sublime.Region(a,b))
-
-		view.add_regions('typescript-error' , error_regions , 'invalid' , self.error_icon, self.underline)
-		view.add_regions('typescript-warnings' , warning_regions , 'invalid' , self.warning_icon, self.underline)
-
-
-	def set_status(self,view):
-		error = self._get_error_at(view.sel()[0].begin(),view.file_name())
-		if error != None:
-			sublime.status_message(error)
-		else:
-			sublime.status_message('')
-
-
-	def _get_error_at(self,pos,filename):
-		if filename in self.errors:
-			for (l, h), error in self.errors[filename].items():
-				if pos >= l and pos <= h:
-					return error
-
-		return None
-
-# ----------------------------------- ERRORS READER --------------------------------- #
-
-class ErrorsReader(Thread):
-
-	def __init__(self,queue):
-		self.queue = queue
-		Thread.__init__(self)
-
-	def run(self):
-		for line in iter(self.queue.get, None):
-			if ST3: ERRORS.show(sublime.active_window().active_view(),line)
-			else: sublime.set_timeout(lambda: ERRORS.show(sublime.active_window().active_view(),line), 1)
+	@max_calls()
+	def on_close_typescript_project(self, root):
+		""" Will be called when a typescript project is closed (eg all files closed).
+			But there may be other open typescript projects.
+			-> for future use :) """
+		pass
 
 
 # --------------------------------------- INIT -------------------------------------- #

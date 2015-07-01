@@ -12,7 +12,7 @@
 		{
 			"roots":
 			[
-				"sublimeproject/main.ts"
+				"main.ts"
 			],
 			"settings":
 			{

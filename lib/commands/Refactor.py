@@ -11,8 +11,9 @@ import json
 
 from ..Tss import TSS
 from ..display.Panel import PANEL
+from ..display.Errors import ERRORS
 from ..system.Settings import SETTINGS
-from ..Utils import debounce, dirname, get_data, get_kwargs, ST3
+from ..Utils import debounce, dirname, read_file, get_kwargs, ST3
 
 
 # ----------------------------------------- UTILS --------------------------------------- #
@@ -29,17 +30,18 @@ def clear_panel(window):
 
 class Refactor(Thread):
 
-	def __init__(self, window, member, refs):
+	def __init__(self, window, member, refs, root):
 		self.window = window
 		self.member = member
 		self.refs = refs
+		self.root = root
 		Thread.__init__(self)
 
 	def run(self):
 		if ST3:clear_panel(self.window)
 		else: sublime.set_timeout(lambda:clear_panel(self.window),0)
 
-		node = SETTINGS.get_node()
+		node = SETTINGS.get_node(self.root)
 		kwargs = get_kwargs()
 		p = Popen([node, os.path.join(dirname,'bin','refactor.js'), self.member, json.dumps(self.refs)], stdin=PIPE, stdout=PIPE, **kwargs)	 
 		reader = RefactorReader(self.window,p.stdout,Queue())
@@ -65,7 +67,7 @@ class RefactorReader(Thread):
 				else: sublime.set_timeout(lambda:show_output(self.window,line),0)
 			elif 'file' in line:
 				filename = line['file']
-				content = get_data(filename)
+				content = read_file(filename)
 				lines = len(content.split('\n'))-1
 				if previous != filename:
 					self.send(filename,lines,content,delay)
@@ -82,5 +84,8 @@ class RefactorReader(Thread):
 		sublime.set_timeout(lambda:self.update(filename,lines,content),delay)
 
 	def update(self,filename,lines,content):
-		TSS.update(filename,lines,content)
-		debounce(TSS.errors, 0.3, 'errors' + str(id(TSS)), filename)
+		TSS.update(filename, lines, content)
+		ERRORS.start_recalculation(filename_or_root)
+		
+		
+		

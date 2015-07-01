@@ -22,6 +22,15 @@ I'm using the same error icons has SublimeLinter.
 I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 
+### vdev Changes (this update may break old configurations)
+- The reference directory to resolve relative root files has changed:
+	- You have: /home/user/ts/projectX/X.sublimeproject and /home/user/ts/projectX/main.ts
+	- Before you specified "projectX/main.ts" as root file
+	- NOW you need to specify "main.ts" only. (This is the default sublime way of relative paths.)
+- The default shortcut to switch to the error view changed to: CTRL + SHIFT + E
+- There are 4 new shortcuts to jump to the first four Errors: CTRL + SHIFT + E + H (or J, K, L)
+- currently failing on ST2
+
 ### v0.2.0 Changes (updates i make can break some things as i don't always fully check on each OS)
 - On focusing a ts file if no project is found for it; a project creation process begin
 - You need to redo your project settings as i've added the possibility to have settings per project (cf. examples)
@@ -33,7 +42,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - One branch only for Sublime text 2 and 3
 - Completion on <code>:</code> with <code>ctrl+space</code> to have the primitives and interface
 - Quick panel for user message (initialisation,closing project etc...)
-- Todo : 
+- Todo :
 
 	1. Better layout management
 	2. Tests everything on OSes and ST2/ST3
@@ -43,6 +52,7 @@ I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 - TypeScript language auto completion
 - TypeScript language error highlighting
 - TypeScript language syntax highlighting
+- Typescript file outline view
 - A build System
 - Basic refactoring
 
@@ -62,7 +72,7 @@ Tested on Windows & Ubuntu & OSX not entirely for now on <code>DEV</code>
 Click the <code>Preferences > Browse Packages…</code> menu
 
 
-##### Without Git: 
+##### Without Git:
 Download the latest source zip from github and extract the files to your Sublime Text <code>Packages</code> directory, into a new directory named <code>T3S</code>.
 
 ##### With Git:
@@ -81,7 +91,7 @@ For the plugin to work you need to define a project :
 You can look inside the <code>example folder</code> for setup examples or if you focus a ts file and no project are found a project creation porcess will be initiated
 
 To open a project, you need to open the folder where your project is with <code>file > open folder</code> or <code>project > open project</code>
-	
+
 ##### You have a sublime text project or want to create a project with multiple root files
 You can indicate your typescript root files in your project_name.sublime-project like so :
 
@@ -137,6 +147,9 @@ And also add (optionnal) your project settings :
 			}
 		}
 
+- One of "output_dir_path" (for --outDir) and "concatenate_and_emit_output_file_path" (for --out) needs to contain a file path/directory. If you want to insert a relative path, it has to start with a dot: . The relative path is relative to the folder of the root file.
+- For any path related config option: If no path is given, please insert "none".
+- show_build_file displays the compiled file in an extra view inside of sublime.
 
 ##### You want to create a single root file project and don't want to create a sublime-project
 You can create a .sublimets file in the folder containing the typescript root file :
@@ -234,18 +247,18 @@ you can have normal sublime auto completion with typescript completion (if chang
 You can set the path to node : (if changed you need to restart sublime)
 
 		"node_path":"/your/path/to"
-		
-		
+
+
 ##### error_on_save_only:
 Error highlighting while typing (will lag a bit du to calculation and this cannot be changed):
 
-		
+
 		"error_on_save_only":false
-		
+
 
 Error highlighting only shown when saving:
 
-		
+
 		"error_on_save_only":true
 
 
@@ -267,7 +280,7 @@ I've added a build system that take most of the command line parameters of TSC, 
 And you also have two extra parameters that are <code>pre_processing_commands</code> and <code>post_processing_commands</code> that give you the opportunity to do command line things before and after <code>tsc</code> compiling
 
 These are the default values:
-		
+
 
 		"build_parameters":{
 			"pre_processing_commands":[],
@@ -292,7 +305,7 @@ Here's an exemple that do:
 1. One pre processing command : <code>node .settings/.components</code>
 2. The actual compilation with an output dir and amd module : <code>tsc /absolute/path/to/filename.ts --outDir ./.build --module amd</code>
 3. Two post processing commands : <code>node .settings/.silns.js</code> and <code>r.js.cmd -o .settings/.build.js</code>
-	
+
 		"build_parameters":{
 			"pre_processing_commands":[
 				"node .settings/.components"
@@ -336,10 +349,10 @@ you can open an <code>Outline view</code> by pressing <code>F3</code> on a file 
 ##### Auto-completion:
 You can circle through the function variables (if there's some) like with the snippets with the <code>tab</code> key
 
-##### Error highlighting: 
+##### Error highlighting:
 You can click on highlighted part to see the error description in the status bar
 
-##### Error View: 
+##### Error View:
 You have the possibility to open an <code>Error view</code> that will list all the errors accross all your project file with the command <code>ctrl+shift+e</code>
 You can then click on each row, it'll open or focus the already open file concerned by the error.
 

@@ -5,6 +5,30 @@
 		"context": [ {"key": "T3S"} ]
 	},
 	{
+		"caption": "Typescript: Go to first error",
+		"command": "typescript_error_goto",
+		"context": [ {"key": "T3S"} ],
+		"args": { "n" : 0 }
+	},
+	{
+		"caption": "Typescript: Go to second error",
+		"command": "typescript_error_goto",
+		"context": [ {"key": "T3S"} ],
+		"args": { "n" : 1 }
+	},
+	{
+		"caption": "Typescript: Go to third error",
+		"command": "typescript_error_goto",
+		"context": [ {"key": "T3S"} ],
+		"args": { "n" : 2 }
+	},
+	{
+		"caption": "Typescript: Go to fourth error",
+		"command": "typescript_error_goto",
+		"context": [ {"key": "T3S"} ],
+		"args": { "n" : 3 }
+	},
+	{
 		"caption": "Typescript: Go to definition",
 		"command": "typescript_definition",
 		"context": [ {"key": "T3S"} ]

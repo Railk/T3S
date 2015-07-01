@@ -4,9 +4,9 @@ import sublime
 import sys
 import os
 
-from .Liste import LISTE
+from .Liste import get_root
 from .Project import ProjectSettings, ProjectError
-from ..Utils import get_data
+from ..Utils import read_and_decode_json_file, read_file, get_any_ts_view, fn2l, get_any_view_with_root
 
 # ----------------------------------------- CONSTANT ---------------------------------------- #
 
@@ -25,21 +25,19 @@ class Settings(object):
 		super(Settings, self).__init__()
 
 
-	def get(self,token):
-		view = sublime.active_window().active_view()
-		return self.projects_type[LISTE.get_root(view.file_name())].get(view,token)
+	def get(self, token, root):
+		return self.projects_type[root].get(get_any_view_with_root(root),token)
 
 
-	def get_node(self):
-		view = sublime.active_window().active_view()
-		node_path = self.projects_type[LISTE.get_root(view.file_name())].get(view,'node_path')
+	def get_node(self, root):
+		node_path = self.get('node_path', root)
 		if node_path == 'none':
 			return '/usr/local/bin/node' if sys.platform == "darwin" else 'node'
 		else:
 			return node_path+'/node'
 
 
-	def get_root(self,view):
+	def get_root(self, view):
 		if view.file_name() == None: return 'no_ts'
 		project_settings = view.settings().get('typescript')
 		current_folder = os.path.dirname(view.file_name())
@@ -51,14 +49,14 @@ class Settings(object):
 		if has_project_settings:
 			roots = project_settings.get('roots')
 			for root in roots:
-				root_path = os.sep.join(top_folder_segments[:len(top_folder_segments)-1]+root.replace('\\','/').split('/'))
+				root_path = os.sep.join(top_folder_segments[:] + fn2l(root).split('/'))
 				root_top_folder = self.get_top_folder(os.path.dirname(root_path))
 				if current_folder.lower().startswith(root_top_folder.lower()):
-					if root_path not in self.projects_type: 
+					if root_path not in self.projects_type:
 						self.projects_type[root_path] = ProjectSettings(SUBLIME_PROJECT)
 
 					return root_path
-				
+
 		# PROJECT SETTINGS BUT NO ROOTS INSIDE > DO WE HAVE A SUBLIMETS FILE ?
 		segments = current_folder.split(os.sep)
 		segments[0] = top_folder.split(os.sep)[0]
@@ -68,12 +66,12 @@ class Settings(object):
 		for index in segment_range:
 			folder = os.sep.join(segments[:index])
 			config_file = os.path.join(folder,'.sublimets')
-			config_data = get_data(config_file,True)
+			config_data = read_and_decode_json_file(config_file)
 			if config_data != None:
 				root_path = os.path.join(folder,config_data['root'])
-				data = get_data(root_path) 
+				data = read_file(root_path)
 				if data != None:
-					if root_path not in self.projects_type: 
+					if root_path not in self.projects_type:
 						self.projects_type[root_path] = ProjectSettings(SUBLIME_TS,config_file)
 
 					return root_path
@@ -86,7 +84,7 @@ class Settings(object):
 		message = ['No valid root file for this project inside your project file',path] if has_project_settings else ['You didn\'t create a project file, please create one:','Choose between the three possibilities bellow :']
 		ProjectError(error_type,message,path)
 		return None
-		
+
 
 	def get_top_folder(self,current_folder):
 		top_folder = None
@@ -98,9 +96,9 @@ class Settings(object):
 
 		if top_folder != None:
 			return top_folder
-		
+
 		return current_folder
-		
+
 
 # ------------------------------------------- INIT ------------------------------------------- #
 

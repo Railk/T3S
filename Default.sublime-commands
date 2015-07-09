@@ -1,4 +1,5 @@
 [
+<<<<<<< HEAD
 	{
 		"caption": "Typescript: Errors view",
 		"command": "typescript_error_panel",
@@ -35,4 +36,42 @@
 		"args": {"characters": ""},
 		"context": [ {"key": "T3S"} ]
 	}
+=======
+    {
+        "caption": "Typescript: Open Error Panel",
+        "command": "typescript_error_panel",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
+    },
+    {
+        "caption": "Typescript: Go to definition",
+        "command": "typescript_definition",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
+    },
+    {
+        "caption": "Typescript: Reload Project",
+        "command": "typescript_reload_project",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
+    },
+    {
+        "caption": "Typescript: Close projects",
+        "command": "typescript_kill",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
+    },
+    {
+        "caption": "Typescript: Navigate in file",
+        "command": "typescript_structure",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
+    },
+    {
+        "caption": "Typescript: View member type",
+        "command": "typescript_type",
+        "args": {"characters": ""},
+        "context": [ {"key": "typescript"} ]
+    }
+>>>>>>> master
 ]

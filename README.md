@@ -263,7 +263,7 @@ You can circle through the function variables (if there's some) like with the sn
 You can click on highlighted part to see the error description in the status bar
 
 ##### Error Panel:
-You have the possibility to open an <code>error panel</code> that will list all the errors accross all your project file with the command <code>ctrl+shift+e</code>
+You have the possibility to open an <code>error panel</code> that will list all the errors across all your project file with the command <code>ctrl+shift+e</code>
 You can then click on each row, it'll open or focus the already open file concerned by the error.
 
 ##### Reloading the project:

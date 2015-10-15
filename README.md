@@ -198,7 +198,7 @@ These are the default values:
 			"ecmascript_target":"ES3"
 		}
 
-Here's an exemple that do:
+Here's an example:
 
 1. One pre processing command : <code>node .settings/.components</code>
 2. The actual compilation with an output dir and amd module : <code>tsc /absolute/path/to/filename.ts --outDir ./.build --module amd</code>

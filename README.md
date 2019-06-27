@@ -23,7 +23,7 @@ I'm using the same error icons has SublimeLinter.
 I took inspiration from: https://github.com/raph-amiard/sublime-typescript
 
 ### Next version
-A new version of the plugin is currently in developement in the <code>Dev Branch</code>. This new version correct most of the problem of the current version (especially references tracking after project initialisation that in the current version is not working) and have new features. It will be released soon.
+A new version of the plugin is currently in development in the <code>Dev Branch</code>. This new version correct most of the problem of the current version (especially references tracking after project initialisation that in the current version is not working) and have new features. It will be released soon.
 
 
 ### Features
